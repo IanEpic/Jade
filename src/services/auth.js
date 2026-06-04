@@ -1,64 +1,73 @@
 // services/auth.js
-// Converts login() from EPIC::JADE::Common and the login flow from login.cgi
-//
-// The Perl login() function:
-//   1. Finds the program by fqdn + portalopen
-//   2. Finds the user by email + programid + deleted=0 + enabled=1
-//   3. Checks password with crypt()
-//   4. If emulateuser cookie set, swaps to that user
-//
-// In Node, the program lookup uses req.hostname instead of servername().
-// Password checking handles both legacy DES crypt (existing DB) and new bcrypt.
 
 import Program from '../models/Program.js';
 import User from '../models/User.js';
+import UserCredential from '../models/UserCredential.js';
 import { checkPassword } from './helpers.js';
 
-// Replaces: EPIC::JADE::Program->search(fqdn => servername(), portalopen => 1)
-// Returns the Program for the current hostname, or null if not found / portal closed.
 export async function getProgramByHost(hostname) {
-  return Program.findOne({
-    where: { fqdn: hostname },
-  });
+  return Program.findOne({ where: { fqdn: hostname } });
 }
 
-// Looks up a program by its slug (used by the new slug-based routing middleware).
 export async function getProgramBySlug(slug) {
-  return Program.findOne({
-    where: { slug },
-  });
+  return Program.findOne({ where: { slug } });
 }
 
-// Replaces: login($email, $password, $emulateuser) from EPIC::JADE::Common
-// Returns the authenticated User, or null if auth fails.
+// Returns { user, credential } on success, null on failure.
+// Verifies password against UserCredential. Falls back to User.password for
+// rows not yet migrated (credentialid IS NULL) so the old login still works
+// during the migration window.
 export async function login(email, password, programId, emulateUserId = null) {
   if (!email || !password) return null;
 
-  const user = await User.findOne({
-    where: {
-      email,
-      programid: programId,
-      deleted:   0,
-      enabled:   1,
-    },
-  });
+  const credential = await UserCredential.findOne({ where: { email } });
+
+  let user;
+
+  if (credential) {
+    const valid = await checkPassword(password, credential.password);
+    if (!valid) return null;
+
+    user = await User.findOne({
+      where: { credentialid: credential.credentialid, programid: programId, deleted: 0, enabled: 1 },
+    });
+  } else {
+    // Pre-migration fallback: check User.password directly
+    user = await User.findOne({
+      where: { email, programid: programId, deleted: 0, enabled: 1 },
+    });
+    if (!user) return null;
+    const valid = await checkPassword(password, user.password);
+    if (!valid) return null;
+  }
 
   if (!user) return null;
 
-  const valid = await checkPassword(password, user.password);
-  if (!valid) return null;
-
-  // Replaces: if ($emulateuser) { $userout = EPIC::JADE::User->retrieve($emulateuser) }
   if (emulateUserId) {
-    const emulatedUser = await User.findByPk(emulateUserId);
-    return emulatedUser || user;
+    const emulated = await User.findByPk(emulateUserId);
+    return { user: emulated || user, credential };
   }
 
-  return user;
+  return { user, credential };
+}
+
+// Returns all programs this credential has access to (for the switcher).
+export async function getLinkedPrograms(credentialId) {
+  const users = await User.findAll({
+    where: { credentialid: credentialId, deleted: 0, enabled: 1 },
+    include: [{ model: Program, as: 'program', attributes: ['programid', 'slug', 'name'] }],
+  });
+  return users
+    .filter(u => u.program)
+    .map(u => ({
+      userid:    u.userid,
+      programid: u.programid,
+      slug:      u.program.slug,
+      name:      u.program.name,
+    }));
 }
 
 // Replaces: EPIC::JADE::LogOnRecord->insert({ userid => $user->userid() })
-// Logs each successful login. Stub until LogOnRecord model is fully defined.
 export async function recordLogon(userId) {
   try {
     const { default: LogOnRecord } = await import('../models/LogOnRecord.js');

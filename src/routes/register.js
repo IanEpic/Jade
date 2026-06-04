@@ -4,8 +4,8 @@
 
 import { Router }                       from 'express';
 import User                             from '../models/User.js';
+import UserCredential                   from '../models/UserCredential.js';
 import Address                          from '../models/Address.js';
-import { getProgramByHost }             from '../services/auth.js'; // kept for reference, not used below
 import { encryptPassword, randomPassword } from '../services/helpers.js';
 import { mail }                         from '../services/mailer.js';
 
@@ -68,9 +68,17 @@ router.post('/', async (req, res, next) => {
         const password          = randomPassword();
         const encryptedPassword = await encryptPassword(password);
 
+        // Find or create a UserCredential for this email.
+        // If the person is already in another program, reuse their existing credential.
+        let [credential] = await UserCredential.findOrCreate({
+            where:    { email: body.email.trim() },
+            defaults: { email: body.email.trim(), password: encryptedPassword },
+        });
+
         // Create user first (address needs a valid userid due to FK constraint)
         const newUser = await User.create({
             programid:       program.programid,
+            credentialid:    credential.credentialid,
             email:           body.email.trim(),
             password:        encryptedPassword,
             question:        body.question?.trim() || '',

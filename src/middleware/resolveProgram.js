@@ -31,6 +31,7 @@ export async function resolveProgram(req, res, next) {
         // Leaves external URLs (http/https) and back-redirects untouched.
         const slugBase = `/${slug}`;
         const originalRedirect = res.redirect.bind(res);
+        res.redirectAbsolute = originalRedirect; // escape hatch for cross-program redirects
 
         res.redirect = function (statusOrUrl, maybeUrl) {
             let status = 302;
@@ -41,12 +42,14 @@ export async function resolveProgram(req, res, next) {
                 url = maybeUrl;
             }
 
-            if (
-                typeof url === 'string' &&
-                url.startsWith('/') &&
-                !url.startsWith(slugBase)
-            ) {
-                url = `${slugBase}${url}`;
+            if (typeof url === 'string' && url.startsWith('/') && !url.startsWith(slugBase)) {
+                // Don't prefix if the URL already starts with a different slug
+                // e.g. /aea25/switch-confirm when currently under /aea26
+                const firstSeg = url.split('/')[1];
+                const alreadySlugPrefixed = firstSeg && /^[a-z0-9_-]+$/.test(firstSeg) && firstSeg !== slug;
+                if (!alreadySlugPrefixed) {
+                    url = `${slugBase}${url}`;
+                }
             }
 
             return originalRedirect(status, url);

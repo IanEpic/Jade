@@ -1,31 +1,52 @@
-// auth.js
-// Replaces the login block that appears at the top of every Perl CGI script:
-//
-//   my $email    = $query->cookie('email');
-//   my $password = $query->cookie('password');
-//   $user = login($email, $password, $emulateuser);
-//   if (!$user) { readfile(...login_error()...); exit; }
-//
-// In Express this runs once as middleware on every protected route.
-// Session is established at login and req.user is available in all route handlers.
+// middleware/auth.js
 
 import User from '../models/User.js';
 
-// requireAuth: attach to any router that needs a logged-in user.
-// Equivalent of the login block + "if (!$user) { ... exit; }" guard.
 export async function requireAuth(req, res, next) {
     if (!req.session?.userId) {
         return res.redirect('/login');
     }
+
+    // Detect cross-program navigation: user is visiting a slug that differs from
+    // their current session program. If their credential has access to the target
+    // program, offer a switch confirmation rather than booting them to login.
+    if (req.program && req.program.programid !== req.session.programId) {
+        if (req.session.credentialId) {
+            const targetUser = await User.findOne({
+                where: {
+                    credentialid: req.session.credentialId,
+                    programid:    req.program.programid,
+                    deleted:      0,
+                    enabled:      1,
+                },
+            });
+            if (targetUser) {
+                req.session.pendingSwitch = {
+                    userId:      targetUser.userid,
+                    programId:   req.program.programid,
+                    programSlug: req.program.slug,
+                    programName: req.program.name,
+                };
+                return req.session.save(err => {
+                    if (err) return next(err);
+                    // Show the confirmation under the current (source) program's shell
+                    res.redirect(`/${req.session.programSlug}/switch-confirm`);
+                });
+            }
+        }
+        // Credential has no access to the target program — send to that program's login
+        return res.redirect('/login');
+    }
+
     try {
         const user = await User.findByPk(req.session.userId, {
-            include: ['program'],   // eager-load the program (equiv of $user->programid)
+            include: ['program'],
         });
         if (!user) {
             req.session.destroy();
             return res.redirect('/login');
         }
-        // Emulate-user support (equiv of $emulateuser cookie)
+
         if (req.session.emulateUserId) {
             req.realUser = user;
             req.user = await User.findByPk(req.session.emulateUserId, {
@@ -40,7 +61,6 @@ export async function requireAuth(req, res, next) {
     }
 }
 
-// requireRole: optional — restrict routes to specific roles (admin, judge, etc.)
 export function requireRole(...roles) {
     return (req, res, next) => {
         if (!req.user) return res.redirect('/login');

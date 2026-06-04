@@ -127,7 +127,7 @@ window.JADE_BASE='/${slug}';
   var base=window.JADE_BASE;
   function fix(el,attr){
     var v=el.getAttribute(attr);
-    if(v&&v.charAt(0)==='/'&&v.indexOf(base)!==0)el.setAttribute(attr,base+v);
+    if(v&&v.charAt(0)==='/'&&v.indexOf(base)!==0){var seg=v.split('/')[1];if(seg&&seg!==window.JADE_SLUG&&/^[a-z0-9_-]+$/.test(seg))return;el.setAttribute(attr,base+v);}
   }
   function rewrite(){
     [].forEach.call(document.querySelectorAll('a[href]'),function(a){fix(a,'href');});

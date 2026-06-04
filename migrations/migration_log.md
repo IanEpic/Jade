@@ -111,4 +111,72 @@ ALTER TABLE ProgramDiscount ADD name NVARCHAR(100) NULL;
 
 ---
 
+## 005 — Create UserCredential table
+
+**Date tested:**
+**Purpose:** Separate authentication (email + password) from program membership. One credential row per email address, shared across all programs the user belongs to.
+
+```sql
+CREATE TABLE UserCredential (
+    credentialid INT IDENTITY(1,1) PRIMARY KEY,
+    email        NVARCHAR(255) NOT NULL,
+    password     NVARCHAR(100) NOT NULL,
+    CONSTRAINT UQ_UserCredential_email UNIQUE (email)
+);
+```
+
+---
+
+## 006 — Populate UserCredential from existing User data
+
+**Date tested:**
+**Purpose:** For each unique email, pick the password from the User row with the most recent LogOnRecord entry. Falls back to lowest userid for emails with no login history.
+
+```sql
+INSERT INTO UserCredential (email, password)
+SELECT email, password
+FROM (
+    SELECT
+        u.email,
+        u.password,
+        ROW_NUMBER() OVER (
+            PARTITION BY u.email
+            ORDER BY ISNULL(
+                (SELECT MAX(lor.timestamp) FROM LogOnRecord lor WHERE lor.userid = u.userid),
+                '1900-01-01'
+            ) DESC, u.userid ASC
+        ) AS rn
+    FROM [User] u
+    WHERE u.email IS NOT NULL
+      AND LEN(LTRIM(RTRIM(u.email))) > 0
+      AND u.password IS NOT NULL
+      AND LEN(u.password) > 0
+) ranked
+WHERE rn = 1;
+```
+
+---
+
+## 007 — Add credentialid FK to User table
+
+**Date tested:**
+**Purpose:** Link each User row to its UserCredential. Nullable so deleted/no-email users don't block the migration.
+
+```sql
+-- Step 1: Add column
+ALTER TABLE [User] ADD credentialid INT NULL;
+
+-- Step 2: Populate from email match
+UPDATE u
+SET u.credentialid = uc.credentialid
+FROM [User] u
+INNER JOIN UserCredential uc ON uc.email = u.email;
+
+-- Step 3: Add FK (nullable — some rows may not link if they have no email)
+ALTER TABLE [User] ADD CONSTRAINT FK_User_Credential
+    FOREIGN KEY (credentialid) REFERENCES UserCredential(credentialid);
+```
+
+---
+
 _(further migrations will be added as we go)_

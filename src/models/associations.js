@@ -27,6 +27,7 @@ import Payment from './Payment.js';
 import UserPage from './UserPage.js';
 import Eligibility from './Eligibility.js';
 import Question from './Question.js';
+import UserCredential from './UserCredential.js';
 
 export function setupAssociations() {
 
@@ -66,6 +67,10 @@ export function setupAssociations() {
   Program.hasMany(UserPage,    { foreignKey: 'programid', as: 'userpages'    });
   Program.hasMany(Eligibility, { foreignKey: 'programid', as: 'eligibilities'});
   Program.hasMany(Terminology, { foreignKey: 'programid', as: 'terminology'  });
+
+  // ── UserCredential associations ───────────────────────────────────────────
+  UserCredential.hasMany(User, { foreignKey: 'credentialid', as: 'users' });
+  User.belongsTo(UserCredential, { foreignKey: 'credentialid', as: 'credential' });
 
   // ── User associations ─────────────────────────────────────────────────────
   User.belongsTo(Program,         { foreignKey: 'programid',      as: 'program'         });

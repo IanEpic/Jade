@@ -6,6 +6,7 @@
 import { Router }          from 'express';
 import { requireAuth }     from '../middleware/auth.js';
 import User                from '../models/User.js';
+import UserCredential      from '../models/UserCredential.js';
 import Address             from '../models/Address.js';
 import Category            from '../models/Category.js';
 import JudgeCategoryLink   from '../models/JudgeCategoryLink.js';
@@ -135,7 +136,12 @@ router.post('/', async (req, res, next) => {
                     error: 'Password fields do not match.', isAdmin: !!operator.admin,
                 });
             }
-            await targetUser.update({ password: await encryptPassword(body.password) });
+            const hashed = await encryptPassword(body.password);
+            if (targetUser.credentialid) {
+                await UserCredential.update({ password: hashed }, { where: { credentialid: targetUser.credentialid } });
+            } else {
+                await targetUser.update({ password: hashed });
+            }
         }
 
         // New address
@@ -214,10 +220,18 @@ router.post('/', async (req, res, next) => {
             }
         }
 
-        // Email change — reset password and notify
+        // Email change — reset password, update credential email, and notify
         if (body.email.trim() !== oldemail) {
             const newPwd = randomPassword();
-            await targetUser.update({ password: await encryptPassword(newPwd) });
+            const hashed = await encryptPassword(newPwd);
+            if (targetUser.credentialid) {
+                await UserCredential.update(
+                    { email: body.email.trim(), password: hashed },
+                    { where: { credentialid: targetUser.credentialid } }
+                );
+            } else {
+                await targetUser.update({ password: hashed });
+            }
             mail({
                 to:       body.email.trim(),
                 subject:  `${program.name} — Email Address Changed`,

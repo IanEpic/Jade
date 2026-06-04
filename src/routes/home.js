@@ -658,6 +658,8 @@ router.get('/', async (req, res, next) => {
             content,
             isEmulating,
             action,
+            linkedPrograms:   req.session.linkedPrograms || [],
+            currentProgramId: program.programid,
         });
 
     } catch (err) {

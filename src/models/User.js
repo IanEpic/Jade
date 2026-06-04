@@ -7,6 +7,7 @@ User.init(
   {
     userid:               { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
     programid:            { type: DataTypes.INTEGER, allowNull: false },
+    credentialid:         { type: DataTypes.INTEGER },
     email:                { type: DataTypes.STRING },
     password:             { type: DataTypes.STRING },
     question:             { type: DataTypes.STRING },

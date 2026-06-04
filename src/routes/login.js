@@ -14,7 +14,7 @@
 //   GET  /logout              → destroy session
 
 import { Router } from 'express';
-import { login, recordLogon } from '../services/auth.js';
+import { login, recordLogon, getLinkedPrograms } from '../services/auth.js';
 
 const router = Router();
 
@@ -80,10 +80,9 @@ router.post('/', async (req, res, next) => {
       });
     }
 
-    const user = await login(email, password, program.programid);
+    const result = await login(email, password, program.programid);
 
-    if (!user) {
-      // Replaces: readfile($loginhtml, [login_error()])
+    if (!result) {
       return res.renderInShell('login', {
         program,
         message: null,
@@ -92,16 +91,20 @@ router.post('/', async (req, res, next) => {
       });
     }
 
-    // Replaces: EPIC::JADE::LogOnRecord->insert({ userid => $user2->userid() })
+    const { user, credential } = result;
+
     await recordLogon(user.userid);
 
-    // Replaces: setting email + password cookies
-    // Store userId in session instead — credentials never touch a cookie
-    req.session.userId      = user.userid;
-    req.session.programId   = program.programid;
-    req.session.programSlug = program.slug;
+    req.session.userId        = user.userid;
+    req.session.programId     = program.programid;
+    req.session.programSlug   = program.slug;
+    req.session.credentialId  = credential?.credentialid ?? null;
 
-    // Support emulate-user if admin passes ?emulate=userId
+    // Load all programs this credential can access (for the switcher)
+    if (credential) {
+      req.session.linkedPrograms = await getLinkedPrograms(credential.credentialid);
+    }
+
     if (req.body.emulateuser && user.admin) {
       req.session.emulateUserId = req.body.emulateuser;
     }

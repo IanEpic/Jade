@@ -10,6 +10,7 @@ import { Router } from 'express';
 import { randomPassword, encryptPassword } from '../services/helpers.js';
 import { mail } from '../services/mailer.js';
 import User from '../models/User.js';
+import UserCredential from '../models/UserCredential.js';
 
 const router = Router();
 
@@ -20,7 +21,13 @@ const router = Router();
 async function sendPasswordReset(user, program) {
     const newPassword = randomPassword();
     const hashed      = await encryptPassword(newPassword);
-    await User.update({ password: hashed }, { where: { userid: user.userid } });
+
+    // Update UserCredential if linked; fall back to User.password for pre-migration rows
+    if (user.credentialid) {
+        await UserCredential.update({ password: hashed }, { where: { credentialid: user.credentialid } });
+    } else {
+        await User.update({ password: hashed }, { where: { userid: user.userid } });
+    }
 
     const text = `Dear ${user.firstname || user.email}
 As you requested, we have reset your password to the random value shown below.
