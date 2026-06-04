@@ -1,0 +1,6 @@
+h2 Switch Program
+p Select a program to switch to:
+ul
+    each prog in content.linkedPrograms
+        if prog.programid !== content.currentProgramId
+            li: a(href=`/${prog.slug}/home`)= prog.name

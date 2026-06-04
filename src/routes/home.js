@@ -638,6 +638,10 @@ router.get('/', async (req, res, next) => {
             }
         }
 
+        else if (action === 'switchProgram') {
+            content = { view: 'home/switchProgram', linkedPrograms: req.session.linkedPrograms || [], currentProgramId: program.programid };
+        }
+
         // ── Default content (no action matched or no action param) ─────────
         if (!content.view) {
             content = await getDefaultContent(user, program, data);
