@@ -234,7 +234,60 @@ WHERE deleted = 1
 
 ---
 
-## 009 — (reserved)
+## 009 — Clean up duplicate emails and re-enable users with login history
+
+**Date tested:**
+**Purpose:** Two housekeeping fixes:
+1. Where the same email appears more than once in a program, soft-delete the row(s) with no
+   login history, keeping the one that has actually been used.
+2. Re-enable any disabled user (enabled=0) who has a LogOnRecord entry — these are real users
+   who were incorrectly disabled or whose disable was inadvertent.
+
+```sql
+-- Inspection: duplicate emails within same program
+SELECT email, programid, COUNT(*) AS cnt
+FROM [User]
+WHERE deleted = 0
+GROUP BY email, programid
+HAVING COUNT(*) > 1
+ORDER BY cnt DESC;
+
+-- Step 1: Soft-delete the weaker duplicate (no login history, fewest entries)
+-- Keeps the row with the most recent login; where tied, keeps lowest userid.
+UPDATE [User]
+SET deleted = 1
+WHERE deleted = 0
+  AND userid NOT IN (
+      -- The "winner" for each email+program — most recent login, else lowest userid
+      SELECT winner FROM (
+          SELECT
+              u.userid,
+              ROW_NUMBER() OVER (
+                  PARTITION BY u.email, u.programid
+                  ORDER BY ISNULL(
+                      (SELECT MAX(lor.timestamp) FROM LogOnRecord lor WHERE lor.userid = u.userid),
+                      '1900-01-01'
+                  ) DESC, u.userid ASC
+              ) AS rn
+          FROM [User] u
+          WHERE u.deleted = 0
+      ) ranked(userid, rn)
+      WHERE rn = 1
+  )
+  AND email IN (
+      SELECT email FROM [User]
+      WHERE deleted = 0
+      GROUP BY email, programid
+      HAVING COUNT(*) > 1
+  );
+
+-- Step 2: Re-enable disabled users who have login history
+UPDATE [User]
+SET enabled = 1
+WHERE enabled = 0
+  AND deleted = 0
+  AND EXISTS (SELECT 1 FROM LogOnRecord lor WHERE lor.userid = [User].userid);
+```
 
 ---
 
