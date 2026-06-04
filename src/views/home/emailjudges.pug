@@ -1,0 +1,38 @@
+//- home/emailjudges.pug
+//- Equiv of $emailjudges in home.cgi.
+
+- let programName   = content.program.name
+- let portalAddress = 'https://' + content.program.fqdn
+
+- let existingEmail = `<p>Thank you for confirming your role as a judge for the ${programName}.\n\n<p>This is a system-generated email to advise you that your user account has been configured to begin judging your allocated entries.\n\n<p>Please visit the User Portal at ${portalAddress} and log in using your existing username and password. If you have forgotten your username and password, please click 'forgotten password' on the log-in screen to reset it.\n\n<p>Full information on how to complete the online judging is available once you have logged into the User Portal.`
+
+- let newEmail = `<p>Thank you for confirming your role as a judge for the ${programName}.</p>\n\n<p>This is a system-generated email to advise you that your user account has now been set-up and you can begin judging your allocated entries.</p>\n\n<p>Full information on how to complete the online judging is available once you have logged into the User Portal.</p>\n\n<p>Please visit the User Portal at ${portalAddress} and log in using the following username and password:</p>`
+
+center: b Send a Welcome Email to Judges
+
+p
+    | When you click 'send' below, the following email will be sent to selected judges.
+    | If the judge does not have a password, an alternative email is provided to which
+    | the judge's username and password will be appended. All emails will be prepended with 'Dear FIRSTNAME'
+    | and concluded with 'best regards, #{programName} Team'
+
+form(method='POST' action='/judgeEmail')
+    //- Judge checkboxes
+    each judge in content.judges
+        label(style='display:inline-block; width:200px;')
+            input(type='checkbox' name='judges' value=judge.userid checked)
+            |  #{judge.lastname}, #{judge.firstname}
+    br
+
+    p Here is the email that will go to judges who already have a user account. Make changes if necessary:
+    textarea.ckeditor(name='existinguseremail' cols='70' rows='10')= existingEmail
+
+    p Here is the email that will go to judges who do not already have a user account. Make changes if necessary:
+    textarea.ckeditor(name='newuseremail' cols='70' rows='10')= newEmail
+
+    p Click below to send emails:
+    br
+    center
+        a(href='/home') Cancel
+        |  &nbsp;
+        button(type='submit') Send Emails

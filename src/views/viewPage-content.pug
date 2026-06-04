@@ -1,0 +1,10 @@
+//- viewPage-content.pug
+if page
+    div!= page.html
+    br
+    br
+    p: a(href='/home') Home
+else
+    p Page not found.
+    br
+    p: a(href='/home') Home

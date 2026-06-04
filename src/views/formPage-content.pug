@@ -1,0 +1,36 @@
+//- formPage-content.pug
+
+if error === 'noaccess'
+    p You do not have permission to access this page.
+    p: a(href='/home') Return Home
+else
+    if error === 'duplicate'
+        p ! A page with this name already exists.
+        p New/edit page failed.
+        br
+
+    form(method='POST' action='/formPage')
+        if page
+            input(type='hidden' name='pageid' value=page.userpageid)
+
+        table
+            caption User Defined Page
+
+            tr(align='left' valign='top')
+                td Page Name
+                td: input(type='text' name='name' value=(page ? page.name : (prefill ? prefill.name : '')) size='50' maxlength='200')
+
+            tr(align='left' valign='top')
+                td(align='left') HTML:
+            tr(align='left' valign='top')
+                td(colspan='2' align='center')
+                    textarea(name='html' rows='10' cols='80')= page ? page.html : (prefill ? prefill.html : '')
+
+            tr(align='left' valign='top')
+                td(colspan='2' align='center')
+                    if page
+                        button(type='button' onclick="document.location.href='/home?action=userpages'") Cancel
+                        |
+                        input(type='submit' name='submit' value='Update Page')
+                    else
+                        input(type='submit' name='submit' value='Save Page')

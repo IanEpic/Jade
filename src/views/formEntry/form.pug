@@ -1,0 +1,231 @@
+//- formEntry/form.pug
+//- Equiv of $form_blank / $form_edit in formEntry.cgi.
+
+- let isEdit = mode === 'edit'
+
+if errors && errors.length
+    .alert
+        each err in errors
+            p= err
+
+if isEdit
+    p Edit Entry Number: #{entry.entryid}
+    br
+    br
+else
+    h4(align='center')
+        | Start a New Entry
+        br
+        | Step 3, Set up your entry below and then proceed to the questions
+        br
+        br
+
+form(name='entryform' method='POST' action='/formEntry')
+    if isEdit
+        input(type='hidden' name='entryid' value=entry.entryid)
+    input(type='hidden' name='categoryid' value=category.categoryid)
+
+    table(width='780' style='text-align:left;')
+        tr
+            td: b Category
+            td= category.name
+        tr(valign='top')
+            td: b Description
+            td= category.description
+        tr
+            td(colspan='2' align='left'): hr
+
+        //- ── Eligibility ─────────────────────────────────────────────────
+        if eligibilityLinks && eligibilityLinks.length
+            tr
+                td(colspan='2')
+                    b Eligibility
+                    br
+                    br
+                    | Entries in this Category must adhere to the following rules:
+            tr
+                td(colspan='2')
+                    ul
+                        each el in eligibilityLinks
+                            li= el.eligibilityrule
+            tr: td(colspan='2'): hr
+
+        //- ── Criteria ─────────────────────────────────────────────────────
+        if criteria && criteria.length
+            tr
+                td(colspan='2')
+                    b Criteria
+                    br
+                    br
+                    | Entries in this category will be assessed according to the following criteria:
+            tr
+                td(colspan='2')
+                    table
+                        tr
+                            td: b Criterion
+                            td: b Weight
+                        each c in criteria
+                            tr
+                                td= c.description
+                                td(align='center')= c.weight + '%'
+            tr: td(colspan='2'): hr
+
+        //- ── Your Reference ───────────────────────────────────────────────
+        tr
+            td(colspan='2' align='left'): b Your Reference
+        tr
+            td(colspan='2' align='left') Enter a word or number to distinguish this entry from any others you might have
+        tr
+            td
+            td: input(type='text' name='userref' value=(isEdit ? entry.userref || '' : '') size='50' maxlength='50')
+        tr: td(colspan='2' align='left'): hr
+
+        //- ── Entrant selection ────────────────────────────────────────────
+        if entrants && entrants.length
+            tr
+                td: b Select an Entrant
+                td
+                    select(name='entrantid' onchange='checkEntrant(document.entryform)')
+                        if !isEdit
+                            option(value='a') ------Please Select------
+                            option(value='b') New Entrant Below
+                        each ent in entrants
+                            option(value=ent.entrantid selected=(isEdit && entry.entrantid === ent.entrantid))= ent.name
+
+        tr(valign='top')
+            td
+                if !entrants || !entrants.length
+                    | Create a new Entrant
+                else
+                    | or create a new Entrant
+            td
+                //- Inline new entrant fields (shown/hidden by JS)
+                table#new-entrant-fields
+                    tr
+                        td Entrant Name
+                        td: input(type='text' name='name' size='50' maxlength='300' disabled)
+                    tr
+                        td Entrant Type
+                        td
+                            select(name='type' disabled)
+                                each opt in ['Individual', 'Business', 'Company']
+                                    option= opt
+                    tr
+                        td Company Name (if applicable)
+                        td: input(type='text' name='legalentity' size='50' maxlength='300' disabled)
+
+                    //- Street address
+                    if addresses && addresses.length
+                        tr
+                            td Select a Street Address
+                            td
+                                select(name='streetaddressid' onchange='checkAddress(document.entryform)' disabled)
+                                    option(value='a') ------Please Select------
+                                    option(value='b') New Address Below
+                                    each addr in addresses
+                                        option(value=addr.addressid)= addr.address + ', ' + addr.city + ', ' + addr.state
+                    tr(valign='top')
+                        td
+                            if !addresses || !addresses.length
+                                | Enter a Street Address
+                        td
+                            table#street-address-fields
+                                tr
+                                    td Address
+                                    td: input(type='text' name='streetaddress' size='50' maxlength='100' disabled)
+                                tr
+                                    td City
+                                    td: input(type='text' name='streetcity' size='50' maxlength='50' disabled)
+                                tr
+                                    td State
+                                    td: input(type='text' name='streetstate' size='20' maxlength='20' disabled)
+                                tr
+                                    td Postcode
+                                    td: input(type='text' name='streetcode' size='10' maxlength='10' disabled)
+                                tr
+                                    td Country
+                                    td: input(type='text' name='streetcountry' value='Australia' size='50' maxlength='50' disabled)
+
+                    //- Postal address
+                    if addresses && addresses.length
+                        tr
+                            td Select a Postal Address
+                            td
+                                select(name='postaladdressid' onchange='checkAddress(document.entryform)' disabled)
+                                    option(value='a') ------Please Select------
+                                    option(value='b') New Address Below
+                                    option(value='c') Same as above
+                                    each addr in addresses
+                                        option(value=addr.addressid)= addr.address + ', ' + addr.city + ', ' + addr.state
+                    tr(valign='top')
+                        td
+                            if !addresses || !addresses.length
+                                | Enter a Postal Address
+                        td
+                            table#postal-address-fields
+                                tr
+                                    td Address
+                                    td: input(type='text' name='postaladdress' size='50' maxlength='100' disabled)
+                                tr
+                                    td City
+                                    td: input(type='text' name='postalcity' size='50' maxlength='50' disabled)
+                                tr
+                                    td State
+                                    td: input(type='text' name='postalstate' size='20' maxlength='20' disabled)
+                                tr
+                                    td Postcode
+                                    td: input(type='text' name='postalcode' size='10' maxlength='10' disabled)
+                                tr
+                                    td Country
+                                    td: input(type='text' name='postalcountry' value='Australia' size='50' maxlength='50' disabled)
+
+                    tr
+                        td Telephone no
+                        td: input(type='text' name='telephone' value=user.telephone || '' size='50' maxlength='50' disabled)
+                    tr
+                        td Mobile
+                        td: input(type='text' name='mobile' value=user.mobile || '' size='50' maxlength='50' disabled)
+                    tr
+                        td Email
+                        td: input(type='text' name='email' value=user.email || '' size='50' maxlength='100' disabled)
+
+        tr: td(colspan='2'): hr
+        tr
+            td(colspan='2' align='center')
+                a(href='/home') Cancel
+                | &nbsp;
+                button(type='submit' name='submit' value='Save') Save &amp; Return Home
+                | &nbsp;
+                button(type='submit' name='submit' value='SaveProceed') Save &amp; Proceed to Questions
+
+script.
+    function checkEntrant(form) {
+        var sel = form.entrantid;
+        if (!sel) return;
+        var isNew = sel.value === 'b' || !sel;
+        var fields = document.querySelectorAll('#new-entrant-fields input, #new-entrant-fields select');
+        fields.forEach(function(f) { f.disabled = !isNew; });
+        if (!isNew) {
+            var streetFields = document.querySelectorAll('#street-address-fields input');
+            var postalFields = document.querySelectorAll('#postal-address-fields input');
+            streetFields.forEach(function(f) { f.disabled = true; });
+            postalFields.forEach(function(f) { f.disabled = true; });
+        }
+    }
+    function checkAddress(form) {
+        var streetSel = form.streetaddressid;
+        var postalSel = form.postaladdressid;
+        if (streetSel) {
+            var streetNew = streetSel.value === 'b';
+            document.querySelectorAll('#street-address-fields input').forEach(function(f) { f.disabled = !streetNew; });
+        }
+        if (postalSel) {
+            var postalNew = postalSel.value === 'b';
+            document.querySelectorAll('#postal-address-fields input').forEach(function(f) { f.disabled = !postalNew; });
+        }
+    }
+    document.addEventListener('DOMContentLoaded', function() {
+        if (document.entryform && document.entryform.entrantid) {
+            checkEntrant(document.entryform);
+        }
+    });

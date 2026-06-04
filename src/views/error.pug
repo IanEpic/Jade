@@ -1,0 +1,15 @@
+extends layout
+
+block content
+    h1 Something went wrong
+
+    if message
+        p= message
+
+    if stack
+        pre= stack
+
+    if link
+        p: a(href=link.href)= link.label
+    else
+        p: a(href='/') Return home

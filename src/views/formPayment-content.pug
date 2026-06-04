@@ -1,0 +1,136 @@
+//- formPayment-content.pug
+
+style.
+    .pmt-wrap { max-width: 700px; margin: 0 auto; font-size: 14px; }
+    .pmt-wrap h2 { text-align: center; color: #c48f06; margin-bottom: 16px; }
+    .pmt-wrap fieldset { border: 1px solid #666; border-radius: 4px; margin-bottom: 14px; padding: 12px 18px; }
+    .pmt-wrap legend { font-weight: bold; padding: 0 6px; }
+    .pmt-wrap table { border-collapse: collapse; width: 100%; }
+    .pmt-wrap .form-table td { padding: 5px 8px; vertical-align: middle; }
+    .pmt-wrap .form-table td:first-child { text-align: right; white-space: nowrap; width: 1%; padding-right: 12px; }
+    .pmt-wrap .form-table input, .pmt-wrap .form-table select { box-sizing: border-box; }
+    .pmt-wrap .form-table input[type=text] { width: 100%; }
+    .pmt-wrap .entry-table { width: 100%; border-collapse: collapse; }
+    .pmt-wrap .entry-table th, .pmt-wrap .entry-table td { padding: 6px 8px; text-align: left; }
+    .pmt-wrap .entry-table th { font-size: 12px; font-weight: 600; text-transform: uppercase; color: #c48f06; border-bottom: 1px solid #555; white-space: nowrap; }
+    .pmt-wrap .entry-table td { border-bottom: 1px solid #2a2a2a; vertical-align: middle; }
+    .pmt-wrap .entry-table th.r, .pmt-wrap .entry-table td.r { text-align: right; }
+    .pmt-wrap .entry-table td { padding: 6px 8px; border-bottom: 1px solid #2a2a2a; }
+    .pmt-wrap .entry-table .total-row td { border-top: 1px solid #555; font-weight: bold; padding-top: 8px; }
+    .pmt-wrap .charge-amount { font-size: 20px; font-weight: bold; color: #c48f06; text-align: center; margin: 12px 0; }
+    .pmt-wrap .eb-note { font-size: 12px; color: #c48f06; padding: 6px 10px; border-left: 3px solid #c48f06; margin-top: 8px; }
+    .pmt-wrap .alert-error { background: #7a2a00; color: #fff; padding: 8px 12px; margin-bottom: 12px; border-left: 4px solid #c44; }
+    .pmt-wrap .alert-success { background: #1a4a1a; color: #fff; padding: 12px 16px; margin-bottom: 14px; border-left: 4px solid #4caf50; text-align: center; }
+    .pmt-wrap .form-actions { text-align: center; margin-top: 20px; padding-top: 16px; border-top: 1px solid #333; display: flex; justify-content: center; gap: 10px; }
+    .pmt-wrap .btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 18px; font-size: 14px; border-radius: 3px; cursor: pointer; text-decoration: none; border: none; transition: all 0.2s; font-family: inherit; }
+    .pmt-wrap .btn-primary { background: #c48f06; color: #000; font-weight: 600; }
+    .pmt-wrap .btn-primary:hover { background: #ffba01; }
+    .pmt-wrap .btn-secondary { background: transparent; color: #ccc; border: 1px solid #555; }
+    .pmt-wrap .btn-secondary:hover { border-color: #c48f06; color: #c48f06; }
+    .pmt-wrap .cvn-note { font-size: 12px; color: #aaa; margin-top: 4px; }
+
+.pmt-wrap
+
+    if error
+        p.alert-error= error
+
+    if isForm
+        //- ── Payment form ─────────────────────────────────────────────────────
+        h2 Credit Card Payment
+
+        form(method='POST' action='/formPayment')
+            //- Pass entry/invoice IDs through
+            each eid in (entryIds || [])
+                input(type='hidden' name='#ENT#' + eid value='ON')
+            each iid in (invoiceIds || [])
+                input(type='hidden' name='#INV#' + iid value='ON')
+            input(type='hidden' name='pmtoption' value=pmtoption)
+            input(type='hidden' name='status'    value=status)
+            input(type='hidden' name='submit'    value='Make Payment')
+            input(type='hidden' name='chargeamt' value=chargeAmt.toFixed(2))
+
+            //- Items summary
+            fieldset
+                legend Items
+                table.entry-table(style='table-layout:fixed')
+                    colgroup
+                        col(style='width:80px')
+                        col
+                        col
+                        col(style='width:100px')
+                    thead
+                        tr
+                            th #
+                            th Entrant
+                            th Category
+                            th.r Cost
+                    tbody
+                        each e in (entries || [])
+                            tr
+                                td= e.entryid
+                                td= e.entrantname
+                                td= e.categoryname
+                                td.r= '$' + ((parseFloat(e.costex)||0) + (parseFloat(e.gst)||0)).toFixed(2)
+                        each inv in (invoices || [])
+                            tr
+                                td= inv.invoiceid
+                                td(colspan='2')= inv.invoicee
+                                td.r= '$' + ((parseFloat(inv.totalex)||0) + (parseFloat(inv.gst)||0) - (parseFloat(inv.partnerdiscount)||0) - (parseFloat(inv.paid)||0)).toFixed(2)
+                    if totals.earlyBirdActive
+                        tr
+                            td(colspan='4')
+                                p.eb-note
+                                    | Early payment discount of $#{totals.ebDiscountInc.toFixed(2)} per entry applies if paid by #{totals.earlyBirdDate}.
+
+            .charge-amount Amount to be charged: $#{chargeAmt.toFixed(2)}
+
+            //- Card details
+            fieldset
+                legend Card Details
+                table.form-table
+                    tr
+                        td Card Type
+                        td
+                            select(name='cardtype')
+                                each ct in ['Visa','Mastercard','AmEx','Diners']
+                                    option(value=ct)= ct
+                    tr
+                        td Card Number
+                        td: input(type='text' name='ewayCardNumber' maxlength='16' autocomplete='cc-number')
+                    tr
+                        td Name on Card
+                        td: input(type='text' name='ewayCardHoldersName' maxlength='50' autocomplete='cc-name')
+                    tr
+                        td Expiry
+                        td
+                            select(name='ewayCardExpiryMonth' style='width:auto')
+                                each m in ['01','02','03','04','05','06','07','08','09','10','11','12']
+                                    option(value=m)= m
+                            |  /
+                            select(name='ewayCardExpiryYear' style='width:auto')
+                                each y in ccYears
+                                    option(value=y)= y
+                    tr
+                        td CVN
+                        td
+                            input(type='text' name='ewayCVN' maxlength='4' size='6' autocomplete='cc-csc')
+                            p.cvn-note 3 digits on the back of Visa/Mastercard, 4 digits on the front of Amex.
+
+            .form-actions
+                a.btn.btn-secondary(href='/home') Cancel
+                button.btn.btn-primary(type='submit') 💳 Make Payment
+
+    else
+        //- ── Receipt ──────────────────────────────────────────────────────────
+        h2 Payment Successful
+
+        .alert-success
+            p ✓ Thank you — your payment has been processed.
+            p Transaction reference: #{ewayData.ewayTrxnNumber}
+
+        if receipt
+            .rich-text(style='margin-top:16px; padding-top:12px; border-top:1px solid #333; font-size:13px;')!= receipt
+
+        .form-actions
+            a.btn.btn-secondary(href='/home') ← Home
+            button.btn.btn-secondary(onclick='window.print()' type='button') 🖨 Print

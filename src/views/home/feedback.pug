@@ -1,0 +1,54 @@
+//- home/feedback.pug
+//- Equiv of $feedbackform in home.cgi.
+//- Only shown when program.feedbackopen == 1.
+
+if content.program.feedbackopen
+    - let submitWords = content.program.finalistlistavailable ? 'Proceed to Finalist List' : 'Record Feedback'
+
+    form(method='POST' action='/feedback')
+        table(width='640' style='font-size: 100%;')
+            tr: td(align='center'): b FEEDBACK
+            tr
+                td
+                    | As an user, your feedback is very important to us as we strive to improve the&nbsp;
+                    = content.program.name
+                    |  for next year.
+                    br
+                    br
+                    | We would be grateful if you would take a few moments to let us hear your feedback below. Your answers to questions 1-5 will remain anonymous:
+                    br
+                    br
+            tr: td 1. Rate the following:
+            tr
+                td(align='center')
+                    table(width='500')
+                        tr
+                            each label, name in {communication: 'Our communication with you', portal: 'This online portal', judges: 'The judging panel', overall: 'How would you rate the ' + content.program.name + ' overall?'}
+                                td(style='font-size:100%;')
+                                    = label
+                                    br
+                                    select(name=name)
+                                        each opt in ['Select','Excellent','Good','Average','Poor']
+                                            option= opt
+            tr: td &nbsp;
+            tr: td 2. Can you suggest any categories that should be added or removed?
+            tr: td(align='center'): textarea(name='categories' rows='5' cols='60')
+            tr: td &nbsp;
+            tr: td 3. Is there anything about the entry process that you would change?
+            tr: td(align='center'): textarea(name='entry_process' rows='5' cols='60')
+            tr: td &nbsp;
+            tr: td 4. Would you consider entering the Awards again in the future? If not, what would prevent you from entering?
+            tr: td(align='center'): textarea(name='enter_again' rows='5' cols='60')
+            tr: td &nbsp;
+            tr: td 5. Can you suggest anything else that would improve the Awards?
+            tr: td(align='center'): textarea(name='improve' rows='5' cols='60')
+            tr: td &nbsp;
+            tr: td 6. We would like to provide testimonials from entrants as part of future promotion. If you want your thoughts to be included, please provide a quote that we can attribute to you below:
+            tr: td(align='center'): textarea(name='testimonial' rows='5' cols='60')
+            tr: td &nbsp;
+            tr: td Thank you so much for your time.
+            tr
+                td(align='center')
+                    a(href='/home') Home
+                    | &nbsp;
+                    button(type='submit')= submitWords

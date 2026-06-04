@@ -1,0 +1,153 @@
+//- formEntrant/form.pug
+//- Equiv of $form_blank / $form_edit in formEntrant.cgi.
+//- Handles both new and edit — mode determines labels and default values.
+//- Address dropdowns mirror the Perl popup_menu logic:
+//-   'a' = please select (new only)
+//-   'b' = new address below
+//-   'c' = same as above (postal only)
+//-   <id> = existing address
+
+- let isEdit = mode === 'edit'
+- let submitLabel = isEdit ? editLabel : createLabel
+- let streetDefault = entrant ? String(entrant.streetaddressid) : 'a'
+- let postalDefault = entrant ? String(entrant.postaladdressid) : 'a'
+
+if errors && errors.length
+    .alert
+        each err in errors
+            p= err
+
+form(name='entrantform' method='POST' action='/formEntrant')
+    if isEdit
+        input(type='hidden' name='entrantid' value=entrant.entrantid)
+
+    table
+        tr
+            td= nameLabel || 'Entrant Name'
+            td: input(type='text' name='name' value=(entrant ? entrant.name : '') size='50' maxlength='300')
+        tr
+            td= typeLabel || 'Entrant Type'
+            td
+                select(name='type')
+                    each opt in ['Individual', 'Business', 'Company']
+                        option(value=opt selected=(entrant && entrant.type === opt))= opt
+        tr
+            td Legal Entity Name
+            td: input(type='text' name='legalentity' value=(entrant ? entrant.legalentity || '' : '') size='50' maxlength='300')
+        tr
+            td= abnLabel || 'Entrant ABN'
+            td: input(type='text' name='abn' value=(entrant ? entrant.abn || '' : '') size='50' maxlength='20')
+
+        //- ── Street address ───────────────────────────────────────────────
+        if addresses && addresses.length
+            tr
+                td Select a Street Address
+                td
+                    select(name='streetaddressid' onchange='checkAddress(document.entrantform)')
+                        if !isEdit
+                            option(value='a') ------Please Select------
+                        option(value='b') New Address Below
+                        each addr in addresses
+                            option(value=addr.addressid selected=(streetDefault === String(addr.addressid)))
+                                = addr.address + ', ' + addr.city + ', ' + addr.state
+
+        tr(valign='top')
+            td
+                if !addresses || !addresses.length
+                    | Enter a Street Address for this entrant
+            td
+                table#street-address-fields
+                    tr
+                        td Address
+                        td: input(type='text' name='streetaddress' size='50' maxlength='100' disabled)
+                    tr
+                        td City
+                        td: input(type='text' name='streetcity' size='50' maxlength='50' disabled)
+                    tr
+                        td State
+                        td: input(type='text' name='streetstate' size='20' maxlength='20' disabled)
+                    tr
+                        td Postcode
+                        td: input(type='text' name='streetcode' size='10' maxlength='10' disabled)
+                    tr
+                        td Country
+                        td: input(type='text' name='streetcountry' size='50' maxlength='50' disabled)
+
+        //- ── Postal address ───────────────────────────────────────────────
+        if addresses && addresses.length
+            tr
+                td Select a Postal Address
+                td
+                    select(name='postaladdressid' onchange='checkAddress(document.entrantform)')
+                        if !isEdit
+                            option(value='a') ------Please Select------
+                        option(value='b') New Address Below
+                        option(value='c') Same as above
+                        each addr in addresses
+                            option(value=addr.addressid selected=(postalDefault === String(addr.addressid)))
+                                = addr.address + ', ' + addr.city + ', ' + addr.state
+
+        tr(valign='top')
+            td
+                if !addresses || !addresses.length
+                    | Enter a Postal Address for this entrant
+            td
+                table#postal-address-fields
+                    tr
+                        td Address
+                        td: input(type='text' name='postaladdress' size='50' maxlength='100' disabled)
+                    tr
+                        td City
+                        td: input(type='text' name='postalcity' size='50' maxlength='50' disabled)
+                    tr
+                        td State
+                        td: input(type='text' name='postalstate' size='20' maxlength='20' disabled)
+                    tr
+                        td Postcode
+                        td: input(type='text' name='postalcode' size='10' maxlength='10' disabled)
+                    tr
+                        td Country
+                        td: input(type='text' name='postalcountry' size='50' maxlength='50' disabled)
+
+        tr
+            td Telephone no
+            td: input(type='text' name='telephone' value=(entrant ? entrant.telephone || '' : user.telephone || '') size='50' maxlength='300')
+        tr
+            td Mobile
+            td: input(type='text' name='mobile' value=(entrant ? entrant.mobile || '' : user.mobile || '') size='50' maxlength='50')
+        tr
+            td Email
+            td: input(type='text' name='email' value=(entrant ? entrant.email || '' : user.email || '') size='50' maxlength='100')
+        tr
+            td(colspan='2' align='center'): hr
+        tr
+            td(colspan='2' align='center')
+                button(type='submit')= submitLabel
+                | &nbsp;
+                a(href='/home') Cancel
+
+//- ── Address toggle script ────────────────────────────────────────────────────
+//- Equiv of checkAddress() JS in the Perl legacy shell.
+//- Enables/disables the inline address fields based on dropdown selection.
+script.
+    function checkAddress(form) {
+        var streetSel = form.streetaddressid;
+        var postalSel = form.postaladdressid;
+
+        var streetFields = document.querySelectorAll('#street-address-fields input');
+        var postalFields = document.querySelectorAll('#postal-address-fields input');
+
+        if (streetSel) {
+            var streetNew = streetSel.value === 'b';
+            streetFields.forEach(function(f) { f.disabled = !streetNew; });
+        }
+        if (postalSel) {
+            var postalNew = postalSel.value === 'b';
+            postalFields.forEach(function(f) { f.disabled = !postalNew; });
+        }
+    }
+
+    // Run on load to set initial state
+    document.addEventListener('DOMContentLoaded', function() {
+        checkAddress(document.entrantform);
+    });

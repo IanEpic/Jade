@@ -1,0 +1,21 @@
+//- formEntrant-content.pug
+//- Injected into the legacy HTML shell via res.renderInShell.
+
+case mode
+
+    when 'closed'
+        p Entries are currently closed.
+        p: a(href='/home') Return Home
+
+    when 'error'
+        if error === 'inuse'
+            p ! You cannot delete this entrant as there are entries that are using it
+            br
+            p Either edit the entries and choose another entrant, or delete the entries.
+            p: a(href='/home') Click Here to return to your home page
+
+    when 'new'
+        include formEntrant/form.pug
+
+    when 'edit'
+        include formEntrant/form.pug

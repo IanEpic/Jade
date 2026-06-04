@@ -1,0 +1,19 @@
+doctype html
+html(lang='en')
+    head
+        meta(charset='UTF-8')
+        meta(name='viewport' content='width=device-width, initial-scale=1.0')
+        title JADE Awards
+        link(rel='stylesheet' href='/css/main.css')
+
+    body
+        header
+            a(href='/') Home
+
+        main
+            block content
+
+        footer
+            p &copy; #{currentYear} JADE Awards
+
+        block scripts

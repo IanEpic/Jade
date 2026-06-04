@@ -1,0 +1,112 @@
+//- register-content.pug
+
+style.
+    .reg-form { max-width: 560px; margin: -180px auto 0; }
+    .reg-form h2 { text-align: center; color: #c48f06; margin-bottom: 16px; }
+    .reg-form fieldset { border: 1px solid #666; border-radius: 4px; margin-bottom: 14px; padding: 12px 18px; }
+    .reg-form legend { font-weight: bold; padding: 0 6px; }
+    .reg-form table { border-collapse: collapse; width: 100%; }
+    .reg-form td { padding: 4px 8px; vertical-align: middle; }
+    .reg-form td:first-child { white-space: nowrap; text-align: right; padding-right: 12px; width: 1%; }
+    .reg-form input[type=text], .reg-form input[type=email], .reg-form input[type=password] { width: 100%; box-sizing: border-box; }
+    .reg-form .alert-error { background: #7a2a00; color: #fff; padding: 8px 12px; margin-bottom: 14px; border-left: 4px solid #c44; }
+    .reg-form .alert-success { background: #1a4a1a; color: #fff; padding: 12px 16px; margin-bottom: 14px; border-left: 4px solid #4caf50; text-align: center; }
+    .reg-form .tc-row { display: flex; align-items: flex-start; gap: 10px; font-size: 13px; color: #ccc; margin: 8px 0; }
+    .reg-form .tc-row input { margin-top: 3px; flex-shrink: 0; }
+    .reg-form .form-actions { text-align: center; margin-top: 10px; }
+    .reg-form .form-actions a, .reg-form .form-actions button { margin: 0 8px; }
+    .reg-form .note { color: #aaa; font-size: 12px; margin-top: 4px; }
+
+.reg-form
+    h2 Create an Account
+
+    if success
+        .alert-success
+            p Your account has been created. Your password has been emailed to you.
+            p: a(href='/login') Click here to log in
+
+    else
+        if error
+            p.alert-error= error
+
+        form(method='POST' action='/register')
+
+            fieldset
+                legend Login Details
+                table
+                    tr
+                        td Email Address
+                        td: input(type='email' name='email' value=body.email || '' maxlength='300' required)
+
+            if !isAdmin
+                fieldset
+                    legend Security Question
+                    p.note Used to verify your identity if you forget your password.
+                    table
+                        tr
+                            td Question
+                            td: input(type='text' name='question' value=body.question || '' maxlength='100' required)
+                        tr
+                            td Answer
+                            td: input(type='text' name='answer' value=body.answer || '' maxlength='200' required)
+
+            fieldset
+                legend Personal Details
+                table
+                    tr
+                        td First Name
+                        td: input(type='text' name='firstname' value=body.firstname || '' maxlength='300' required)
+                    tr
+                        td Last Name
+                        td: input(type='text' name='lastname' value=body.lastname || '' maxlength='300' required)
+                    tr
+                        td Organisation
+                        td: input(type='text' name='organisation' value=body.organisation || '' maxlength='300')
+                    tr
+                        td Telephone
+                        td: input(type='text' name='telephone' value=body.telephone || '' maxlength='50')
+                    tr
+                        td Mobile
+                        td: input(type='text' name='mobile' value=body.mobile || '' maxlength='50' required)
+
+            fieldset
+                legend Postal Address
+                table
+                    tr
+                        td Address
+                        td: input(type='text' name='address' value=body.address || '' maxlength='100' required)
+                    tr
+                        td City
+                        td: input(type='text' name='city' value=body.city || '' maxlength='50' required)
+                    tr
+                        td State
+                        td: input(type='text' name='state' value=body.state || '' maxlength='20' required)
+                    tr
+                        td Postcode
+                        td: input(type='text' name='code' value=body.code || '' maxlength='10' required)
+                    tr
+                        td Country
+                        td: input(type='text' name='country' value=body.country || 'Australia' maxlength='50' required)
+
+            if isAdmin
+                fieldset
+                    legend Account Settings
+                    table
+                        tr
+                            td: input(type='checkbox' name='isadmin' value='ON' id='isadmin')
+                            td: label(for='isadmin') Admin
+                        tr
+                            td: input(type='checkbox' name='isjudge' value='ON' id='isjudge')
+                            td: label(for='isjudge') Judge
+
+            if !isAdmin
+                .tc-row
+                    input(type='checkbox' name='tc' value='ON' id='tc')
+                    label(for='tc')
+                        | I agree to the
+                        a(href='/tc' target='_blank') terms and conditions
+                        |  of this portal.
+
+            .form-actions
+                a(href='/login') Cancel
+                button(type='submit') Create Account

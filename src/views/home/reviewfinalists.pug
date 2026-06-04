@@ -1,0 +1,73 @@
+//- home/reviewfinalists.pug
+//- Equiv of $judgereviewfinalisttable in home.cgi.
+
+h3(align='center') Finalist Review
+
+form(name='nominationform' method='POST' action='/nominatewinner')
+    table
+        tr(align='left' valign='top')
+            th(align='left') Entrant
+            th Score
+            th Status
+            th &nbsp;
+            th
+
+        each cat in content.cats
+            - let isLeadJudge = cat.userid === content.user.userid
+            - let isChair = content.user.chairperson
+
+            tr
+                td(colspan='3' style='padding-top:30px;'): b= cat.name
+
+            //- Build score map
+            - let scoreMap = {}
+            each fs in cat.finalScores
+                - scoreMap[fs.entryid] = parseFloat(fs.finalscore).toFixed(5)
+
+            //- Combine: finalists + nominated for review + non-finalists
+            - let nominatedIds = cat.nominated.map(e => e.entryid)
+            - let nonFinalistsFiltered = cat.nonFinalists.filter(e => !nominatedIds.includes(e.entryid))
+            - let allEntries = [...cat.finalists, ...cat.nominated, ...nonFinalistsFiltered]
+
+            //- Sort by score for lead judge / chair
+            if isLeadJudge || isChair
+                - allEntries = allEntries.slice().sort((a,b) => (parseFloat(scoreMap[b.entryid])||0) - (parseFloat(scoreMap[a.entryid])||0))
+
+            each entry in allEntries
+                - let isFinalist = entry.finalist
+                - let isNominated = entry.nominated
+                - let isNominatedForReview = nominatedIds.includes(entry.entryid) && !isFinalist
+                - let displayName = entry.finalisttext || entry.entrantname
+
+                - let statusLabel, statusBg
+                - if ((isChair || isLeadJudge) && isNominated) { statusLabel = 'Nominated'; statusBg = 'green'; }
+                - else if (isFinalist) { statusLabel = 'Finalist'; statusBg = 'orange'; }
+                - else if (isNominatedForReview) { statusLabel = 'Nominated for Review'; statusBg = 'red'; }
+                - else { statusLabel = ''; statusBg = ''; }
+
+                tr
+                    td= displayName
+                    if isLeadJudge || isChair
+                        td(align='right')= scoreMap[entry.entryid] || ''
+                    else
+                        td
+                    td(align='center' valign='center' bgcolor=statusBg): b= statusLabel
+                    td: a(href='/viewEntry/' + entry.entryid + '?task=review') View
+
+                    //- Radio button for lead judge nominee selection
+                    if cat.winnernomination && isLeadJudge && isFinalist
+                        td(align='center')
+                            input(type='radio' name='but~' + cat.categoryid value=entry.entryid checked=entry.nominated)
+                    else
+                        td
+
+            //- Reset button for lead judge
+            if isLeadJudge
+                tr
+                    td(colspan='4') &nbsp;
+                    td(align='center')
+                        input(type='button' value='Reset' onclick=`setCheckedValue(document.forms['nominationform'].elements['but~${cat.categoryid}'], '')`)
+
+        tr
+            td(colspan='5' align='center')
+                button(type='submit') Record Nominations

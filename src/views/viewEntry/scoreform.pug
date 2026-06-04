@@ -1,0 +1,75 @@
+//- viewEntry/scoreform.pug
+//- Equiv of $scoreform in viewEntry.cgi — full judging score form.
+
+- let jm = scorePanel.judgingModel || {}
+- let minVal = parseFloat(jm.minscore) || 0
+- let maxVal = parseFloat(jm.maxscore) || 10
+- let increment = parseFloat(jm.scoreincrement) || 1
+- let scoreOptions = []
+- for (let i = minVal; i <= maxVal + 0.0001; i += increment) { scoreOptions.push(Math.round(i * 100) / 100); }
+- let scoreMap = {}
+each s in (scorePanel.scores || [])
+    - scoreMap[s.criteriaid] = s.score
+
+td(colspan='2'): b Overall Judging Basis
+br
+td(colspan='2')= category.description
+td(colspan='2'): br
+td(colspan='2')
+    b Judges Score Sheet
+    br
+    != jm.judgeinstructions || ''
+
+td(colspan='2')
+    form(method='POST' action='/recordScores')
+        input(type='hidden' name='entryid' value=entry.entryid)
+        input(type='hidden' name='userid'  value=user.userid)
+        table(width='600')
+            tr(align='left' valign='top')
+                th(align='left') Criteria
+                th Score
+
+            each c in (scorePanel.criteria || [])
+                if !c.weight
+                    tr: td(colspan='2')= c.description
+                else
+                    tr
+                        td= c.description
+                        td
+                            select(name='score~' + c.criteriaid)
+                                option(value='') Select
+                                if jm.nullscoreallowed
+                                    option(value=jm.nullscorevalue selected=(scoreMap[c.criteriaid] === jm.nullscorevalue))= jm.nullscorelabel
+                                each val in scoreOptions
+                                    option(value=val selected=(scoreMap[c.criteriaid] == val))= val
+                    tr: td(colspan='2'): hr
+
+            if jm.commentsallowed
+                tr
+                    td(colspan='2') &nbsp;
+                tr
+                    td(colspan='2')
+                        b Entrants consistently tell us that constructive feedback from judges is vitally important to them. Please bear this in mind as you provide your responses below. Your responses will be passed directly to the entrant without editing. Your identity will not be revealed to the entrant (but may be revealed to other judges).
+                        br
+                        br
+                tr
+                    td(colspan='2')
+                        | Please provide a message to the entrant highlighting areas in which this entrant has excelled:
+                        br
+                        textarea(name='comment~excel' rows='5' cols='80')= scorePanel.excel
+                tr
+                    td(colspan='2')
+                        | If this entry does not win its category, the entrant will benefit from your advice on areas in which they could improve next year:
+                        br
+                        textarea(name='comment~improve' rows='5' cols='80')= scorePanel.improve
+                tr
+                    td(colspan='2')
+                        | Do you have any other constructive comments that may assist this entrant?
+                        br
+                        textarea(name='comment~other' rows='5' cols='80')= scorePanel.other
+                tr: td(colspan='2'): hr
+
+            tr
+                td(colspan='2' align='center')
+                    button(type='submit')= jm.submitbuttonlabel || 'Save Scores'
+            tr: td(colspan='2'): hr

@@ -1,0 +1,153 @@
+//- formAdmin-content.pug
+//- Equiv of $form_blank in formAdmin.cgi.
+
+if error === 'noaccess'
+    p You do not have permission to access this page.
+    p: a(href='/home') Return Home
+else
+    style.
+        .admin-form { width: 100%; max-width: 860px; margin: 0 auto; font-family: inherit; }
+        .admin-form fieldset { border: 1px solid #666; border-radius: 4px; margin-bottom: 18px; padding: 12px 18px; }
+        .admin-form legend { font-weight: bold; padding: 0 6px; }
+        .admin-form table { border-collapse: collapse; width: 100%; }
+        .admin-form td { padding: 4px 8px; vertical-align: middle; }
+        .admin-form td:first-child { white-space: nowrap; width: 1%; text-align: right; padding-right: 12px; }
+        .admin-form .checkbox-table td:first-child { text-align: left; width: 1%; padding-right: 6px; }
+        .admin-form .checkbox-table td:nth-child(2) { text-align: left; width: auto; }
+        .admin-form input[type=text] { width: 100%; box-sizing: border-box; }
+        .admin-form .sub-table td:first-child { padding-left: 16px; }
+        .admin-form .note { color: #c80; font-size: 0.85em; padding-left: 10px; }
+        .admin-form .rich-label { font-weight: bold; padding-top: 10px; }
+        .admin-form textarea { width: 100%; box-sizing: border-box; }
+        .admin-form .menu-table th { text-align: left; padding: 2px 6px; }
+        .admin-form .menu-table td { padding: 2px 6px; }
+        .admin-form .form-actions { text-align: center; margin-top: 10px; }
+        .admin-form .form-actions a, .admin-form .form-actions button { margin: 0 8px; }
+
+    form.admin-form(method='POST' action='/admin')
+
+        h2(style='text-align:center') Program Control
+
+        //- ── General ──────────────────────────────────────────────────────────
+        fieldset
+            legend General
+            table
+                tr
+                    td Program Name
+                    td: input(type='text' name='name' value=program.name size='50' maxlength='300')
+
+        //- ── Portal Flags ─────────────────────────────────────────────────────
+        fieldset
+            legend Portal Flags
+            table.checkbox-table
+                tr
+                    td: input(type='checkbox' name='portalopen' value='ON' checked=program.portalopen)
+                    td: label Portal Open
+                tr
+                    td: input(type='checkbox' name='finalistlistavailable' value='ON' checked=program.finalistlistavailable)
+                    td: label Finalist List Available
+                tr
+                    td: input(type='checkbox' name='finalistscoresavailable' value='ON' checked=program.finalistscoresavailable)
+                    td: label Finalist Scores Available
+                tr
+                    td: input(type='checkbox' name='nonfinalistscoresavailable' value='ON' checked=program.nonfinalistscoresavailable)
+                    td: label Non-Finalist Scores Available
+                tr
+                    td: input(type='checkbox' name='feedbackopen' value='ON' checked=program.feedbackopen)
+                    td: label Entrant Feedback Open
+                tr
+                    td: input(type='checkbox' name='faveventavailable' value='ON' checked=program.faveventavailable)
+                    td: label Favourite Event Nominations Open
+
+        //- ── Default Settings ─────────────────────────────────────────────────
+        fieldset
+            legend Default Settings
+            table.checkbox-table
+                tr
+                    td: input(type='checkbox' name='entriesopen' value='ON' checked=program.entriesopendefault)
+                    td: label Entries Open
+                    if entryExceptions && entryExceptions.length
+                        td.note NOTE: Some categories are not using this default
+                tr
+                    td: input(type='checkbox' name='paymentsopen' value='ON' checked=program.paymentsopendefault)
+                    td: label Payments Open
+                    if paymentExceptions && paymentExceptions.length
+                        td.note NOTE: Some users are not using this default
+                tr
+                    td: input(type='checkbox' name='judgingopen' value='ON' checked=program.judgingopendefault)
+                    td: label Judging Open
+                    if judgingExceptions && judgingExceptions.length
+                        td.note NOTE: Some categories are not using this default
+                tr(style='border-top:1px solid #444')
+                    td(style='padding-top:8px'): input(type='checkbox' name='overwrite' value='ON')
+                    td(style='padding-top:8px'): label Overwrite all records with defaults above
+
+        //- ── Technical ────────────────────────────────────────────────────────
+        fieldset
+            legend Technical
+            table
+                tr
+                    td Standard HTML File
+                    td: input(type='text' name='standardhtml' value=program.standardhtml || '' size='50' maxlength='200')
+                tr
+                    td Email HTML File
+                    td: input(type='text' name='emailhtml' value=program.emailhtml || '' size='50' maxlength='200')
+                tr
+                    td Login HTML File
+                    td: input(type='text' name='loginhtml' value=program.loginhtml || '' size='50' maxlength='200')
+                tr
+                    td SMTP Server
+                    td: input(type='text' name='smtpserver' value=program.smtpserver || '' size='50' maxlength='200')
+                tr
+                    td Email From Address
+                    td: input(type='text' name='emailfromaddress' value=program.emailfromaddress || '' size='50' maxlength='200')
+                tr
+                    td Invoice Number Precursor
+                    td: input(type='text' name='invoicenoprecursor' value=program.invoicenoprecursor || '' size='5' maxlength='5')
+                tr
+                    td Eway Customer No
+                    td: input(type='text' name='ewaycustomerno' value=program.ewaycustomerno || '' size='8' maxlength='8')
+                tr
+                    td Eway Gateway Address
+                    td: input(type='text' name='ewaygatewayaddress' value=program.ewaygatewayaddress || '' size='50' maxlength='200')
+
+        //- ── Rich Text Fields ─────────────────────────────────────────────────
+        - var richFields = [{label:'Login Page Text',name:'loginpagetext'},{label:'Invoice From Text',name:'invoicefromtext'},{label:'Payment Instructions Text',name:'paymentinstructionstext'},{label:'Remittance Advice Text',name:'remittanceadvicetext'},{label:'Receipt Text',name:'receipttext'},{label:'Admin Description Text',name:'admindescriptiontext'},{label:'Admin Welcome Text',name:'adminwelcometext'},{label:'Judge Description Text',name:'judgedescriptiontext'},{label:'Judge Welcome Text',name:'judgewelcometext'},{label:'Finalist Description Text',name:'finalistdescriptiontext'},{label:'Finalist Welcome Text',name:'finalistwelcometext'},{label:'Non Finalist Welcome Text',name:'nonfinalistwelcometext'},{label:'Standard Description Text',name:'standarddescriptiontext'},{label:'Standard Welcome Text',name:'standardwelcometext'},{label:'Entry Terms & Conditions',name:'entrytctext'},{label:'Judge Terms & Conditions',name:'judgetctext'},{label:'User Help',name:'userhelptext'},{label:'Judge Help',name:'judgehelptext'},{label:'Judge Contacts',name:'judgecontacttext'},{label:'Text Explaining Scores',name:'scoresexplained'},{label:'Download Page Content',name:'downloadpagehtml'},{label:'Text Explaining Entry Costs',name:'costexplanationtext'}]
+        fieldset
+            legend Page Text &amp; Rich Content
+            each field in richFields
+                p.rich-label= field.label
+                textarea.mceEditor(name=field.name rows='5')= program[field.name] || ''
+
+        //- ── Top Menus ────────────────────────────────────────────────────────
+        each menuType in ['admin', 'judge', 'user']
+            fieldset
+                legend= menuType.charAt(0).toUpperCase() + menuType.slice(1) + ' Top Menu'
+                table.menu-table
+                    tr
+                        th(style='width:180px; min-width:180px') Button Text
+                        th Button URL
+                        th(style='width:50px') New Window
+                    each btn, i in menuButtons[menuType]
+                        tr
+                            td(style='width:180px; min-width:180px'): input(type='text' name=menuType+'~text~'+i value=(btn ? btn.text||'' : '') size='20' maxlength='20' style='width:170px')
+                            td: input(type='text' name=menuType+'~url~'+i  value=(btn ? btn.url ||'' : '') size='50' maxlength='250')
+                            td(style='text-align:center'): input(type='checkbox' name=menuType+'~newwindow~'+i value='ON' checked=(btn && btn.newwindow))
+
+        //- ── Actions ──────────────────────────────────────────────────────────
+        .form-actions
+            a(href='/home') Cancel
+            button(type='submit' name='submit' value='Save Program') Save Program
+
+    script(src='https://cdn.tiny.cloud/1/t5u2zqqe9s1ltcgp3yrcdormdh3wb2qaquf31suupv3rupdw/tinymce/7/tinymce.min.js' referrerpolicy='origin')
+    script.
+        tinymce.init({
+            selector: 'textarea.mceEditor',
+            plugins: 'anchor autolink lists link image table code fullscreen',
+            toolbar: 'undo redo | blocks | bold italic underline | forecolor backcolor | alignleft aligncenter alignright | bullist numlist | link image table | code fullscreen',
+            menubar: false,
+            height: 250,
+            skin: 'oxide-dark',
+            content_css: 'dark',
+            promotion: false,
+        });

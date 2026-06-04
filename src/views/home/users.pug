@@ -1,0 +1,67 @@
+//- home/users.pug
+
+style.
+    .users-wrap { max-width: 900px; margin: 0 auto; }
+    .users-wrap h3 { color: #c48f06; font-size: 18px; text-align: center; margin-bottom: 16px; }
+    .users-table { width: 100%; border-collapse: collapse; }
+    .users-table th { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1px solid #555; padding: 6px 10px; text-align: left; color: #c48f06; }
+    .users-table td { padding: 7px 10px; border-bottom: 1px solid #2a2a2a; vertical-align: middle; font-size: 14px; }
+    .users-table tr:hover td { background: rgba(255,255,255,0.04); }
+    .users-table .badge { font-size: 11px; padding: 1px 5px; border-radius: 2px; margin-left: 3px; }
+    .users-table .badge-admin { background: #c48f06; color: #000; }
+    .users-table .badge-judge { background: #4a6fa5; color: #fff; }
+    .users-table .badge-disabled { background: #555; color: #ccc; }
+    .users-table .actions a { margin-right: 6px; font-size: 16px; color: #aaa; text-decoration: none; }
+    .users-table .actions a:hover { color: #c48f06; }
+    .users-table .actions a[title]:hover::after { content: attr(title); position: absolute; background: #333; color: #fff; font-size: 11px; padding: 2px 6px; border-radius: 2px; margin-left: 4px; white-space: nowrap; }
+    .users-table .actions { position: relative; white-space: nowrap; }
+    .users-toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+    .users-toolbar a { font-size: 13px; white-space: nowrap; margin-left: 12px; }
+    #user-search { flex: 1; max-width: 320px; padding: 6px 10px; background: #111; color: #fff; border: 1px solid #555; font-size: 14px; }
+    #user-search:focus { border-color: #c48f06; outline: none; }
+    .users-table tr.hidden { display: none; }
+
+.users-wrap
+    h3 Manage Users
+    .users-toolbar
+        input#user-search(type='text' placeholder='Search by name or email…' oninput='filterUsers(this.value)')
+        a(href='/register') + New User
+
+    table.users-table
+        thead
+            tr
+                th Name
+                th Email
+                th(style='width:160px')
+        tbody
+            each u in content.users
+                tr
+                    td
+                        a(href='/formUser?edituserid=' + u.userid)= u.firstname + ' ' + u.lastname
+                        if u.admin
+                            span.badge.badge-admin Admin
+                        if u.judge
+                            span.badge.badge-judge Judge
+                        if !u.enabled
+                            span.badge.badge-disabled Disabled
+                    td= u.email
+                    td.actions
+                        a(href='/formUser?edituserid=' + u.userid title='Edit') ✏️
+                        a(href='/emulate?userId=' + u.userid title='Emulate') 👤
+                        if u.enabled
+                            a(href='/formUser?action=disable&edituserid=' + u.userid title='Disable') 🔒
+                        else
+                            a(href='/formUser?action=enable&edituserid=' + u.userid title='Enable') 🔓
+                        if u.judge
+                            a(href='/formUser?action=demote&edituserid=' + u.userid title='Demote judge' onclick='return confirm("Remove all judging data for this user?")') ⬇️
+                        a(href='/formUser?action=delete&edituserid=' + u.userid title='Delete' onclick='return confirm("Delete this user?")' style='color:#c44') ✕
+
+script.
+    function filterUsers(q) {
+        q = q.toLowerCase();
+        document.querySelectorAll('.users-table tbody tr').forEach(function(row) {
+            var text = row.textContent.toLowerCase();
+            row.classList.toggle('hidden', q.length > 0 && text.indexOf(q) === -1);
+        });
+    }
+    document.getElementById('user-search').focus();

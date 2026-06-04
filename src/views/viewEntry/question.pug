@@ -1,0 +1,65 @@
+//- viewEntry/question.pug
+//- Renders one question + its response. Called in a loop from viewEntry-content.pug.
+//- `q` = question object, `i` = loop index (0-based), `responses` = hash by questionid
+
+- let resp = responses[q.questionid]
+- let num  = i + 1
+- let desc = q.description ? '<br><i>' + q.description + '</i>' : ''
+- let noResp = '[No Response Provided]'
+
+if q.inputtype === 'textfield' || q.inputtype === 'drop down list' || q.inputtype === 'radio'
+    td
+        != num + '. ' + q.questiontext + desc
+    td= resp ? resp.value : noResp
+
+else if q.inputtype === 'textarea'
+    td(colspan='2' align='left')!= num + '. ' + q.questiontext + desc
+    td(colspan='2' align='left')
+        if resp && resp.value
+            p(style='font-size:100%;')!= resp.value.replace(/\n/g, "</p><p style='font-size:100%;'>")
+        else
+            p= noResp
+
+else if q.inputtype === 'checkbox'
+    - let selected = resp ? resp.value.split('~') : []
+    td!= num + '. ' + q.questiontext + desc
+    td
+        if q.inputoptions
+            table
+                each opt in q.inputoptions
+                    tr
+                        td= opt.name
+                        td= selected.includes(String(opt.inputoptionid)) ? 'YES' : 'NO'
+
+else if q.inputtype === 'upload'
+    td(colspan='2' align='left')!= num + '. ' + q.questiontext + desc
+    td(colspan='2' align='center')
+        if !resp
+            | [No File Uploaded]
+        else
+            - let ext = resp.value.split('.').pop().toLowerCase()
+            if ['jpg','jpeg','png','gif'].includes(ext)
+                img(width='600' src='/formResponses/image?file=' + encodeURIComponent(resp.value))
+            else
+                a(href='/formResponses/download?file=' + encodeURIComponent(resp.value) target='_blank') View the current file
+
+else if q.inputtype === 'image'
+    td(colspan='2' align='left')!= num + '. ' + q.questiontext + desc
+    td(colspan='2' align='center')
+        if !resp
+            | [No Image Uploaded]
+        else
+            img(src='/formResponses/image?file=' + encodeURIComponent(resp.value) width='600')
+
+else if q.inputtype === 'video'
+    td(colspan='2' align='left')!= num + '. ' + q.questiontext + desc
+    td(colspan='2' align='center')
+        if !resp
+            | [No Video Uploaded]
+        else
+            video(width='425' height='350' controls)
+                source(src='/formResponses/video?file=' + encodeURIComponent(resp.value) type='video/mp4')
+                | Your browser does not support the video tag.
+
+else if q.inputtype === 'noinput'
+    td(colspan='2' align='left')!= q.questiontext + desc

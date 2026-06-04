@@ -1,0 +1,161 @@
+//- formUser-content.pug
+
+style.
+    .user-form { max-width: 720px; margin: 0 auto; }
+    .user-form fieldset { border: 1px solid #666; border-radius: 4px; margin-bottom: 16px; padding: 12px 18px; }
+    .user-form legend { font-weight: bold; padding: 0 6px; }
+    .user-form table { border-collapse: collapse; width: 100%; }
+    .user-form td { padding: 4px 8px; vertical-align: middle; }
+    .user-form td:first-child { white-space: nowrap; text-align: right; padding-right: 12px; width: 1%; }
+    .user-form input[type=text], .user-form input[type=email], .user-form input[type=password] { width: 100%; box-sizing: border-box; }
+    .user-form .checkbox-row td:first-child { text-align: left; width: 1%; padding-right: 6px; }
+    .user-form .alert-error { background: #7a2a00; color: #fff; padding: 8px 12px; margin-bottom: 12px; border-left: 4px solid #c44; }
+    .user-form .note { color: #aaa; font-size: 12px; margin-top: 4px; }
+    .user-form .cat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px 12px; margin-top: 6px; }
+    .user-form .cat-grid label { display: flex; align-items: center; gap: 6px; font-size: 13px; }
+    .user-form .form-actions { text-align: center; margin-top: 10px; }
+    .user-form .form-actions a, .user-form .form-actions button { margin: 0 6px; }
+    .user-form .action-links { font-size: 13px; color: #aaa; margin-bottom: 12px; text-align: center; }
+    .user-form .action-links a { margin: 0 8px; }
+
+form.user-form(method='POST' action='/formUser')
+    input(type='hidden' name='edituserid' value=targetUser.userid)
+
+    h2(style='text-align:center') Edit User — #{targetUser.firstname} #{targetUser.lastname}
+
+    if error
+        p.alert-error= error
+
+    //- Admin quick-actions
+    if isAdmin && user.userid !== targetUser.userid
+        .action-links
+            a(href='/formUser?action=delete&edituserid=' + targetUser.userid onclick='return confirm("Delete this user?")') Delete
+            if targetUser.enabled
+                a(href='/formUser?action=disable&edituserid=' + targetUser.userid) Disable
+            else
+                a(href='/formUser?action=enable&edituserid=' + targetUser.userid) Enable
+            if targetUser.judge
+                a(href='/formUser?action=demote&edituserid=' + targetUser.userid onclick='return confirm("Remove all judging data?")') Demote from Judge
+
+    //- ── Login details ────────────────────────────────────────────────────────
+    fieldset
+        legend Login Details
+        table
+            tr
+                td Email Address
+                td: input(type='email' name='email' value=targetUser.email maxlength='300')
+            tr
+                td New Password
+                td: input(type='password' name='password' autocomplete='new-password' maxlength='50')
+            tr
+                td Confirm Password
+                td: input(type='password' name='passwordcheck' autocomplete='new-password' maxlength='50')
+            tr
+                td
+                td.note Leave password fields blank to keep the current password.
+
+    //- ── Security question ────────────────────────────────────────────────────
+    fieldset
+        legend Security Question
+        table
+            tr
+                td Question
+                td: input(type='text' name='question' value=targetUser.question maxlength='100')
+            tr
+                td Answer
+                td: input(type='text' name='answer' value=targetUser.answer maxlength='200')
+
+    //- ── Personal details ─────────────────────────────────────────────────────
+    fieldset
+        legend Personal Details
+        table
+            tr
+                td First Name
+                td: input(type='text' name='firstname' value=targetUser.firstname maxlength='300')
+            tr
+                td Last Name
+                td: input(type='text' name='lastname' value=targetUser.lastname maxlength='300')
+            tr
+                td Organisation
+                td: input(type='text' name='organisation' value=targetUser.organisation maxlength='300')
+            tr
+                td Telephone
+                td: input(type='text' name='telephone' value=targetUser.telephone maxlength='50')
+            tr
+                td Mobile
+                td: input(type='text' name='mobile' value=targetUser.mobile maxlength='50')
+
+    //- ── Postal address ───────────────────────────────────────────────────────
+    fieldset
+        legend Postal Address
+        table
+            tr
+                td Select Address
+                td
+                    select(name='postaladdressid' onchange='toggleNewAddress(this.value)')
+                        if addresses && addresses.length
+                            each addr in addresses
+                                option(value=addr.addressid selected=(addr.addressid == targetUser.postaladdressid))
+                                    = addr.address + ', ' + addr.city + ', ' + addr.state
+                        option(value='b') + New address below
+            tr#new-address-row(style='display:none')
+                td(colspan='2')
+                    table(style='width:100%')
+                        tr
+                            td Address
+                            td: input(type='text' name='postaladdress' maxlength='100')
+                        tr
+                            td City
+                            td: input(type='text' name='postalcity' maxlength='50')
+                        tr
+                            td State
+                            td: input(type='text' name='postalstate' maxlength='20')
+                        tr
+                            td Postcode
+                            td: input(type='text' name='postalcode' maxlength='10')
+                        tr
+                            td Country
+                            td: input(type='text' name='postalcountry' value='Australia' maxlength='50')
+
+    //- ── Admin settings ───────────────────────────────────────────────────────
+    if isAdmin
+        fieldset
+            legend Account Settings
+            table.checkbox-row
+                tr
+                    td: input(type='checkbox' name='isadmin' value='ON' checked=targetUser.admin)
+                    td: label Admin
+                tr
+                    td: input(type='checkbox' name='isjudge' value='ON' checked=targetUser.judge id='isjudge-cb')
+                    td: label Judge
+                tr
+                    td: input(type='checkbox' name='paymentsopen' value='ON' checked=targetUser.paymentsopen)
+                    td: label Payments Open
+
+        if targetUser.judge && categories && categories.length
+            fieldset#judge-cats-fieldset
+                legend Categories to Judge
+                .cat-grid
+                    each cat in categories
+                        label
+                            input(type='checkbox' name='categories' value=cat.categoryid checked=cat.judging)
+                            = cat.name
+
+    //- ── Actions ──────────────────────────────────────────────────────────────
+    .form-actions
+        a(href='/home') Cancel
+        button(type='submit' name='submit' value='Update User') Save Changes
+
+script.
+    function toggleNewAddress(val) {
+        document.getElementById('new-address-row').style.display = val === 'b' ? '' : 'none';
+    }
+    // Show/hide judge categories when judge checkbox toggled
+    var judgecb = document.getElementById('isjudge-cb');
+    var judgeFs = document.getElementById('judge-cats-fieldset');
+    if (judgecb && judgeFs) {
+        judgeFs.style.display = judgecb.checked ? '' : 'none';
+        judgecb.addEventListener('change', function() {
+            judgeFs.style.display = this.checked ? '' : 'none';
+        });
+    }

@@ -1,0 +1,58 @@
+//- home/entries.pug
+//- Equiv of $entriestable in home.cgi.
+
+style.
+    .entries-wrap { max-width: 900px; margin: 0 auto; }
+    .entries-wrap h3 { color: #c48f06; font-size: 18px; text-align: center; margin-bottom: 16px; }
+    .entries-table { width: 100%; border-collapse: collapse; }
+    .entries-table th { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1px solid #555; padding: 6px 10px; text-align: left; color: #c48f06; }
+    .entries-table td { padding: 7px 10px; border-bottom: 1px solid #2a2a2a; vertical-align: middle; font-size: 14px; }
+    .entries-table tr:hover td { background: rgba(255,255,255,0.04); }
+    .entries-table .status-paid { color: #4caf50; }
+    .entries-table .status-invoiced { color: #c48f06; }
+    .entries-table .status-unpaid { color: #aaa; }
+    .entries-table .actions { white-space: nowrap; }
+    .entries-table .actions a { margin-right: 6px; font-size: 16px; color: #aaa; text-decoration: none; }
+    .entries-table .actions a:hover { color: #c48f06; }
+    .entries-footer { margin-top: 12px; text-align: right; }
+
+.entries-wrap
+    h3 My Entries
+
+    if content.program.costexplanationtext
+        p!= content.program.costexplanationtext
+
+    table.entries-table
+        thead
+            tr
+                th #
+                th= content.entrantLabel || 'Entrant'
+                th Category
+                th Your Ref
+                th Cost
+                th Status
+                th(style='width:80px')
+        tbody
+            each entry in content.entries
+                - let cost = (parseFloat(entry.costex) || 0) + (parseFloat(entry.gst) || 0)
+                - let costDisplay = cost === 0 ? '' : content.currency(cost)
+                - let pmt = entry.entryaccepted ? 'Paid' : (entry.invoiceid && !entry.invoicedeleted ? 'Invoiced' : 'Unpaid')
+                - let finalisedLabel = entry.finalised ? ' · Finalised' : ' · Editing'
+                - let statusClass = entry.entryaccepted ? 'status-paid' : (entry.invoiceid && !entry.invoicedeleted ? 'status-invoiced' : 'status-unpaid')
+                - let catOpen = content.catsOpenForEntries.some(c => c.categoryid === entry.categoryid)
+                - let canEdit = (entry.entryopen || catOpen) && !entry.finalised
+                tr
+                    td= entry.entryid
+                    td= entry.entrantname
+                    td= entry.categoryname
+                    td= entry.userref
+                    td= costDisplay
+                    td(class=statusClass)= pmt + finalisedLabel
+                    td.actions
+                        a(href='/viewEntry/' + entry.entryid title='View') 👁
+                        if canEdit
+                            a(href='/entry/' + entry.entryid + '/edit' title='Edit') ✏️
+                            a(href='/entry/' + entry.entryid + '/delete' title='Delete' onclick='return confirm("Delete this entry?")' style='color:#c44') ✕
+
+    if content.catsOpenForEntries.length
+        .entries-footer: a(href='/home?action=newentry') + New Entry

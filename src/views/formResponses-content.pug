@@ -1,0 +1,469 @@
+//- formResponses-content.pug
+
+style.
+    .resp-wrap { max-width: 760px; margin: 0 auto; }
+    .resp-wrap h2 { color: #c48f06; margin-bottom: 4px; text-align: center; }
+    .resp-wrap .entry-meta { color: #aaa; font-size: 13px; margin-bottom: 16px; text-align: center; }
+    .resp-wrap .question-block { border-top: 1px solid #2a2a2a; padding: 14px 0; text-align: left; }
+    .resp-wrap .question-label { font-weight: bold; margin-bottom: 6px; text-align: left; }
+    .resp-wrap .question-desc { font-size: 12px; color: #aaa; font-style: italic; margin-bottom: 8px; text-align: left; }
+    .resp-wrap .word-limit { font-size: 12px; color: #c48f06; margin-bottom: 6px; }
+    .resp-wrap .noinput-block { border-top: 1px solid #2a2a2a; padding: 14px 0; text-align: center; }
+    .resp-wrap input[type=text], .resp-wrap textarea, .resp-wrap select { background: #111; color: #fff; border: 1px solid #555; padding: 6px 10px; font-family: inherit; font-size: 14px; box-sizing: border-box; }
+    .resp-wrap input[type=text]:focus, .resp-wrap textarea:focus, .resp-wrap select:focus { border-color: #c48f06; outline: none; }
+    .resp-wrap textarea { width: 100%; resize: vertical; }
+    .resp-wrap .word-count { font-size: 12px; color: #aaa; margin-top: 4px; }
+    .resp-wrap .word-count input { width: 50px; text-align: center; padding: 2px 4px; }
+    .resp-wrap .checkbox-group, .resp-wrap .radio-group { display: grid; grid-template-columns: repeat(3,1fr); gap: 4px 12px; margin-top: 6px; }
+    .resp-wrap .checkbox-group label, .resp-wrap .radio-group label { display: flex; align-items: center; gap: 6px; font-size: 13px; }
+    .resp-wrap .file-current { font-size: 13px; margin-bottom: 8px; color: #aaa; display: flex; gap: 16px; align-items: center; flex-wrap: wrap; }
+    .resp-wrap .file-current a { color: #c48f06; }
+    .resp-wrap .btn-dz-remove { position: relative; z-index: 2; background: transparent; color: #c44; border: 1px solid #c44; border-radius: 3px; padding: 2px 8px; font-size: 11px; cursor: pointer; margin-top: 6px; display: inline-block; }
+    .resp-wrap .btn-dz-remove:hover { background: #c44; color: #fff; }
+    .resp-wrap .dropzone { border: 2px dashed #555; border-radius: 6px; padding: 20px; text-align: center; cursor: pointer; transition: all 0.2s; position: relative; margin-top: 6px; }
+    .resp-wrap .dropzone:hover, .resp-wrap .dropzone.drag-over { border-color: #c48f06; background: rgba(196,143,6,0.06); }
+    .resp-wrap .dropzone.uploaded { border-color: #4caf50; border-style: solid; }
+    .resp-wrap .dz-icon { font-size: 28px; margin-bottom: 6px; }
+    .resp-wrap .dz-text { color: #aaa; font-size: 13px; }
+    .resp-wrap .dz-input { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+    .resp-wrap .dz-bar { height: 6px; background: #333; border-radius: 3px; margin-top: 10px; overflow: hidden; }
+    .resp-wrap .dz-bar-fill { height: 100%; background: #c48f06; width: 0; transition: width 0.2s; }
+    .resp-wrap .dz-preview { margin-top: 8px; }
+    .resp-wrap .dz-preview .dz-thumb { display: block; max-height: 120px; max-width: 240px; width: auto; height: auto; border: 1px solid #333; object-fit: contain; }
+    .resp-wrap .dz-uploading { display: none; width: 120px; height: 80px; background: #1a1a1a; border: 1px solid #333; border-radius: 4px; align-items: center; justify-content: center; flex-direction: column; gap: 8px; color: #aaa; font-size: 12px; }
+    .resp-wrap .dz-uploading.active { display: flex; }
+    @keyframes dz-pulse { 0%,100% { opacity: 0.3; } 50% { opacity: 1; } }
+    .resp-wrap .dz-uploading-icon { font-size: 24px; animation: dz-pulse 1.2s ease-in-out infinite; }
+    .resp-wrap .dz-filename { font-size: 12px; color: #4caf50; }
+    .resp-wrap .dz-err { color: #c44; font-size: 12px; margin-top: 6px; }
+    .resp-wrap .progress-bar { display: none; height: 8px; background: #333; border-radius: 4px; margin-top: 12px; overflow: hidden; }
+    .resp-wrap .progress-bar-fill { height: 100%; background: #c48f06; width: 0; transition: width 0.3s; }
+    .resp-wrap .save-status { text-align: center; font-size: 13px; margin-top: 8px; min-height: 20px; }
+    .resp-wrap .form-actions { display: flex; justify-content: center; gap: 12px; margin-top: 20px; padding-top: 16px; border-top: 1px solid #333; }
+    .resp-wrap .btn { display: inline-flex; align-items: center; gap: 6px; padding: 9px 20px; font-size: 14px; border-radius: 3px; cursor: pointer; text-decoration: none; border: none; transition: all 0.2s; font-family: inherit; }
+    .resp-wrap .btn-primary { background: #c48f06; color: #000; font-weight: 600; }
+    .resp-wrap .btn-primary:hover { background: #ffba01; }
+    .resp-wrap .btn-secondary { background: transparent; color: #ccc; border: 1px solid #555; }
+    .resp-wrap .btn-secondary:hover { border-color: #c48f06; color: #c48f06; }
+    .resp-wrap .closed-msg { text-align: center; color: #aaa; padding: 20px; }
+
+.resp-wrap
+
+    if closed
+        .closed-msg
+            p Entries are currently closed for this category.
+            a.btn.btn-secondary(href='/home') ← Home
+
+    else
+        h2= entry.categoryname
+        p.entry-meta Entry ##{entry.entryid} &nbsp;·&nbsp; #{entry.entrantname || ''}
+
+        //- Criteria box
+        if questions.some && questions.some(q => q.inputtype !== 'noinput')
+            //- (criteria shown on formEntry page already)
+
+        form#response-form(method='POST' action='/formResponses' enctype='multipart/form-data')
+            input(type='hidden' name='entryid' value=entry.entryid)
+
+            - let questionNum = 0
+            each q in questions
+                - const resp = responses[q.questionid]
+                - const respid = resp ? resp.responseid : ''
+                - const respval = resp ? (resp.value || '') : ''
+                - const fieldbase = 'HHH' + q.questionid + 'HHH' + respid + 'HHH'
+                - if (q.inputtype !== 'noinput') questionNum++
+                - const num = questionNum
+
+                if q.inputtype === 'noinput'
+                    .noinput-block!= q.questiontext
+                else
+                    .question-block
+                        .question-label= num + '. ' + q.questiontext
+                        if q.description
+                            .question-desc!= q.description
+                        if q.inputtype === 'textfield'
+                            input(type='text' name=fieldbase+'tf' value=respval style=('width:' + (q.inputwidth||'400px')))
+                        else if q.inputtype === 'textarea'
+                            if q.maxsize
+                                .word-limit Word limit: #{q.maxsize} words
+                            - const taname = fieldbase + 'ta'
+                            textarea(name=taname rows=q.inputheight||6 style='width:100%' onkeyup='countWords(this,' + q.maxsize + ')')= respval
+                            if q.maxsize
+                                .word-count
+                                    | Word count:&nbsp;
+                                    input(type='text' name=taname+'c' value=respval ? respval.trim().split(/\s+/).filter(Boolean).length : 0 readonly)
+                        else if q.inputtype === 'drop down list'
+                            - const ddopts = q.options || []
+                            select(name=fieldbase+'dd')
+                                option(value='') -- Select --
+                                each opt in ddopts
+                                    option(value=opt.inputoptionid selected=(respval == opt.inputoptionid))= opt.name
+                        else if q.inputtype === 'checkbox'
+                            - const cbopts = q.options || []
+                            - const cbvals = respval ? respval.split('~') : []
+                            input(type='hidden' name=fieldbase+'cb' value='cb')
+                            .checkbox-group
+                                each opt in cbopts
+                                    label
+                                        input(type='checkbox' name=fieldbase+'cb' value=opt.inputoptionid checked=cbvals.includes(String(opt.inputoptionid)))
+                                        = opt.name
+                        else if q.inputtype === 'radio'
+                            - const raopts = q.options || []
+                            .radio-group
+                                each opt in raopts
+                                    label
+                                        input(type='radio' name=fieldbase+'ra' value=opt.inputoptionid checked=(respval == opt.inputoptionid))
+                                        = opt.name
+                        else if q.inputtype === 'upload'
+                            - const ulHidden = fieldbase + 'ul'
+                            input(type='hidden' name=ulHidden value=respval)
+                            .dropzone(data-field=ulHidden data-type='file' data-responseid=(resp ? resp.responseid : '') data-entryid=entry.entryid data-qid=q.questionid class=(respval ? 'uploaded' : ''))
+                                .dz-icon 📄
+                                .dz-text= respval ? 'Click or drop to replace' : 'Drop a file here or click to browse'
+                                input(type='file' class='dz-input')
+                                .dz-preview(style=(respval ? 'display:block' : 'display:none'))
+                                    if resp && respval
+                                        a.dz-filename(href='/formResponses/download?responseid='+resp.responseid target='_blank') 📄 #{respval}
+                                    else
+                                        span.dz-filename
+                                    button.btn-dz-remove(type='button' onclick='removeFile(event,this)') ✕ Remove
+                                .dz-bar(style='display:none'): .dz-bar-fill
+                                .dz-err(style='display:none')
+                        else if q.inputtype === 'image'
+                            - const imHidden = fieldbase + 'im'
+                            input(type='hidden' name=imHidden value=respval)
+                            .dropzone(data-field=imHidden data-type='image' data-responseid=(resp ? resp.responseid : '') data-entryid=entry.entryid data-qid=q.questionid class=(respval ? 'uploaded' : ''))
+                                .dz-icon 🖼
+                                .dz-text= respval ? 'Click or drop to replace' : 'Drop an image here or click to browse'
+                                input(type='file' class='dz-input' accept='image/*')
+                                .dz-preview(style=(respval ? 'display:block' : 'display:none'))
+                                    .dz-uploading
+                                        span.dz-uploading-icon 🖼
+                                        span Uploading…
+                                    if resp && respval
+                                        img.dz-thumb(src='/formResponses/image?responseid='+resp.responseid)
+                                    else
+                                        img.dz-thumb
+                                    button.btn-dz-remove(type='button' onclick='removeFile(event,this)') ✕ Remove
+                                .dz-bar(style='display:none'): .dz-bar-fill
+                                .dz-err(style='display:none')
+                        else if q.inputtype === 'video'
+                            - const vidHidden = fieldbase + 'vid'
+                            input(type='hidden' name=vidHidden value=respval)
+                            .dropzone(data-field=vidHidden data-type='video' data-responseid=(resp ? resp.responseid : '') data-entryid=entry.entryid data-qid=q.questionid class=(respval ? 'uploaded' : ''))
+                                .dz-icon 🎬
+                                .dz-text= respval ? 'Click or drop to replace' : 'Drop a video here or click to browse'
+                                input(type='file' class='dz-input' accept='video/*')
+                                .dz-preview(style=(respval ? 'display:block' : 'display:none'))
+                                    if resp && respval
+                                        a.dz-filename(href='/formResponses/video?responseid='+resp.responseid target='_blank') 🎬 #{respval}
+                                    else
+                                        span.dz-filename
+                                    button.btn-dz-remove(type='button' onclick='removeFile(event,this)') ✕ Remove
+                                .dz-bar(style='display:none'): .dz-bar-fill
+                                .dz-err(style='display:none')
+
+            p.save-status#save-status
+
+            .form-actions
+                a.btn.btn-secondary(href='/home') ← Home
+                button.btn.btn-primary(type='button' id='btn-save' onclick='saveResponses()') 💾 Save
+                a.btn.btn-secondary(href='/viewEntry/' + entry.entryid) Review &amp; Finalise
+
+script.
+    // ── Upload activity tracker ───────────────────────────────────────────────
+    var _uploadsInFlight = 0;
+
+    function uploadStarted() {
+        _uploadsInFlight++;
+        setUploadBusy(true);
+    }
+
+    function uploadFinished() {
+        _uploadsInFlight = Math.max(0, _uploadsInFlight - 1);
+        if (_uploadsInFlight === 0) setUploadBusy(false);
+    }
+
+    function setUploadBusy(busy) {
+        var btn     = document.getElementById('btn-save');
+        var links   = document.querySelectorAll('.form-actions a.btn');
+        var status  = document.getElementById('save-status');
+        if (busy) {
+            if (btn) { btn.disabled = true; btn.title = 'Waiting for uploads to complete…'; }
+            links.forEach(function(a) { a.dataset.href = a.href; a.removeAttribute('href'); a.style.opacity = '0.5'; a.style.cursor = 'not-allowed'; });
+            if (status) status.innerHTML = '<span style="color:#c48f06">⏳ Uploading… please wait before saving</span>';
+        } else {
+            if (btn) { btn.disabled = false; btn.title = ''; }
+            links.forEach(function(a) { if (a.dataset.href) { a.href = a.dataset.href; delete a.dataset.href; } a.style.opacity = ''; a.style.cursor = ''; });
+            if (status) status.innerHTML = '';
+        }
+    }
+
+    // Warn if user tries to leave the page while uploads are in progress
+    window.addEventListener('beforeunload', function(e) {
+        if (_uploadsInFlight > 0) {
+            e.preventDefault();
+            e.returnValue = 'Uploads are still in progress. If you leave now your files may not be saved.';
+        }
+    });
+
+    // ── Word count ────────────────────────────────────────────────────────────
+    function countWords(ta, limit) {
+        var words = ta.value.trim().split(/\s+/).filter(Boolean);
+        var cnt = words.length;
+        var cntField = document.querySelector('[name="' + ta.name + 'c"]');
+        if (cntField) cntField.value = cnt;
+        if (limit && cnt > limit) ta.style.borderColor = '#c44';
+        else ta.style.borderColor = '';
+    }
+
+    // ── Dropzone wiring ───────────────────────────────────────────────────────
+    document.querySelectorAll('.dropzone').forEach(function(dz) {
+        var input       = dz.querySelector('.dz-input');
+        var preview     = dz.querySelector('.dz-preview');
+        var bar         = dz.querySelector('.dz-bar');
+        var barFill     = dz.querySelector('.dz-bar-fill');
+        var errEl       = dz.querySelector('.dz-err');
+        var dzText      = dz.querySelector('.dz-text');
+        var type        = dz.dataset.type;           // 'file', 'image', 'video'
+        var hiddenName  = dz.dataset.field;
+        var hiddenInput = document.querySelector('input[name="' + hiddenName + '"]');
+
+        // Drag visual feedback
+        dz.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            dz.classList.add('drag-over');
+        });
+        dz.addEventListener('dragleave', function(e) {
+            if (!dz.contains(e.relatedTarget)) dz.classList.remove('drag-over');
+        });
+        dz.addEventListener('drop', function(e) {
+            e.preventDefault();
+            dz.classList.remove('drag-over');
+            var files = e.dataTransfer.files;
+            if (files.length) handleFile(files[0]);
+        });
+
+        // File chosen via the native file picker (input covers whole dropzone)
+        input.addEventListener('change', function() {
+            if (input.files.length) handleFile(input.files[0]);
+        });
+
+        function handleFile(file) {
+            // If a pending file is already on disk, delete it before uploading the replacement
+            if (dz.dataset.pendingFile) {
+                fetch('/formResponses/delete-pending', {
+                    method:  'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body:    'filename=' + encodeURIComponent(dz.dataset.pendingFile) + '&type=' + encodeURIComponent(type),
+                }).catch(function(e) { console.warn('delete-pending (replace) failed:', e); });
+                dz.dataset.pendingFile = '';
+            }
+
+            errEl.style.display  = 'none';
+            errEl.textContent    = '';
+            bar.style.display    = 'block';
+            barFill.style.width  = '0';
+
+            // Show uploading placeholder for images
+            var uploadingEl = preview.querySelector('.dz-uploading');
+            var thumb       = preview.querySelector('.dz-thumb');
+            if (uploadingEl && type === 'image') {
+                if (thumb) thumb.style.display = 'none';
+                uploadingEl.classList.add('active');
+                preview.style.display = 'block';
+            } else {
+                preview.style.display = 'none';
+            }
+
+            var fd = new FormData();
+            fd.append('file', file);
+
+            var xhr = new XMLHttpRequest();
+            uploadStarted();
+
+            xhr.upload.addEventListener('progress', function(e) {
+                if (e.lengthComputable) {
+                    barFill.style.width = Math.round(e.loaded / e.total * 100) + '%';
+                }
+            });
+
+            xhr.addEventListener('load', function() {
+                bar.style.display = 'none';
+                if (uploadingEl) uploadingEl.classList.remove('active');
+                if (thumb) thumb.style.display = '';
+                try {
+                    var r = JSON.parse(xhr.responseText);
+                    if (r.status === 'OK') {
+                        hiddenInput.value      = r.filename;
+                        dz.dataset.pendingFile = r.filename;
+                        dz.classList.add('uploaded');
+                        showPreview(r, file);
+                        // Auto-save the response to DB — keep busy until this completes too
+                        fetch('/formResponses/save-file', {
+                            method:  'POST',
+                            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                            body:    'entryid='     + encodeURIComponent(dz.dataset.entryid) +
+                                     '&questionid=' + encodeURIComponent(dz.dataset.qid) +
+                                     '&filename='   + encodeURIComponent(r.filename),
+                        })
+                        .then(function(res) { return res.json(); })
+                        .then(function(saved) {
+                            if (saved.status === 'OK') {
+                                dz.dataset.responseid  = saved.responseid;
+                                dz.dataset.pendingFile = '';
+                            } else {
+                                console.warn('save-file error:', saved.status);
+                            }
+                        })
+                        .catch(function(e) { console.warn('save-file failed:', e); })
+                        .finally(function() { uploadFinished(); });
+                    } else {
+                        uploadFinished();
+                        showErr(r.msg || r.status);
+                    }
+                } catch(ex) {
+                    uploadFinished();
+                    showErr('Unexpected server error');
+                }
+            });
+
+            xhr.addEventListener('error', function() {
+                bar.style.display = 'none';
+                if (uploadingEl) uploadingEl.classList.remove('active');
+                if (thumb) thumb.style.display = '';
+                uploadFinished();
+                showErr('Upload failed — check your connection and try again');
+            });
+
+            xhr.open('POST', '/formResponses/upload?type=' + encodeURIComponent(type));
+            xhr.send(fd);
+        }
+
+        function showPreview(r, file) {
+            preview.style.display = 'block';
+            if (type === 'image') {
+                // Show thumbnail — use local object URL for instant display, no round-trip needed
+                var img = preview.querySelector('.dz-thumb');
+                if (img) img.src = URL.createObjectURL(file);
+            } else {
+                // Show filename for file/video uploads
+                var fnEl = preview.querySelector('.dz-filename');
+                if (fnEl) fnEl.textContent = r.originalname || r.filename;
+            }
+            if (dzText) dzText.textContent = 'Click or drop to replace';
+        }
+
+        function showErr(msg) {
+            errEl.textContent    = '✗ ' + msg;
+            errEl.style.display  = 'block';
+            dz.classList.remove('uploaded');
+        }
+    });
+
+    // ── Remove file — handles both saved (DB) and pending (just dropped) ─────
+    function removeFile(e, btn) {
+        e.stopPropagation();
+        e.preventDefault();
+        var dz          = btn.closest('.dropzone');
+        var responseid  = dz.dataset.responseid;
+        var hiddenName  = dz.dataset.field;
+        var hiddenInput = document.querySelector('input[name="' + hiddenName + '"]');
+
+        function resetDropzone() {
+            var preview = dz.querySelector('.dz-preview');
+            var dzText  = dz.querySelector('.dz-text');
+            var img     = preview.querySelector('.dz-thumb');
+            var fn      = preview.querySelector('.dz-filename');
+            if (img) { img.src = ''; img.style.display = ''; }
+            var uploadingEl = preview.querySelector('.dz-uploading');
+            if (uploadingEl) uploadingEl.classList.remove('active');
+            if (fn)  { fn.textContent = ''; if (fn.tagName === 'A') { fn.removeAttribute('href'); fn.textContent = ''; } }
+            preview.style.display = 'none';
+            dz.classList.remove('uploaded');
+            dz.dataset.responseid  = '';
+            dz.dataset.pendingFile = '';
+            if (hiddenInput) hiddenInput.value = '';
+            if (dzText) dzText.textContent = dz.dataset.type === 'image'
+                ? 'Drop an image here or click to browse'
+                : dz.dataset.type === 'video'
+                ? 'Drop a video here or click to browse'
+                : 'Drop a file here or click to browse';
+        }
+
+        if (responseid) {
+            // Saved in DB — soft-delete on server first
+            btn.disabled    = true;
+            btn.textContent = '…';
+            fetch('/formResponses/delete-file', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: 'responseid=' + encodeURIComponent(responseid)
+            })
+                .then(function(r) { return r.json(); })
+                .then(function(r) {
+                    if (r.status === 'OK') {
+                        resetDropzone();
+                    } else {
+                        btn.disabled    = false;
+                        btn.textContent = '✕ Remove';
+                        alert('Could not delete file: ' + (r.msg || r.status));
+                    }
+                })
+                .catch(function() {
+                    btn.disabled    = false;
+                    btn.textContent = '✕ Remove';
+                    alert('Network error — please try again');
+                });
+        } else if (dz.dataset.pendingFile) {
+            // Uploaded this session but not yet saved — delete the file from disk
+            var pendingFile = dz.dataset.pendingFile;
+            var type        = dz.dataset.type;
+            resetDropzone();  // reset UI immediately, don't wait for server
+            fetch('/formResponses/delete-pending', {
+                method:  'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body:    'filename=' + encodeURIComponent(pendingFile) + '&type=' + encodeURIComponent(type),
+            }).catch(function(e) { console.warn('delete-pending failed:', e); });
+        } else {
+            // Nothing uploaded yet — just reset UI
+            resetDropzone();
+        }
+    }
+
+    // ── Save (text fields only — files already uploaded) ─────────────────────
+    function saveResponses() {
+        var form    = document.getElementById('response-form');
+        var status  = document.getElementById('save-status');
+        var btn     = document.getElementById('btn-save');
+
+        status.textContent = 'Saving…';
+        btn.disabled       = true;
+
+        var xhr  = new XMLHttpRequest();
+        var data = new FormData(form);
+
+        xhr.addEventListener('load', function() {
+            btn.disabled = false;
+            try {
+                var resp = JSON.parse(xhr.responseText);
+                if (resp.status === 'OK') {
+                    status.innerHTML = '<span style="color:#4caf50">✓ Saved successfully</span>';
+                } else if (resp.status === 'E_CLOSED') {
+                    status.innerHTML = '<span style="color:#c44">✗ ' + (resp.msg || 'Entries are closed') + '</span>';
+                } else {
+                    status.innerHTML = '<span style="color:#c44">✗ Error: ' + (resp.msg || resp.status) + '</span>';
+                }
+            } catch(e) {
+                status.innerHTML = '<span style="color:#c44">✗ Unexpected error</span>';
+            }
+        });
+
+        xhr.addEventListener('error', function() {
+            btn.disabled     = false;
+            status.innerHTML = '<span style="color:#c44">✗ Network error — please try again</span>';
+        });
+
+        xhr.open('POST', '/formResponses');
+        xhr.send(data);
+    }

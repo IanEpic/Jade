@@ -1,0 +1,27 @@
+//- home/eligibility.pug
+
+form(method='POST' action='/formEligibility')
+    input(type='hidden' name='task' value='reorder')
+    h3(align='center') Eligibility Control
+
+    table(width='640')
+        tr(align='left' valign='top')
+            th Eligibility No
+            th Eligibility Rule
+            th
+            th
+            th
+
+        each el, i in content.eligibilities
+            tr
+                td= el.eligibilityid
+                td= el.eligibilityrule
+                td: a(href='/formEligibility?eligibilityid=' + el.eligibilityid) Edit
+                td: a(href='/formEligibility?eligibilityid=' + el.eligibilityid + '&action=delete' onclick='return confirm("Delete?")') Delete
+                td: input(type='text' name='#' + el.eligibilityid value=i+1 size='5' maxlength='5')
+
+        tr
+            td(colspan='5')
+                button(type='button' onclick="document.location.href='/formEligibility'") New Eligibility
+                | &nbsp;
+                button(type='submit') Reorder Eligibility

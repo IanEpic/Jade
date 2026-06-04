@@ -1,0 +1,183 @@
+//- home-content.pug
+//- Injected into the legacy per-program HTML shell via res.renderInShell.
+//- Equiv of readfile($standardhtml, [&$homepage]) in home.cgi.
+//- Mirrors the table layout: top text → menu bar → sidebar + content.
+
+//- ── Description text (above menu bar) ───────────────────────────────────────
+if topText
+    != topText
+
+//- ── Top menu bar ─────────────────────────────────────────────────────────────
+//- Equiv of &$adminmenulist / &$judgemenulist / &$usermenulist
+div(style='width: 780px; margin-left: auto; margin-right: auto;')
+    ul#vertnav
+        each btn in menuButtons
+            li: a(href=btn.url target=(btn.newwindow ? '_blank' : null))!= btn.text || '&nbsp;'
+
+//- ── Two-column layout: sidebar + content ─────────────────────────────────────
+//- Equiv of table(width=780, id='home', ...) with Tr(td sidebar, td content)
+table(width='780' id='home' style='margin-left: auto; margin-right: auto; display:block;')
+    tr(align='left' valign='top')
+        //- ── Sidebar ──────────────────────────────────────────────────────────
+        td(width='129' valign='top')
+            br
+            br
+            if isEmulating
+                ul#vertnav2
+                    li(style='padding:7px 0px 7px 15px; font-weight:bold; background:red;') Emulation Enabled
+            ul#vertnav2
+                li: a(href='/home') Home
+                each link in sidebarLinks
+                    li: a(href=link.href)!= link.label
+                if isEmulating
+                    li: a(href='/emulate') Cease Emulation
+
+        //- ── Main content area ────────────────────────────────────────────────
+        td(style='padding: 10px;')
+            case content.view
+
+                //- ── Welcome / default text ──────────────────────────────────
+                when 'home/welcome'
+                    != content.text
+
+                //- ── Finalist result text ─────────────────────────────────────
+                when 'home/finalisttext'
+                    include home/finalisttext.pug
+
+                //- ── My Entries ───────────────────────────────────────────────
+                when 'home/entries'
+                    include home/entries.pug
+
+                //- ── New Entry (category picker) ──────────────────────────────
+                when 'home/newentry'
+                    include home/newentry.pug
+
+                //- ── My Entrants ──────────────────────────────────────────────
+                when 'home/entrants'
+                    include home/entrants.pug
+
+                //- ── Invoices ─────────────────────────────────────────────────
+                when 'home/invoices'
+                    include home/invoices.pug
+
+                //- ── Payments ─────────────────────────────────────────────────
+                when 'home/payments'
+                    include home/payments.pug
+
+                //- ── Scores & Comments ────────────────────────────────────────
+                when 'home/scorescomments'
+                    include home/scorescomments.pug
+
+                //- ── Feedback ─────────────────────────────────────────────────
+                when 'home/feedback'
+                    include home/feedback.pug
+
+                //- ── Downloads ────────────────────────────────────────────────
+                when 'home/downloads'
+                    != content.html
+
+                //- ── User page (custom HTML page) ─────────────────────────────
+                when 'home/userpage'
+                    != content.html
+
+                //- ── Category + cost list ─────────────────────────────────────
+                when 'home/catcost'
+                    include home/catcost.pug
+
+                //- ── T&C ──────────────────────────────────────────────────────
+                when 'home/tc'
+                    table(width='640')
+                        tr: td(align='center'): h3 Terms &amp; Conditions
+                        tr: td(cellpadding='10')!= content.program.entrytctext
+
+                //- ── Help ─────────────────────────────────────────────────────
+                when 'home/help'
+                    table(width='640')
+                        tr: td(align='center'): h3 Help
+                        tr: td(cellpadding='10')!= content.program.userhelptext
+
+                //- ── Judge T&C ────────────────────────────────────────────────
+                when 'home/judgetc'
+                    include home/judgetc.pug
+
+                //- ── Judge Help ───────────────────────────────────────────────
+                when 'home/judgehelp'
+                    table(width='640')
+                        tr: td(align='center'): b HELP FOR JUDGES
+                        tr: td(cellpadding='10')!= content.program.judgehelptext
+
+                //- ── Judge Contacts ───────────────────────────────────────────
+                when 'home/judgecontacts'
+                    table(width='640')
+                        tr: td(align='center'): b JUDGES CONTACTS
+                        tr: td(cellpadding='10')!= content.program.judgecontacttext
+
+                //- ── To Judge ─────────────────────────────────────────────────
+                when 'home/tojudge'
+                    include home/tojudge.pug
+
+                //- ── Review Nominees (finalist review) ────────────────────────
+                when 'home/reviewfinalists'
+                    include home/reviewfinalists.pug
+
+                //- ── Wildcard Nomination ──────────────────────────────────────
+                when 'home/wildcardnomination'
+                    include home/wildcardnomination.pug
+
+                //- ── Simple Review / Judge ────────────────────────────────────
+                when 'home/simplereviewjudge'
+                    include home/simplereviewjudge.pug
+
+                //- ── Admin: Entry List ────────────────────────────────────────
+                when 'home/entrylist'
+                    include home/entrylist.pug
+
+                //- ── Admin: Categories ────────────────────────────────────────
+                when 'home/categories'
+                    include home/categories.pug
+
+                //- ── Admin: Questions ─────────────────────────────────────────
+                when 'home/questions'
+                    include home/questions.pug
+
+                //- ── Admin: Eligibility ───────────────────────────────────────
+                when 'home/eligibility'
+                    include home/eligibility.pug
+
+                //- ── Admin: User Pages ────────────────────────────────────────
+                when 'home/userpages'
+                    include home/userpages.pug
+
+                //- ── Admin: Judges ────────────────────────────────────────────
+                when 'home/users'
+                    include home/users.pug
+
+                when 'home/judges'
+                    include home/judges.pug
+
+                //- ── Admin: Allocate Judges ───────────────────────────────────
+                when 'home/allocatejudges'
+                    include home/allocatejudges.pug
+
+                //- ── Admin: Email Judges ──────────────────────────────────────
+                when 'home/emailjudges'
+                    include home/emailjudges.pug
+
+                //- ── Admin: Judge Progress Check ──────────────────────────────
+                when 'home/judgecheck'
+                    include home/judgecheck.pug
+
+                //- ── Admin: Finalist Entries ──────────────────────────────────
+                when 'home/finalistentries'
+                    include home/finalistentries.pug
+
+                //- ── Australia's Favourite Event ──────────────────────────────
+                when 'home/favouriteevent'
+                    include home/favouriteevent.pug
+
+                //- ── Year-over-year entry statistics ──────────────────────────
+                when 'home/stats'
+                    include home/stats.pug
+
+                default
+                    p (No content)

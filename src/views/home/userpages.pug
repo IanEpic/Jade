@@ -1,0 +1,21 @@
+//- home/userpages.pug
+
+form(method='POST' action='/formPage')
+    h3(align='center') User Page Control
+
+    table(width='600')
+        tr(align='left' valign='top')
+            th Page No
+            th Page Name
+            th
+            th
+
+        each page in content.pages
+            tr
+                td= page.userpageid
+                td= page.name
+                td: a(href='/formPage?pageid=' + page.userpageid) Edit
+                td: a(href='/formPage?pageid=' + page.userpageid + '&action=delete' onclick='return confirm("Delete?")') Delete
+
+        tr
+            td(colspan='4'): a(href='/formPage') New Page

@@ -1,0 +1,45 @@
+//- home/simplereviewjudge.pug
+//- Equiv of $simplereviewjudgetable in home.cgi.
+
+h3(align='center')= content.title
+
+- let scoreMap = {}
+each jc in content.judgeComments
+    if jc.simplescore != null
+        - if (!scoreMap[jc.entryid]) scoreMap[jc.entryid] = { total: 0, count: 0, myScore: null }
+        - scoreMap[jc.entryid].total += parseFloat(jc.simplescore)
+        - scoreMap[jc.entryid].count += 1
+    if content.user && jc.userid === content.user.userid
+        - if (!scoreMap[jc.entryid]) scoreMap[jc.entryid] = { total: 0, count: 0, myScore: null }
+        - scoreMap[jc.entryid].myScore = jc.simplescore
+
+table(width='640')
+    tr(align='left' valign='top')
+        th Entry No
+        th Entrant
+        th My Score
+        th Ave Score
+        th Status
+
+    - let currentCat = null
+    each entry in content.entries
+        if entry.categoryid !== currentCat
+            tr: td(colspan='6'): hr
+            tr: td(colspan='4'): h3= entry.categoryname
+            - currentCat = entry.categoryid
+
+        - let sc = scoreMap[entry.entryid] || {}
+        - let myScore  = sc.myScore != null ? Math.round(sc.myScore) : 'Not Scored'
+        - let avgScore = sc.count ? (sc.total / sc.count).toFixed(3) : 'No Avg'
+        - let statusLabel, statusStyle
+        - if (entry.approvedbyreviewer === 1) { statusLabel = 'Accepted'; statusStyle = 'color:green;font-weight:bold;'; }
+        - else if (entry.approvedbyreviewer === 0) { statusLabel = 'Rejected'; statusStyle = 'color:red;font-weight:bold;'; }
+        - else { statusLabel = 'To Review'; statusStyle = ''; }
+
+        tr
+            td= entry.entryid
+            td= entry.entrantname
+            td(align='center')= myScore
+            td(align='center')= avgScore
+            td(style=statusStyle)= statusLabel
+            td: a(href='/viewEntry/' + entry.entryid) View

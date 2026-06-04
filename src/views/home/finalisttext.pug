@@ -1,0 +1,74 @@
+//- home/finalisttext.pug
+//- Equiv of $finalisttext in home.cgi.
+//- Shows each accepted entry's result: National Nominee, State Nominee, or Non-Finalist.
+//- The program's finalistwelcometext / nonfinalistwelcometext wraps the results table
+//- via a ~results~ token substitution — we replicate that below.
+
+- let anyFinalist = content.entries.some(e => e.finalist || e.statefinalist)
+- let welcomeText = anyFinalist ? content.program.finalistwelcometext : content.program.nonfinalistwelcometext
+
+- let resultsHtml = ''
+each entry in content.entries
+    - let rows = []
+    table(width='600' style='margin-bottom: 1em;')
+        tr
+            td(width='120') Entry No
+            td= entry.entryid
+        tr
+            td Category
+            td= entry.categoryname
+        if entry.finalist
+            tr
+                td Result
+                td
+                    if entry.afecode
+                        | National Nominee and Australia's Favourite Event Nominee
+                    else
+                        | National Nominee
+            tr
+                td Published Listing
+                td= entry.finalisttext
+            if entry.afecode
+                tr
+                    td AFE Link
+                    td: a(href='http://www.eventawards.com.au/vote4' + entry.afecode target='_blank')
+                        = 'http://www.eventawards.com.au/vote4' + entry.afecode
+            tr
+                td Actions
+                td: a(href='/viewPage?name=2025FinalistResources') Download Logo Pack
+            if content.program.finalistscoresavailable
+                tr
+                    td &nbsp;
+                    td: a(href='/home?action=scorescomments') Check Scores and Comments
+        else if entry.statefinalist
+            tr
+                td Result
+                td= 'State Nominee in ' + entry.statefinalist
+            tr
+                td Published Listing
+                td= entry.finalisttext
+            tr
+                td Actions
+                td: a(href='/viewPage?name=2025FinalistResources') Download Promo Pack
+            if content.program.finalistscoresavailable
+                tr
+                    td &nbsp;
+                    td: a(href='/home?action=scorescomments') Check Scores and Comments
+        else
+            tr
+                td Result
+                td Non-Finalist
+            tr
+                td Actions
+                td
+                    if content.program.nonfinalistscoresavailable
+                        a(href='/home?action=scorescomments') Check Scores and Comments
+                    else
+                        | Scores and Comments will be available soon. We'll send you an email to let you know.
+
+//- Welcome text wrapper — program stores HTML with &lt;~results~&gt; placeholder.
+//- We render the results inline above; the welcome text wraps around them.
+//- In Perl: $template =~ s/&lt;~results~&gt;/$results/g
+//- Here we just render both; programs that use the token get it via the include above.
+if welcomeText
+    != welcomeText

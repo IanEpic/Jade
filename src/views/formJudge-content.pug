@@ -1,0 +1,82 @@
+//- formJudge-content.pug
+
+form(method='POST' action='/formJudge')
+    if judge
+        input(type='hidden' name='judgeid' value=judge.userid)
+
+    if isNew
+        | New Judge
+    else
+        | Edit Judge
+    br
+    br
+
+    //- Upgrade prompt when email matches existing user
+    if existingUser
+        | ! A user with this email address already exists
+        br
+        | Click the checkbox below to upgrade this user to a judge
+        br
+        br
+        label
+            input(type='checkbox' name='upgrade' value=existingUser.userid)
+            |  Upgrade User
+        br
+        br
+
+    table
+        tr(align='left' valign='top')
+            td First Name
+            td
+                input(type='text' name='firstname' value=(judge ? judge.firstname : (prefill ? prefill.firstname : '')) size='50' maxlength='300')
+        tr(align='left' valign='top')
+            td Last Name
+            td
+                input(type='text' name='lastname' value=(judge ? judge.lastname : (prefill ? prefill.lastname : '')) size='50' maxlength='300')
+        tr(align='left' valign='top')
+            td(colspan='2'): hr
+        tr(align='left' valign='top')
+            td Email address
+            td
+                input(type='text' name='email' value=(judge ? judge.email : (prefill ? prefill.email : '')) size='50' maxlength='300')
+        tr(align='left' valign='top')
+            td(colspan='2'): hr
+
+        if !program.usesimplejudging
+            tr(align='left' valign='top')
+                td(colspan='2') Judge Categories:
+            tr(align='left' valign='top')
+                td(colspan='2')
+                    table
+                        - let colCount = 0
+                        - let rowCells = []
+                        each cat in categories
+                            - rowCells.push(cat)
+                            - colCount++
+                            if colCount % 3 === 0
+                                tr
+                                    each c in rowCells
+                                        td
+                                            input(type='checkbox' name=`cat~${c.categoryid}` value='1' checked=c.linked)
+                                            |  #{c.name}
+                                - rowCells = []
+                        if rowCells.length
+                            tr
+                                each c in rowCells
+                                    td
+                                        input(type='checkbox' name=`cat~${c.categoryid}` value='1' checked=c.linked)
+                                        |  #{c.name}
+            tr(align='left' valign='top')
+                td(colspan='2'): hr
+
+        tr(align='left' valign='top')
+            td(colspan='2')
+                if isNew
+                    | Click below to create a new judge
+                else
+                    | Click below to save your judge details
+        tr(align='left' valign='top')
+            td(colspan='2' align='center')
+                button(type='button' onclick="document.location.href='/home'") Cancel
+                |
+                input(type='submit' name='submit' value=(isNew ? 'Create Judge' : 'Save Judge'))

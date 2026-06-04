@@ -1,0 +1,134 @@
+//- formCategory-content.pug
+
+style.
+    .cat-form { max-width: 800px; margin: 0 auto; }
+    .cat-form fieldset { border: 1px solid #666; border-radius: 4px; margin-bottom: 16px; padding: 12px 18px; }
+    .cat-form legend { font-weight: bold; padding: 0 6px; }
+    .cat-form table { border-collapse: collapse; width: 100%; }
+    .cat-form td { padding: 4px 8px; vertical-align: top; }
+    .cat-form td:first-child { white-space: nowrap; text-align: right; padding-right: 12px; width: 1%; }
+    .cat-form input[type=text], .cat-form textarea { width: 100%; box-sizing: border-box; }
+    .cat-form .checkbox-row td:first-child { text-align: left; width: 1%; padding-right: 6px; }
+    .cat-form .section-title { color: #c48f06; font-weight: bold; margin: 10px 0 4px; }
+    .cat-form .criteria-row td { padding: 4px; vertical-align: top; }
+    .cat-form .link-table td { padding: 3px 8px; }
+    .cat-form .note { color: #aaa; font-size: 12px; }
+    .cat-form .form-actions { text-align: center; margin-top: 10px; }
+    .cat-form .form-actions a, .cat-form .form-actions button { margin: 0 6px; }
+
+form.cat-form(method='POST' action='/formCategory')
+    if category
+        input(type='hidden' name='categoryid' value=category.categoryid)
+
+    h2(style='text-align:center')= isNew ? 'New Category' : 'Edit Category'
+
+    //- ── Basic details ────────────────────────────────────────────────────────
+    fieldset
+        legend Details
+        table
+            tr
+                td Name
+                td: input(type='text' name='name' value=(category ? category.name : '') maxlength='200')
+            tr
+                td Description
+                td: textarea(name='description' rows='4')= category ? category.description : ''
+            tr
+                td Cost ex GST $
+                td: input(type='text' name='costex' value=(category ? category.costex : '') size='10' maxlength='9')
+            tr
+                td GST $
+                td: input(type='text' name='gst' value=(category ? category.gst : '') size='10' maxlength='9')
+
+    //- ── Flags ────────────────────────────────────────────────────────────────
+    fieldset
+        legend Flags
+        table.checkbox-row
+            tr
+                td: input(type='checkbox' name='entriesopen' value='ON' checked=(category ? category.entriesopen : program.entriesopendefault))
+                td: label Entries Open
+            tr
+                td: input(type='checkbox' name='judgingopen' value='ON' checked=(category ? category.judgingopen : program.judgingopendefault))
+                td: label Judging Open
+
+    if !isNew
+
+        //- ── Criteria ─────────────────────────────────────────────────────────
+        fieldset
+            legend Scoring Criteria
+            if criteria && criteria.length
+                p.section-title Existing Criteria
+                table.criteria-row
+                    each c in criteria
+                        tr
+                            td
+                                label Description
+                                br
+                                textarea(name='~~exist~description~' + c.criteriaid rows='3' style='width:300px')= c.description
+                            td
+                                label Weight %
+                                br
+                                input(type='text' name='~~exist~weight~' + c.criteriaid value=c.weight size='4' maxlength='3')
+                            td
+                                label Order
+                                br
+                                input(type='text' name='~~exist~orda~' + c.criteriaid value=c.orda size='4' maxlength='5')
+                            td(style='vertical-align:bottom')
+                                a(href='/formCategory?categoryid=' + category.categoryid + '&action=deletecriteria&no=' + c.criteriaid style='color:#c44') Delete
+                        tr: td(colspan='4'): hr(style='border-color:#333')
+            p.section-title New Criteria
+            table.criteria-row
+                - for (let i = 0; i < noNewCriteria; i++)
+                    tr
+                        td
+                            label Description
+                            br
+                            textarea(name='~~new~desc~cr' + i rows='3' style='width:300px')
+                        td
+                            label Weight %
+                            br
+                            input(type='text' name='~~new~weight~cr' + i size='4' maxlength='3')
+                    tr: td(colspan='3'): hr(style='border-color:#333')
+
+        //- ── Eligibility ──────────────────────────────────────────────────────
+        fieldset
+            legend Eligibility Rules
+            if eligibilities && eligibilities.length
+                table.link-table
+                    tr
+                        th
+                        th #
+                        th Rule
+                    each e in eligibilities
+                        tr
+                            td: input(type='checkbox' name='e~' + e.eligibilityid value='ON' checked=e.linked)
+                            td= e.eligibilityid
+                            td= e.eligibilityrule
+            else
+                p.note No eligibility rules defined for this program.
+
+        //- ── Questions ────────────────────────────────────────────────────────
+        fieldset
+            legend Questions
+            if questions && questions.length
+                table.link-table
+                    tr
+                        th
+                        th #
+                        th Title
+                        th Description
+                    each q in questions
+                        tr
+                            td: input(type='checkbox' name='q~' + q.questionid value='ON' checked=q.linked)
+                            td= q.questionid
+                            td= q.questiontext
+                            td= q.description
+            else
+                p.note No questions defined for this program.
+
+    //- ── Actions ──────────────────────────────────────────────────────────────
+    .form-actions
+        a(href='/home?action=categories') Cancel
+        button(type='submit' name='submit' value='Save Category') Save Category
+        if !isNew
+            |
+            button(type='submit' name='submit' value='Preview Form') Preview Form

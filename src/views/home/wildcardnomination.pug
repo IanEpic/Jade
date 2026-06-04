@@ -1,0 +1,46 @@
+//- home/wildcardnomination.pug
+//- Equiv of $wildcardnomination in home.cgi.
+
+h3(align='center') Nominate a Non Finalist for Review
+
+form(name='wildcardform' method='POST' action='/nominatewildcard')
+    table
+        tr(align='left' valign='top')
+            th(align='left') Entrant
+            th Category
+            th(align='center') Nominate
+
+        each cat in content.cats
+            if cat.nonFinalists && cat.nonFinalists.length
+                - let nomMap = {}
+                each nom in content.wildcardNoms
+                    - nomMap[nom.entryid] = nom.reason
+
+                tr: td(colspan='3'): b= cat.name
+
+                each entry in cat.nonFinalists
+                    - let col1 = entry.finalisttext || entry.entrantname
+                    - let isChecked = !!nomMap[entry.entryid]
+                    tr
+                        td(valign='center')= col1
+                        td(valign='center')= entry.categoryname
+                        td(align='center')
+                            input(type='radio' name='but~' + cat.categoryid value=entry.entryid checked=isChecked)
+
+                tr
+                    td(colspan='2') &nbsp;
+                    td(align='center')
+                        input(type='button' value='Reset'
+                            onclick=`setCheckedValue(document.forms['wildcardform'].elements['but~${cat.categoryid}'], ''); emptyTextArea(document.forms['wildcardform'].elements['reason~${cat.categoryid}'])`)
+
+                tr
+                    td(colspan='3')
+                        br
+                        | Please note that an entry can only be reviewed if you believe that it cannot be reasonably distinguished from the Automatic Finalists on the basis of quality. Please put forward your reasons for this belief here:
+                tr
+                    td(colspan='3')
+                        textarea(name='reason~' + cat.categoryid rows='5' cols='60')= nomMap[cat.categoryid] || ''
+
+        tr
+            td(colspan='3' align='center')
+                button(type='submit') Save Nominations

@@ -1,0 +1,27 @@
+//- home/entrylist.pug
+//- Equiv of $entrylisttable in home.cgi.
+//- Admin view of all entries, grouped by status.
+
+h3(align='center') All Entries
+
+- let entered  = content.entries.filter(e => e.entryaccepted)
+- let invoiced = content.entries.filter(e => !e.entryaccepted && e.invoiceid && !e.invoicedeleted)
+- let unpaid   = content.entries.filter(e => !e.entryaccepted && (!e.invoiceid || e.invoicedeleted))
+
+table(width='640')
+    tr(align='left' valign='top')
+        th Entry No
+        th Entrant
+        th Category
+        th Status
+        th
+
+    each entry in [...entered, ...invoiced, ...unpaid]
+        - let col2 = entry.finalisttext || entry.entrantname
+        - let pmt = entry.entryaccepted ? 'Entered' : (entry.invoiceid && !entry.invoicedeleted ? 'Invoiced' : 'Unpaid')
+        tr
+            td= entry.entryid
+            td= col2
+            td= entry.categoryname
+            td= pmt
+            td: a(href='/viewEntry/' + entry.entryid) View

@@ -1,0 +1,40 @@
+//- home/newentry.pug
+//- Equiv of $newentrytable in home.cgi.
+
+style.
+    .newentry-wrap { max-width: 680px; margin: 0 auto; }
+    .newentry-heading { text-align: center; color: #c48f06; font-size: 18px; margin-bottom: 2px; }
+    .newentry-sub { text-align: center; color: #aaa; font-size: 13px; margin-top: 0; margin-bottom: 16px; }
+    .cat-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+    .cat-table th { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1px solid #555; padding: 6px 10px; text-align: left; color: #c48f06; }
+    .cat-table td { padding: 8px 10px; border-bottom: 1px solid #2a2a2a; vertical-align: middle; }
+    .cat-table tr:hover td { background: rgba(255,255,255,0.05); }
+    .cat-table .cost-col { text-align: right; width: 90px; color: #c48f06; white-space: nowrap; }
+    .cat-table .action-col { text-align: right; width: 140px; }
+    .cat-table .btn { background: #c48f06; color: #fff; padding: 4px 10px; font-size: 13px; white-space: nowrap; }
+    .cat-table .btn:hover { background: #ffba01; color: #000; }
+
+if !content.cats || !content.cats.length
+    p Sorry, there are no categories that are currently open for new entries.
+else
+    .newentry-wrap
+        p.newentry-heading Start a New Entry
+        p.newentry-sub Step 1 — Select the category you want to enter
+
+        if content.program && content.program.costexplanationtext
+            p!= content.program.costexplanationtext
+
+        table.cat-table
+            thead
+                tr
+                    th Category
+                    th.cost-col Cost
+                    th.action-col
+            tbody
+                each cat in content.cats
+                    - let cost = (parseFloat(cat.costex) || 0) + (parseFloat(cat.gst) || 0)
+                    - let costDisplay = cost > 0 ? content.currency(cost) : ''
+                    tr
+                        td= cat.name
+                        td.cost-col= costDisplay
+                        td.action-col: a.btn(href='/tc?type=approve&cat=' + cat.categoryid) Start Your Entry

@@ -1,0 +1,119 @@
+//- formPaymentOptions-content.pug
+
+if mode === 'closed'
+    p Payments are currently closed.
+    p: a(href='/home') Return Home
+
+else if mode === 'step1'
+    if alert
+        p!= alert
+
+    - let hasInvoices   = unpaidInvoices && unpaidInvoices.length
+    - let hasUninvoiced = uninvoicedEntries && uninvoicedEntries.length
+
+    if !hasInvoices && !hasUninvoiced
+        p You have nothing for which to pay.
+        p: a(href='/home?action=newentry') Click here to create an entry
+    else
+        form(method='POST' action='/formPaymentOptions')
+            b What would you like to do?
+            br
+            table(width='770')
+                if hasInvoices
+                    tr
+                        td
+                            label
+                                input(type='radio' name='pmtoption' value='1')
+                                |  Pay invoices using your credit card
+                if hasUninvoiced
+                    tr
+                        td
+                            label
+                                input(type='radio' name='pmtoption' value='2')
+                                |  Create an invoice for payment by cheque or EFT
+                    tr
+                        td
+                            label
+                                input(type='radio' name='pmtoption' value='3')
+                                |  Pay for entries now using your credit card (you will receive an invoice at the conclusion of the payment process)
+                tr
+                    td(colspan='2' align='center')
+                        a(href='/home') Cancel
+                        | &nbsp;
+                        button(type='submit' name='submit' value='Continue') Continue
+
+else if mode === 'step2'
+    if alert
+        p!= alert
+
+    form(method='POST' action=nextAction)
+        input(type='hidden' name='pmtoption' value=pmtoption)
+        input(type='hidden' name='form' value='3')
+
+        p= caption
+        br
+        br
+
+        if pmtoption === 1
+            //- Invoice selection table
+            h3 Invoices requiring payment
+            table(width='640')
+                tr(align='left' valign='top')
+                    td: b Invoice No
+                    td: b Owing
+                    td: b Paid
+                    td: b Balance
+                    td(align='center'): b Pay Now
+                    td: b Delete
+
+                each inv in unpaidInvoices
+                    - let total = (parseFloat(inv.totalex)||0) + (parseFloat(inv.gst)||0) - (parseFloat(inv.partnerdiscount)||0)
+                    - let paid  = parseFloat(inv.paid) || 0
+                    - let balance = total - paid
+                    - let isPaid = balance <= 0
+                    tr
+                        td= inv.invoiceid
+                        td= currency(total)
+                        td= currency(paid)
+                        td= currency(balance)
+                        td(align='center')
+                            input(type='checkbox' name='#INV#' + inv.invoiceid value='ON' checked=!isPaid disabled=isPaid)
+                        td: a(href='/formInvoice?invoiceid=' + inv.invoiceid + '&action=delete' onclick='return confirm("Delete?")') Delete
+
+                tr
+                    td(colspan='6' align='center')
+                        a(href='/home') Cancel
+                        | &nbsp;
+                        button(type='submit' name='submit' value='Continue') Continue
+
+        else
+            //- Entry selection table (options 2 and 3)
+            h3 Unpaid Entries
+            table(width='770')
+                tr(align='left' valign='top')
+                    th Entry No
+                    th Your Reference
+                    th Entrant
+                    th Category
+                    th(align='right') Cost
+                    th(align='right') Add
+
+                each entry in allEntries
+                    - let cost = (parseFloat(entry.costex)||0) + (parseFloat(entry.gst)||0)
+                    - let hasInvoice = !!entry.invoiceid
+                    - let disabled = hasInvoice || !cost
+                    if !disabled
+                        tr
+                            td= entry.entryid
+                            td= entry.userref
+                            td= entry.entrantname
+                            td= entry.categoryname
+                            td(align='right')= currency(cost)
+                            td(align='right')
+                                input(type='checkbox' name='#ENT#' + entry.entryid value='ON' checked=!disabled disabled=disabled)
+
+                tr
+                    td(colspan='6' align='center')
+                        a(href='/home') Cancel
+                        | &nbsp;
+                        button(type='submit' name='submit' value='Continue') Continue

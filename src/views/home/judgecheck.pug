@@ -1,0 +1,61 @@
+//- home/judgecheck.pug
+//- Equiv of $judgecheck in home.cgi.
+
+h3(align='center') Judge Progress by Category
+
+table(width='640')
+    tr(align='left' valign='top')
+        td
+            table(width='580')
+                tr
+                    td &nbsp;
+                    td(width='25') Sc
+                    td(width='25')= content.judgingModel.commentsallowed ? 'Cm' : ' '
+
+    each cat in content.cats
+        - let catComplete = true
+
+        tr
+            td
+                - let catLabel = cat.name
+                if !cat.judges || !cat.judges.length
+                    - catComplete = false
+
+                each judge in (cat.judges || [])
+                    if !judge.entries || !judge.entries.length
+                        - catComplete = false
+
+                    each entry in (judge.entries || [])
+                        - let scoresOk = cat.criteria.filter(c => c.weight).every(c => entry.scores.some(s => s.criteriaid === c.criteriaid))
+                        if !scoresOk
+                            - catComplete = false
+                        if content.judgingModel.commentsallowed
+                            - let excelOk   = entry.comments.some(c => c.type === 'excel'   && c.comment)
+                            - let improveOk = entry.comments.some(c => c.type === 'improve' && c.comment)
+                            if !excelOk || !improveOk
+                                - catComplete = false // only fail if required
+                                if content.judgingModel.commentsrequired
+                                    - catComplete = false
+
+                b= cat.name + ' - '
+                if catComplete
+                    b(style='color:green;') Complete
+                else
+                    b(style='color:red;') Incomplete
+
+            td
+                table(width='600')
+                    each judge in (cat.judges || [])
+                        tr: td= judge.firstname + ' ' + judge.lastname
+                        tr
+                            td
+                                table(width='580')
+                                    each entry in (judge.entries || [])
+                                        - let scoresOk   = cat.criteria.filter(c => c.weight).every(c => entry.scores.some(s => s.criteriaid === c.criteriaid))
+                                        - let commentsOk = !content.judgingModel.commentsallowed || (entry.comments.some(c => c.type==='excel' && c.comment) && entry.comments.some(c => c.type==='improve' && c.comment))
+                                        - let displayName = entry.finalisttext || entry.entrantname
+                                        tr
+                                            td(width='55')= entry.entryid
+                                            td= displayName
+                                            td(width='25')= scoresOk   ? 'Yes' : 'No'
+                                            td(width='25')= content.judgingModel.commentsallowed ? (commentsOk ? 'Yes' : 'No') : ''

@@ -1,0 +1,71 @@
+//- viewEntry/simplereview.pug
+//- Equiv of $simplereviewform in viewEntry.cgi.
+
+- let rc = scorePanel.reviewComment
+- let currentStatus = rc ? (entry.approvedbyreviewer === 1 ? 'Accepted' : entry.approvedbyreviewer === 0 ? 'Rejected' : '') : ''
+- let defaultScore  = rc && rc.simplescore != null ? rc.simplescore : -1
+- let defaultComment= rc ? rc.comment || '' : ''
+- let othersComments = (scorePanel.allComments || []).filter(c => c.userid !== user.userid && (c.simplescore != null || c.comment))
+
+if othersComments.length
+    table(width='600')
+        tr: td(colspan='2'): b Assessments by Others:
+        each c in othersComments
+            - let role = c.type === 'simplereviewcomment' ? 'Reviewer' : 'Judge'
+            - let score = c.simplescore != null ? c.simplescore : 'No Score Given'
+            - let comment = c.comment || 'No Comment Given'
+            tr
+                td(colspan='2')
+                    = c.firstname + ' ' + c.lastname + ' ('
+                    b= role
+                    = ') Score: '
+                    b= score
+                    br
+                    = comment
+        tr: td(colspan='2'): hr
+
+form(name='reviewform' method='POST' action='/simpleReview')
+    input(type='hidden' name='entryid' value=entry.entryid)
+    input(type='hidden' name='userid'  value=user.userid)
+
+    table(width='600')
+        tr(align='left' valign='top')
+            td(colspan='2')
+                b If this entry is in the wrong category, please reallocate it below:
+                br
+                select(name='reallocatecategory')
+                    option(value='0') ---Select Below---
+                    each cat in (scorePanel.categories || [])
+                        option(value=cat.categoryid)= cat.name
+
+            td(colspan='2')
+                b Please Indicate whether this entry is accepted or rejected:
+                br
+                label
+                    input(type='radio' name='acceptreject' value='Accepted' checked=(currentStatus === 'Accepted'))
+                    |  Accepted
+                label
+                    input(type='radio' name='acceptreject' value='Rejected' checked=(currentStatus === 'Rejected'))
+                    |  Rejected
+                | &nbsp;
+                input(type='button' value='Reset' onclick="setCheckedValue(document.forms['reviewform'].elements['acceptreject'], '')")
+
+            td(colspan='2'): hr
+
+            td(colspan='2')
+                b Apply a Score to the Entry (optional):
+                | &nbsp;
+                select(name='simplescore')
+                    option(value='-1' selected=(defaultScore == -1)) ---No Score---
+                    each val in Array.from({length:101}, (_, i) => i)
+                        option(value=val selected=(defaultScore == val))= val
+
+            td(colspan='2')
+                b Please provide any comments. These will only be seen by the judges:
+                br
+                textarea(name='reviewercomment' rows='5' cols='80')= defaultComment
+
+            td(colspan='2'): hr
+            td(colspan='2' align='center')
+                button(type='submit' name='submit' value='Record') Record
+            td(colspan='2'): hr

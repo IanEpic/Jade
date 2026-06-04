@@ -1,0 +1,56 @@
+//- formEligibility-content.pug
+
+if error === 'noaccess'
+    p You do not have permission to access this page.
+    p: a(href='/home') Return Home
+else
+    form(name='eligibilityform' method='POST' action='/formEligibility')
+        if eligibility
+            input(type='hidden' name='eligibilityid' value=eligibility.eligibilityid)
+
+        table
+            caption= eligibility ? 'Edit Eligibility' : 'New Eligibility'
+
+            tr(align='left' valign='top')
+                td(colspan='2') Eligibility Rule:
+            tr(align='left' valign='top')
+                td
+                td
+                    textarea(name='eligibilityrule' rows='5' cols='80')= eligibility ? eligibility.eligibilityrule : ''
+
+            tr(align='left' valign='top')
+                td Apply to new cats
+                td
+                    select(name='allcats' onchange='checkAll(document.eligibilityform)')
+                        option(value='1' selected=(eligibility && eligibility.allcats == 1)) Yes
+                        option(value='0' selected=(!eligibility || eligibility.allcats != 1)) No
+
+            tr(align='left' valign='top')
+                td(valign='top') Categories
+                td
+                    - let colCount = 0
+                    - let rowCells = []
+                    each cat in categories
+                        - rowCells.push(cat)
+                        - colCount++
+                        if colCount % 3 === 0
+                            table
+                                tr
+                                    each c in rowCells
+                                        td
+                                            input(type='checkbox' name='categories' value=c.categoryid checked=(checkedCategoryIds.indexOf(c.categoryid) !== -1))
+                                            |  #{c.name}
+                            - rowCells = []
+                    if rowCells.length
+                        table
+                            tr
+                                each c in rowCells
+                                    td
+                                        input(type='checkbox' name='categories' value=c.categoryid checked=(checkedCategoryIds.indexOf(c.categoryid) !== -1))
+                                        |  #{c.name}
+
+            tr(align='left' valign='top')
+                td(colspan='2' align='center')
+                    input(type='submit' name='submit' value='Save Eligibility')
+                    |
+                    a(href='/home?action=eligibility') Cancel

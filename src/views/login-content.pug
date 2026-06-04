@@ -1,0 +1,27 @@
+if program && program.loginpagetext
+    .login-intro !{program.loginpagetext}
+
+if message
+    .alert.alert-info= message
+
+if errors && errors.length
+    .alert.alert-error
+        each error in errors
+            p= error
+
+if form
+    form(method='POST' action='/login')
+        table
+            tr
+                td Email address
+                td: input(type='email' name='email' size='50' maxlength='300' autocomplete='email')
+            tr
+                td Password
+                td: input(type='password' name='password' size='50' maxlength='50' autocomplete='current-password')
+            tr
+                td(colspan='2'): hr
+            tr
+                td(colspan='2' align='center')
+                    button(type='submit') Log In
+
+        p: a(href='/password-reset') Forgot your password?

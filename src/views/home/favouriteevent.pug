@@ -1,0 +1,46 @@
+//- home/favouriteevent.pug
+//- Equiv of $favouriteeventtable in home.cgi.
+//- Note: Win32::Process email blasting is replaced by a POST to a server-side route
+//- that queues the email via nodemailer (to be implemented in routes/favouriteevent.js).
+
+if content.submitted
+    br
+    | Thank-you. Your emails have been queued and distribution will commence shortly.
+else
+    h3(align='center')
+        | Australia's Favourite Event
+        br
+        | Promote Your Nomination
+
+    form(method='POST' action='/home?action=favouriteevent'
+        onsubmit="if(document.getElementById('afeeventid').selectedIndex==0){alert('Please select a nominee'); return false;} else {return confirm('This action will send\\nemails to all those listed.\\n\\nPlease confirm that\\nyou want to send emails\\nby clicking OK below.');}")
+
+        input(type='hidden' name='action' value='favouriteevent')
+
+        table(style='border:0;')
+            tr
+                td Event Nominated:
+                td
+                    select#afeeventid(name='afeeventid')
+                        option(value='0') -----Please Select-----
+                        each entry in content.afeNominees
+                            option(value=entry.oliveEventID)= entry.entrantname
+            tr
+                td(style='vertical-align:top;') Enter Email Addresses:
+                    br
+                    | (one address per line)
+                td
+                    textarea(name='emailaddresses' style='width:300px; height:500px;')
+            tr
+                td(style='vertical-align:top;') Your Message:
+                td
+                    textarea(name='message' style='width:300px; height:200px;')
+            tr
+                td(style='vertical-align:top;')
+                    | Sender Name:
+                    br
+                    | (can be person or organisation)
+                td: input(type='text' name='sender' style='width:300px;')
+            tr
+                td(colspan='2' style='text-align:center;')
+                    button(type='submit') Send Voting Slips

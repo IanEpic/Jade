@@ -1,0 +1,29 @@
+//- home/judgetc.pug
+//- Equiv of $judgetcform in home.cgi.
+
+if content.error
+    center
+        | !&nbsp; You Must Agree to the Terms and Conditions to Proceed
+        br
+        | Please read the Terms and Conditions and if you agree,
+        br
+        | click the checkbox at the bottom of this form
+        br
+        br
+
+table(width='640')
+    tr: td(align='center'): b JUDGES TERMS &amp; CONDITIONS
+    tr: td(cellpadding='10')!= content.program.judgetctext
+
+    form(method='POST' action='/judgetc')
+        tr
+            td(align='center')
+                label
+                    input(type='checkbox' name='agree' value='ON')
+                    |   I, #{content.user ? content.user.firstname + ' ' + content.user.lastname : ''}
+                    |   understand and agree to be bound by these terms and conditions
+        tr
+            td(align='center')
+                a(href='/home') Cancel
+                | &nbsp;
+                button(type='submit') Proceed to Judge Entries

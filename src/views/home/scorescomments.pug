@@ -1,0 +1,54 @@
+//- home/scorescomments.pug
+//- Equiv of $scorescomments in home.cgi.
+
+table(width='640')
+    tr
+        td(align='center' colspan='2'): b Scores and Comments
+
+    each entry in content.entries
+        - let excel   = entry.comments.filter(c => c.type === 'excel')
+        - let improve = entry.comments.filter(c => c.type === 'improve')
+        - let other   = entry.comments.filter(c => c.type === 'other')
+        - let score   = entry.finalScore ? parseFloat(entry.finalScore.finalscore).toFixed(2) : null
+
+        tr
+            td Entry No:
+            td= entry.entryid
+        tr
+            td Category:
+            td= entry.categoryname
+        tr
+            td Your Reference:
+            td= entry.userref
+        if score
+            tr
+                td Round 1 Score:
+                td
+                    = score + '  '
+                    a(href='/explainscores' target='_new') scores explained
+        tr
+            td &nbsp;
+
+        if excel.length
+            tr
+                td(colspan='2'): b We asked the judges to provide a message to you highlighting areas in which this entry has excelled. Here's what they said:
+            each c in excel
+                tr: td(colspan='2')= c.comment
+
+        if improve.length
+            tr
+                td(colspan='2'): b We asked the judges to provide a message to you highlighting areas in which you could improve next year. Here's what they said:
+            each c in improve
+                tr: td(colspan='2')= c.comment
+
+        if other.length
+            tr
+                td(colspan='2'): b Other judge comments on this entry:
+            each c in other
+                tr: td(colspan='2')= c.comment
+
+        tr
+            td(colspan='2'): hr
+
+    tr
+        td(align='center' colspan='2'): a(href='/home') Home

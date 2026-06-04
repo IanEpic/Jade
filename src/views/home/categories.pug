@@ -1,0 +1,36 @@
+//- home/categories.pug
+//- Equiv of $categorytable in home.cgi. Admin category management.
+
+form(method='POST' action='/formCategory')
+    input(type='hidden' name='task' value='reorder')
+    h3(align='center') Category Control
+
+    table(width='600')
+        tr(align='left' valign='top')
+            th Category No
+            th Category Name
+            th Description
+            th Cost inc GST
+            th Criteria Check
+            th
+            th
+            th
+
+        each cat, i in content.cats
+            tr
+                td= cat.categoryid
+                td= cat.name
+                td= cat.description
+                td= content.currency((parseFloat(cat.costex)||0) + (parseFloat(cat.gst)||0))
+                td= cat.totalweight || 0
+                td: a(href='/formCategory?categoryid=' + cat.categoryid) Edit
+                td: a(href='/formCategory?categoryid=' + cat.categoryid + '&action=delete' onclick='return confirm("Delete?")') Delete
+                td: input(type='text' name='#' + cat.categoryid value=i+1 size='5' maxlength='5')
+
+        tr
+            td(colspan='8')
+                a(href='/formCategory') New Category
+                | &nbsp;
+                button(type='submit') Reorder Categories
+                | &nbsp;
+                a(href='/home') Cancel

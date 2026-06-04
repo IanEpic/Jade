@@ -1,0 +1,44 @@
+//- home/allocatejudges.pug
+//- Equiv of $allocatejudges in home.cgi.
+
+form(method='POST' action='/judgeAllocation')
+    table(width='640')
+        tr
+            td(align='left' colspan='3'): b ALLOCATE JUDGES
+
+        each cat in content.cats
+            tr: td(colspan='3')
+                br
+                b= cat.name
+            tr
+                th(align='left') EntryID
+                th(align='left') Entrant
+                each judge in cat.judges
+                    th= judge.lastname.substring(0,3)
+
+            //- Lead judge radio row
+            tr
+                th(colspan='2' align='left') Lead Judge
+                each judge in cat.judges
+                    td
+                        input(type='radio'
+                            name='hj~' + cat.categoryid
+                            value=judge.userid
+                            checked=(cat.userid === judge.userid))
+
+            each entry in cat.entries
+                - let displayName = entry.finalisttext || entry.entrantname
+                tr
+                    td= entry.entryid
+                    td= displayName
+                    each judge in cat.judges
+                        td
+                            input(type='checkbox'
+                                name='judge'
+                                value=judge.userid + '~' + entry.entryid)
+
+        tr
+            td(colspan='3')
+                a(href='/home') Cancel
+                | &nbsp;
+                button(type='submit') Save Allocation

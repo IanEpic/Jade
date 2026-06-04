@@ -1,0 +1,15 @@
+doctype html
+html(lang='en')
+    head
+        meta(charset='UTF-8')
+        meta(name='viewport' content='width=device-width, initial-scale=1.0')
+        title JADE Awards
+        //- New programs reference compiled CSS from /public/css/
+        //- Per-program overrides live at /public/programs/<slug>/css/main.css
+        link(rel='stylesheet' href='/css/main.css')
+        block styles
+
+    body
+        block content
+
+        block scripts

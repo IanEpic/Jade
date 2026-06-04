@@ -1,0 +1,38 @@
+//- home/entrants.pug
+//- Equiv of $entranttable in home.cgi.
+
+style.
+    .entrants-wrap { max-width: 100%; margin: 0 auto; }
+    .entrants-wrap h3 { color: #c48f06; font-size: 18px; text-align: center; margin-bottom: 16px; }
+    .entrants-table { width: 100%; border-collapse: collapse; }
+    .entrants-table th { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1px solid #555; padding: 6px 10px; text-align: left; color: #c48f06; }
+    .entrants-table td { padding: 7px 10px; border-bottom: 1px solid #2a2a2a; vertical-align: middle; font-size: 14px; }
+    .entrants-table tr:hover td { background: rgba(255,255,255,0.04); }
+    .entrants-table .actions { white-space: nowrap; }
+    .entrants-table .actions a { margin-right: 6px; font-size: 16px; color: #aaa; text-decoration: none; }
+    .entrants-table .actions a:hover { color: #c48f06; }
+    .entrants-footer { margin-top: 12px; text-align: right; }
+
+.entrants-wrap
+    h3= content.entrantsLabel || 'My Entrants'
+
+    table.entrants-table
+        thead
+            tr
+                th(style='width:60px')= content.entrantNoLabel || '#'
+                th(style='min-width:200px') Name
+                th(style='min-width:120px') Type
+                th(style='width:60px')
+        tbody
+            each entrant in content.entrants
+                - let canEdit = content.catsOpenForEntries.length || content.overrideOpen.length
+                tr
+                    td= entrant.entrantid
+                    td= entrant.name
+                    td= entrant.type
+                    td.actions
+                        if canEdit
+                            a(href='/formEntrant?entrantid=' + entrant.entrantid title='Edit') ✏️
+                            a(href='/formEntrant?entrantid=' + entrant.entrantid + '&action=delete' title='Delete' onclick='return confirm("Delete this entrant?")' style='color:#c44') ✕
+
+    .entrants-footer: a(href='/formEntrant')= '+ ' + (content.newEntrantLabel || 'New Entrant')

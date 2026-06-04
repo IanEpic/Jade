@@ -1,0 +1,35 @@
+//- home/tojudge.pug
+//- Equiv of $tojudgetable in home.cgi.
+//- If judge hasn't agreed to T&C, show judgetc form instead (handled in route via judgetcerror redirect).
+
+h3(align='center') Entries to Judge
+
+table(width='640')
+    tr(align='left' valign='top')
+        th= content.entrantLabel || 'Entrant'
+        th Category
+        th Status
+
+    each entry in content.entries
+        //- Determine completion status
+        - let allScoresDone = entry.criteria.filter(c => c.weight).every(c => entry.scores.some(s => s.criteriaid === c.criteriaid))
+        - let commentsRequired = content.judgingModel.commentsrequired
+        - let excelComment  = entry.comments.find(c => c.type === 'excel'  && c.comment)
+        - let improveComment= entry.comments.find(c => c.type === 'improve' && c.comment)
+        - let allCommentsDone = !commentsRequired || (excelComment && improveComment)
+
+        //- Check for commentreview flag (came from getEntriesToBeJudgedByJudge which includes JudgeEntryLink)
+        - let inCommentReview = entry.commentreview
+
+        - let statusLabel, statusStyle
+        - if (inCommentReview) { statusLabel = 'Review Comments'; statusStyle = 'background:#FF9900;'; }
+        - else if (allScoresDone && allCommentsDone) { statusLabel = 'Complete'; statusStyle = 'background:#9AFF9A;'; }
+        - else { statusLabel = 'Incomplete'; statusStyle = 'background:#FF9999;'; }
+
+        - let displayName = entry.finalisttext || entry.entrantname
+
+        tr
+            td(valign='center')= displayName
+            td(valign='center')= entry.categoryname
+            td(valign='center' align='center' style=statusStyle): b= statusLabel
+            td: a(href='/viewEntry/' + entry.entryid) View

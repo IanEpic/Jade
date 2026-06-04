@@ -1,0 +1,7 @@
+//- formEntry-content.pug
+
+if mode === 'closed'
+    p Entries are currently closed.
+    p: a(href='/home') Return Home
+else if mode === 'new' || mode === 'edit'
+    include formEntry/form.pug

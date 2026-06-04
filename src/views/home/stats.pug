@@ -1,0 +1,30 @@
+//- home/stats.pug
+//- Year-over-year entry statistics for the Australian Event Awards.
+//- Equiv of get_stats_table() from EPIC::JADE::ComponentStats.
+
+h3(style='text-align:center') Statistics
+
+if content.stats.isClosed
+    p As at: #{content.stats.today} — now showing final numbers.
+else
+    p As at: #{content.stats.today} with #{content.stats.daysToGo} days to go to #{content.stats.endpointDesc}.
+
+br
+
+table
+    tr
+        th(style='text-align:right; padding-right:10px;') Year
+        th(style='text-align:right; padding-right:10px;') Days Open
+        th(style='text-align:right; padding-right:10px;') Active Users
+        th(style='text-align:right; padding-right:10px;') Entries Started
+        th(style='text-align:right; padding-right:10px;') Entries Paid
+        th(style='text-align:right; padding-right:10px;') Final Entries
+
+    each row in content.stats.rows
+        tr
+            td(style='text-align:right; padding-right:10px;')= row.year
+            td(style='text-align:right; padding-right:10px;')= row.daysOpen
+            td(style='text-align:right; padding-right:10px;')= row.activeUsers
+            td(style='text-align:right; padding-right:10px;')= row.entriesStarted
+            td(style='text-align:right; padding-right:10px;')= row.entriesPaid
+            td(style='text-align:right; padding-right:10px;')= row.entriesFinal

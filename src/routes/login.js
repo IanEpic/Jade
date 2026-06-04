@@ -1,0 +1,152 @@
+// routes/login.js
+// Express equivalent of login.cgi
+//
+// The Perl script used cookies to carry email+password on every request.
+// The Node version uses a proper server-side session instead — the password
+// is verified once at login and the userId is stored in the session.
+// Credentials are never stored in a cookie.
+//
+// Route map:
+//   GET  /login               → show login form (was: !param())
+//   GET  /login?action=change_email     → show change_email message
+//   GET  /login?action=change_password  → show change_password message
+//   POST /login               → validate credentials, create session
+//   GET  /logout              → destroy session
+
+import { Router } from 'express';
+import { getProgramByHost, login, recordLogon } from '../services/auth.js';
+
+const router = Router();
+
+// ── Middleware: resolve program from hostname ─────────────────────────────────
+// Replaces: EPIC::JADE::Program->search(fqdn => servername())
+// Runs on every login route — attaches req.program or renders an error.
+async function resolveProgram(req, res, next) {
+  try {
+    let hostname = req.hostname;
+
+    // In dev, req.hostname is 'localhost' which won't match any fqdn in the DB.
+    // Use DEV_FQDN in .env to specify which program to use while developing.
+    // e.g. DEV_FQDN=yourdomain.com.au
+    if (hostname === 'localhost' || hostname === '127.0.0.1') {
+      hostname = process.env.DEV_FQDN || hostname;
+    }
+
+    const program = await getProgramByHost(hostname);
+    if (!program) {
+      return res.status(404).send(
+          `Unable to route request for host "${hostname}". ` +
+          `Check DEV_FQDN in your .env matches an fqdn value in the Program table.`
+      );
+    }
+    req.program = program;
+    next();
+  } catch (err) {
+    next(err);
+  }
+}
+
+router.use(resolveProgram);
+
+// ── GET /login ────────────────────────────────────────────────────────────────
+router.get('/', async (req, res, next) => {
+  try {
+    const { program } = req;
+
+    // Replaces: if (!$openforbusiness) → maintenance message
+    if (!program.portalopen) {
+      return res.renderInShell('login', {
+        program,
+        message: 'The Portal is Currently Closed for Maintenance',
+        form: false,
+      });
+    }
+
+    // Already logged in — go home
+    // Replaces: if ($user) { relocatehome; exit; }
+    if (req.session.userId) {
+      return res.redirect('/');
+    }
+
+    // Replaces: param('action') eq 'change_email' / 'change_password'
+    if (req.query.action === 'change_email') {
+      return res.renderInShell('login', {
+        program,
+        message: 'As you have changed your email address we have automatically reset your password. You will shortly receive an email containing your new password.',
+        form: true,
+      });
+    }
+    if (req.query.action === 'change_password') {
+      return res.renderInShell('login', {
+        program,
+        message: 'As you have changed your password, please log in again.',
+        form: true,
+      });
+    }
+
+    // Replaces: readfile($loginhtml, [&$form_blank])
+    res.renderInShell('login', { program, message: null, form: true, errors: [] });
+
+  } catch (err) {
+    next(err);
+  }
+});
+
+// ── POST /login ───────────────────────────────────────────────────────────────
+// Replaces: the param() block that validates credentials and sets cookies
+router.post('/', async (req, res, next) => {
+  try {
+    const { program } = req;
+    const { email, password } = req.body;
+
+    if (!program.portalopen) {
+      return res.renderInShell('login', {
+        program,
+        message: 'The Portal is Currently Closed for Maintenance',
+        form: false,
+      });
+    }
+
+    const user = await login(email, password, program.programid);
+
+    if (!user) {
+      // Replaces: readfile($loginhtml, [login_error()])
+      return res.renderInShell('login', {
+        program,
+        message: null,
+        form: true,
+        errors: ['There has been an error confirming your credentials.'],
+      });
+    }
+
+    // Replaces: EPIC::JADE::LogOnRecord->insert({ userid => $user2->userid() })
+    await recordLogon(user.userid);
+
+    // Replaces: setting email + password cookies
+    // Store userId in session instead — credentials never touch a cookie
+    req.session.userId = user.userid;
+    req.session.programId = program.programid;
+
+    // Support emulate-user if admin passes ?emulate=userId
+    if (req.body.emulateuser && user.admin) {
+      req.session.emulateUserId = req.body.emulateuser;
+    }
+
+    // Replaces: relocatehome
+    res.redirect('/');
+
+  } catch (err) {
+    next(err);
+  }
+});
+
+// ── GET /logout ───────────────────────────────────────────────────────────────
+// The Perl app had a logout.cgi — this replaces it.
+router.get('/logout', (req, res, next) => {
+  req.session.destroy((err) => {
+    if (err) return next(err);
+    res.redirect('/login');
+  });
+});
+
+export default router;

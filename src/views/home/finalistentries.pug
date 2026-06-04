@@ -1,0 +1,28 @@
+//- home/finalistentries.pug
+//- Equiv of $headjudgeseefinalists in home.cgi.
+
+h3(align='center') Read Finalist Entries &amp; Judge Comments
+
+- let catMap = {}
+- let catOrder = []
+each entry in content.entries
+    -
+        if (!catMap[entry.categoryid]) {
+            catMap[entry.categoryid] = { name: entry.categoryname, orda: entry.categoryorda, entries: [] };
+            catOrder.push(entry.categoryid);
+        }
+        catMap[entry.categoryid].entries.push(entry);
+
+- catOrder = catOrder.sort((a,b) => (catMap[a].orda||0) - (catMap[b].orda||0))
+
+table
+    each catId in catOrder
+        - let cat = catMap[catId]
+        tr: td(colspan='2')
+            br
+            b= cat.name
+        each entry in cat.entries
+            - let displayName = entry.finalisttext || entry.entrantname
+            tr
+                td(valign='center')= displayName
+                td: a(href='/viewEntry/' + entry.entryid + '?task=headjudge') View

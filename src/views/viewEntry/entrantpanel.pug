@@ -1,0 +1,26 @@
+//- viewEntry/entrantpanel.pug
+//- Emits td elements directly — included inside the outer tr in viewEntry-content.pug.
+
+if scorePanel.canFinalise
+    td(colspan='2')
+        div(style='border:2px solid #c48f06; padding:10px; margin-bottom:10px;')
+            form(method='POST' action='/finaliseEntry')
+                input(type='hidden' name='entryid' value=entry.entryid)
+                label
+                    input(type='checkbox' name='finalise' checked=entry.finalised)
+                    |  This entry is complete and ready for judging
+                br
+                br
+                button(type='submit' name='submit' value='Record') Record
+    td(colspan='2' align='center')
+        a(href='/home') Home
+        | &nbsp;
+        button(type='button' onclick=`document.location.href='/formResponses?entryid=${entry.entryid}'`) Edit Entry
+else
+    td(colspan='2')
+        div(style='border:2px solid #c48f06; padding:10px; margin-bottom:10px;')
+            if entry.finalised
+                | This entry is complete and ready for judging
+            else
+                | Entry not complete and ready for judging
+    td(colspan='2' align='center'): a(href='/home') Home

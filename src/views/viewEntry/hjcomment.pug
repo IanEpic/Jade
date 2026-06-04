@@ -1,0 +1,76 @@
+//- viewEntry/hjcomment.pug
+//- Equiv of $hjjudgecommentform in viewEntry.cgi.
+
+- let excelComments   = scorePanel.allComments.filter(c => c.type === 'excel')
+- let improveComments = scorePanel.allComments.filter(c => c.type === 'improve')
+- let otherComments   = scorePanel.allComments.filter(c => c.type === 'other' && c.userid !== user.userid)
+- let myComments      = scorePanel.myComments
+
+table(width='600')
+    tr(align='left' valign='top')
+        td(colspan='2'): h2 Round One Judging Comments:
+
+        td(colspan='2')
+            b Judges Comments highlighting areas in which this entrant has excelled:
+            br
+            br
+            each c in excelComments
+                if scorePanel.isLeadOrChair
+                    b= 'Judge: ' + c.lastname + ': '
+                br
+                = c.comment
+                br
+                br
+
+        td(colspan='2'): hr
+
+        td(colspan='2')
+            b Judges Comments highlighting areas in which this entrant could improve next year:
+            br
+            br
+            each c in improveComments
+                if scorePanel.isLeadOrChair
+                    b= 'Judge: ' + c.lastname + ': '
+                br
+                = c.comment
+                br
+                br
+
+        td(colspan='2'): hr
+
+        td(colspan='2')
+            b Other comments from the Judges:
+            br
+            br
+            each c in otherComments
+                if scorePanel.isLeadOrChair
+                    b= 'Judge: ' + c.lastname + ': '
+                br
+                = c.comment
+                br
+                br
+
+        td(colspan='2'): hr
+
+        //- Wildcard nominations
+        if scorePanel.wildcardNoms && scorePanel.wildcardNoms.length
+            td(colspan='2') Finalist Review Nomination Comments:
+            each nom in scorePanel.wildcardNoms
+                td(colspan='2')
+                    b= 'Judge: ' + (nom.lastname || '') + ': '
+                    br
+                    = nom.reason
+            td(colspan='2'): hr
+
+        //- Lead judge / chair comment form
+        if scorePanel.canAddComment
+            td(colspan='2' align='center')
+                form(method='POST' action='/recordScores')
+                    input(type='hidden' name='entryid' value=entry.entryid)
+                    input(type='hidden' name='userid'  value=user.userid)
+                    div(align='left') Add your own comments for the entrant:
+                    br
+                    textarea(name='comment~other' rows='10' cols='80')= myComments.map(c => c.comment).join('\n\n')
+                    br
+                    br
+                    button(type='submit') Save Comments

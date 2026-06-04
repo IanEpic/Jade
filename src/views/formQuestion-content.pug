@@ -1,0 +1,137 @@
+//- formQuestion-content.pug
+
+- const inputTypes = ['textfield','textarea','drop down list','checkbox','radio','address','upload','image','video','noinput']
+- const yesno = [{value:'1',label:'Yes'},{value:'0',label:'No'}]
+
+form(name='questionform' method='POST' action='/formQuestion')
+    if question
+        input(type='hidden' name='questionid' value=question.questionid)
+    input(type='hidden' name='type' value='entry')
+
+    table
+        caption= isNew ? 'New Question' : 'Edit Question'
+
+        tr(align='left' valign='top')
+            td(colspan='2') Question:
+        tr(align='left' valign='top')
+            td
+            td
+                textarea(name='questiontext' rows='5' cols='38')= question ? question.questiontext : ''
+
+        tr(align='left' valign='top')
+            td(colspan='2') Question Description:
+        tr(align='left' valign='top')
+            td
+            td
+                textarea(name='description' rows='5' cols='38')= question ? question.description : ''
+
+        tr(align='left' valign='top')
+            td InputType
+            td
+                select(name='inputtype')
+                    each it in inputTypes
+                        option(value=it selected=(question ? question.inputtype === it : it === 'textfield'))= it
+
+        //- Existing input options (edit mode only)
+        if !isNew && inputoptions && inputoptions.length
+            tr(align='left' valign='top')
+                td(colspan='2') Current Options
+            tr(align='left' valign='top')
+                td
+                td
+                    table
+                        each opt in inputoptions
+                            tr(align='left' valign='top')
+                                td
+                                    input(type='text' name=`io${opt.inputoptionid}` value=opt.name size='30' maxlength='30')
+                                td
+                                    a(href=`/formQuestion?action=deleteoption&inputoptionid=${opt.inputoptionid}&questionid=${question.questionid}`) Delete
+                                td
+                                    input(type='text' name=`#${opt.inputoptionid}` value=opt.orda size='5' maxlength='5')
+
+        //- New input options
+        tr(align='left' valign='top')
+            td
+            td
+                table
+                    tr(align='left' valign='top')
+                        td(colspan='2') New Options
+                    each n in [1,2,3,4,5]
+                        tr(align='left' valign='top')
+                            td Answer Option
+                            td
+                                input(type='text' name=`option${n}` value='' size='30' maxlength='30')
+
+        tr(align='left' valign='top')
+            td Input Width
+            td
+                input(type='text' name='inputwidth' value=question ? question.inputwidth : '' size='5' maxlength='5')
+
+        tr(align='left' valign='top')
+            td Input Height
+            td
+                input(type='text' name='inputheight' value=question ? question.inputheight : '' size='5' maxlength='5')
+
+        tr(align='left' valign='top')
+            td Word Limit
+            td
+                input(type='text' name='maxsize' value=question ? question.maxsize : '' size='4' maxlength='4')
+
+        tr(align='left' valign='top')
+            td Address Above Question
+            td
+                select(name='addressaboveoption')
+                    if addressQuestions && addressQuestions.length
+                        option(value='0') ----Select----
+                        each aq in addressQuestions
+                            option(value=aq.questionid selected=(question && question.addressaboveoption == aq.questionid))= aq.questiontext
+                    else
+                        option(value='0') no address questions yet defined
+
+        tr(align='left' valign='top')
+            td Columns
+            td
+                input(type='text' name='cols' value=question ? question.cols : '' size='2' maxlength='2')
+
+        tr(align='left' valign='top')
+            td Apply to new Cats
+            td
+                select(name='allcats' onchange='checkAll(document.questionform)')
+                    option(value='0' selected=!(question && question.allcats)) No
+                    option(value='1' selected=(question && question.allcats)) Yes
+
+        tr(align='left' valign='top')
+            td Hide from Judging
+            td
+                select(name='omitforjudging')
+                    option(value='0' selected=!(question && question.omitforjudging)) No
+                    option(value='1' selected=(question && question.omitforjudging)) Yes
+
+        tr(align='left' valign='top')
+            td Categories
+            td
+                table
+                    - let colCount = 0
+                    - let rowCells = []
+                    each cat in categories
+                        - rowCells.push(cat)
+                        - colCount++
+                        if colCount % 3 === 0
+                            tr
+                                each c in rowCells
+                                    td
+                                        input(type='checkbox' name=`cat~${c.categoryid}` value='1' checked=c.linked)
+                                        |  #{c.name}
+                            - rowCells = []
+                    if rowCells.length
+                        tr
+                            each c in rowCells
+                                td
+                                    input(type='checkbox' name=`cat~${c.categoryid}` value='1' checked=c.linked)
+                                    |  #{c.name}
+
+        tr(align='left' valign='top')
+            td(colspan='2' align='center')
+                input(type='submit' name='submit' value='Save Question')
+                |
+                a(href='/home?action=questions&type=entry') Cancel

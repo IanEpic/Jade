@@ -1,0 +1,25 @@
+//- home/payments.pug
+//- Equiv of $paymentstable in home.cgi.
+
+h3(align='center') Payments
+
+table(width='640')
+    tr(align='left' valign='top')
+
+    each pmt in content.payments
+        if !pmt.ewayCardNumber || (pmt.ewayCardNumber && pmt.ewayTrxnStatus)
+            - let pmtNo = (content.program.invoicenoprecursor || '') + String(pmt.paymentid).padStart(5, '0')
+            tr
+                td Receipt No:
+                td= pmtNo
+            tr
+                td Date:
+                td= pmt.date
+            tr
+                td Payment Method:
+                td= pmt.method
+            tr
+                td Amount:
+                td= content.currency(pmt.amount || 0)
+            tr
+                td(colspan='2'): hr

@@ -1,0 +1,26 @@
+//- home/invoices.pug
+//- Equiv of $invoicestable in home.cgi.
+
+h3(align='center') Invoices
+
+table(width='640')
+    tr(align='left' valign='top')
+        th Invoice No
+        th Owing
+        th Paid
+        th Balance
+        th
+        th
+
+    each inv in content.invoices
+        - let canDelete = content.catsOpenForEntries.length || content.overrideOpen.length
+        tr
+            td= inv.invoiceid
+            td= content.currency(inv.totalamt || 0)
+            td= content.currency(inv.paid || 0)
+            td= content.currency(inv.balance || 0)
+            td: a(href='/formInvoice?invoiceid=' + inv.invoiceid) View
+            if canDelete
+                td: a(href='/formInvoice?invoiceid=' + inv.invoiceid + '&action=delete' onclick='return confirm("Delete this invoice?")') Delete
+            else
+                td
