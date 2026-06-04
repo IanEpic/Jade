@@ -193,6 +193,7 @@ async function buildSidebar(user, program, data) {
 
     // Admin-only links
     if (user.admin) {
+        add('/formDiscount',               'Discounts');
         add('/home?action=eligibility',    'Eligibility');
         add('/home?action=categories',     'Categories');
         add('/home?action=questions&type=entry', 'Questions');

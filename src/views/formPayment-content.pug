@@ -76,11 +76,15 @@ style.
                                 td= inv.invoiceid
                                 td(colspan='2')= inv.invoicee
                                 td.r= '$' + ((parseFloat(inv.totalex)||0) + (parseFloat(inv.gst)||0) - (parseFloat(inv.partnerdiscount)||0) - (parseFloat(inv.paid)||0)).toFixed(2)
-                    if totals.earlyBirdActive
+                    if totals.earlyBirdActive && !totals.isPromoCode
                         tr
                             td(colspan='4')
                                 p.eb-note
-                                    | Early payment discount of $#{totals.ebDiscountInc.toFixed(2)} per entry applies if paid by #{totals.earlyBirdDate}.
+                                    | #{totals.appliedDiscount && totals.appliedDiscount.name || 'Early Bird Discount'} of $#{totals.ebDiscountInc.toFixed(2)} (incl. $#{(totals.ebDiscountInc / 11).toFixed(2)} GST) applies if paid by #{totals.earlyBirdDate}.
+                    if totals.isPromoCode && totals.earlyBirdActive
+                        tr
+                            td(colspan='4')
+                                p.eb-note #{totals.appliedDiscount && totals.appliedDiscount.name || 'Promo Code'} discount of $#{totals.ebDiscountInc.toFixed(2)} applied.
 
             .charge-amount Amount to be charged: $#{chargeAmt.toFixed(2)}
 

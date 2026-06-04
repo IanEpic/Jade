@@ -1,5 +1,4 @@
 // routes/formPayment.js
-// Equivalent of formPayment.cgi
 // Handles credit card payment via Eway CVN gateway.
 // Two paths:
 //   pmtoption=1: pay existing invoices by credit card
@@ -15,21 +14,18 @@ import { getPool, sql } from '../config/database.js';
 import { currency, currentDatetime } from '../services/helpers.js';
 import { ewayCharge }   from '../services/eway.js';
 import { mailHtml }     from '../services/mailer.js';
+import { getApplicableDiscounts, computeBestDiscount, incrementDiscountUsecount } from '../services/pricing.js';
 import fs               from 'fs/promises';
 import path             from 'path';
 
-const EARLY_BIRD_DATE       = new Date('2026-06-01');
-const EARLY_BIRD_DISCOUNT   = 80.30;
-const BUSINESS_DISCOUNT_INC = 38.50;
+const BUSINESS_DISCOUNT_INC = 38.50;  // inc GST per entry — partner/industry discount
 
 const router = Router();
 router.use(requireAuth);
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
-function isEarlyBird() { return new Date() <= EARLY_BIRD_DATE; }
-
-function calcEntryTotals(entries, status = null) {
+async function calcEntryTotals(program, entries, { status = null, promoCode = null } = {}) {
     let subtotalEx = 0, subtotalGst = 0;
     for (const e of entries) {
         subtotalEx  += parseFloat(e.costex)  || 0;
@@ -38,21 +34,43 @@ function calcEntryTotals(entries, status = null) {
     let partnerDiscountInc = status === 'business' ? BUSINESS_DISCOUNT_INC * entries.length * -1 : 0;
     const partnerDiscountEx  = partnerDiscountInc / 1.1;
     const partnerDiscountGst = partnerDiscountInc / 11;
-    let adjEx  = subtotalEx  + partnerDiscountEx;
-    let adjGst = subtotalGst + partnerDiscountGst;
-    let ebDiscountInc = isEarlyBird() ? EARLY_BIRD_DISCOUNT * entries.length : 0;
-    const totalInc    = adjEx + adjGst;
-    const chargeAmt   = totalInc - ebDiscountInc;
-    return { subtotalEx, subtotalGst, partnerDiscountInc, adjEx, adjGst, totalInc, ebDiscountInc, chargeAmt,
-             earlyBirdActive: ebDiscountInc > 0,
-             earlyBirdDate: EARLY_BIRD_DATE.toLocaleDateString('en-AU', { day:'numeric', month:'long', year:'numeric' }) };
+    const adjEx  = subtotalEx  + partnerDiscountEx;
+    const adjGst = subtotalGst + partnerDiscountGst;
+    const totalInc = adjEx + adjGst;
+
+    let ebDiscountInc = 0;
+    let appliedDiscount = null;
+    const discounts = await getApplicableDiscounts(program.programid, new Date(), promoCode);
+    const best = computeBestDiscount(discounts, entries.length, totalInc);
+    if (best) {
+        ebDiscountInc   = best.discountInc;
+        appliedDiscount = best.discount;
+    }
+
+    const chargeAmt = totalInc - ebDiscountInc;
+
+    let earlyBirdDate = null;
+    if (appliedDiscount?.type === 'earlybird' && appliedDiscount.validto) {
+        earlyBirdDate = new Date(appliedDiscount.validto)
+            .toLocaleDateString('en-AU', { day: 'numeric', month: 'long', year: 'numeric' });
+    }
+
+    return {
+        subtotalEx, subtotalGst, partnerDiscountInc, adjEx, adjGst, totalInc,
+        ebDiscountInc, chargeAmt,
+        earlyBirdActive: ebDiscountInc > 0,
+        earlyBirdDate,
+        appliedDiscount,
+        isPromoCode: appliedDiscount?.type === 'code',
+    };
 }
 
 function calcInvoiceTotals(invoices) {
+    // Reads stored discount values from the invoice — no DB lookup needed
     let total = 0;
     for (const inv of invoices) {
         let t = (parseFloat(inv.totalex)||0) + (parseFloat(inv.gst)||0) - (parseFloat(inv.partnerdiscount)||0);
-        if (isEarlyBird()) t -= (parseFloat(inv.ebdiscount)||0);
+        t -= (parseFloat(inv.ebdiscount)||0);
         total += t - (parseFloat(inv.paid)||0);
     }
     return { chargeAmt: total };
@@ -62,7 +80,10 @@ async function getEntriesWithNames(entryIds) {
     if (!entryIds.length) return [];
     const pool = await getPool();
     const r = await pool.request().query(`
-        SELECT Entry.*, Entrant.name AS entrantname, Category.name AS categoryname
+        SELECT Entry.entryid, Entry.userid, Entry.entrantid, Entry.categoryid,
+               Entry.invoiceid, Entry.userref, Entry.deleted, Entry.entryaccepted, Entry.tpkid,
+               Category.costex, Category.gst,
+               Entrant.name AS entrantname, Category.name AS categoryname
         FROM Entry
         LEFT JOIN Entrant  ON Entry.entrantid  = Entrant.entrantid
         LEFT JOIN Category ON Entry.categoryid = Category.categoryid
@@ -133,7 +154,7 @@ const CC_YEARS = () => {
     return Array.from({ length: 10 }, (_, i) => String(y + i).slice(-2));
 };
 
-// ── GET /formPayment — should not be accessed directly ────────────────────────
+// ── GET /formPayment ──────────────────────────────────────────────────────────
 router.get('/', (req, res) => res.redirect('/home'));
 
 // ── POST /formPayment ─────────────────────────────────────────────────────────
@@ -143,7 +164,6 @@ router.post('/', async (req, res, next) => {
         const program = user.program;
         const body    = req.body;
 
-        // Parse entry/invoice IDs from checkboxes
         const entryIds   = Object.keys(body).filter(k => k.startsWith('#ENT#') && body[k] === 'ON').map(k => parseInt(k.replace('#ENT#','')));
         const invoiceIds = Object.keys(body).filter(k => k.startsWith('#INV#') && body[k] === 'ON').map(k => parseInt(k.replace('#INV#','')));
 
@@ -155,8 +175,8 @@ router.post('/', async (req, res, next) => {
             let totals    = {};
 
             if (entryIds.length) {
-                entries  = await getEntriesWithNames(entryIds);
-                totals   = calcEntryTotals(entries, body.status);
+                entries   = await getEntriesWithNames(entryIds);
+                totals    = await calcEntryTotals(program, entries, { status: body.status });
                 chargeAmt = totals.chargeAmt;
             } else if (invoiceIds.length) {
                 invoices  = await getInvoicesWithPaid(invoiceIds);
@@ -176,25 +196,26 @@ router.post('/', async (req, res, next) => {
 
         // ── Step 2: Process payment ───────────────────────────────────────────
         if (body.submit === 'Make Payment') {
-            const pool     = await getPool();
+            const pool      = await getPool();
             const chargeAmt = parseFloat(body.chargeamt);
             const pmtoption = parseInt(body.pmtoption);
 
-            // Create payment record
             const paymentid = await createPaymentRecord(user, body, pool);
             const paymentNo = invoiceNumber(program, paymentid);
 
-            // Talk to Eway
-            let ewayData = {};
-            // Get user's postal address for Eway fields
             const userAddress = user.postaladdressid
                 ? await Address.findByPk(user.postaladdressid)
                 : null;
 
+            const isTestCard  = user.admin && body.ewayCardNumber?.replace(/\s/g, '') === '4444333322221111';
+            const gatewayUrl  = isTestCard ? 'https://www.eway.com.au/gateway_cvn/xmltest/testpage.asp' : program.ewaygatewayaddress;
+            const customerId  = isTestCard ? '87654321' : program.ewaycustomerno;
+
+            let ewayData = {};
             try {
                 ewayData = await ewayCharge({
-                    gatewayUrl:          program.ewaygatewayaddress,
-                    customerId:          program.ewaycustomerno,
+                    gatewayUrl,
+                    customerId,
                     amountCents:         Math.round(chargeAmt * 100),
                     cardName:            body.ewayCardHoldersName,
                     cardNumber:          body.ewayCardNumber,
@@ -220,7 +241,9 @@ router.post('/', async (req, res, next) => {
             if (ewayData.ewayTrxnStatus !== 'True') {
                 let entries  = entryIds.length  ? await getEntriesWithNames(entryIds)   : [];
                 let invoices = invoiceIds.length ? await getInvoicesWithPaid(invoiceIds) : [];
-                let totals   = entryIds.length ? calcEntryTotals(entries, body.status) : calcInvoiceTotals(invoices);
+                let totals   = entryIds.length
+                    ? await calcEntryTotals(program, entries, { status: body.status })
+                    : calcInvoiceTotals(invoices);
                 return res.renderInShell('formPayment', {
                     user, program, entries, invoices, totals, chargeAmt,
                     pmtoption: body.pmtoption, status: body.status || '',
@@ -233,9 +256,8 @@ router.post('/', async (req, res, next) => {
             // ── Payment succeeded — path A: paying entries directly ───────────
             if (pmtoption === 3 && entryIds.length) {
                 const entries = await getEntriesWithNames(entryIds);
-                const totals  = calcEntryTotals(entries, body.status);
+                const totals  = await calcEntryTotals(program, entries, { status: body.status });
 
-                // Create invoice
                 const invResult = await pool.request()
                     .input('userid',          sql.Int,     user.userid)
                     .input('invoicee',        sql.VarChar, body.invoicee || user.organisation)
@@ -253,16 +275,20 @@ router.post('/', async (req, res, next) => {
                 const invoiceId = invResult.recordset[0].invoiceid;
                 const invoiceNo = invoiceNumber(program, invoiceId);
 
-                // Link entries to invoice and mark accepted
-                for (const entry of entries) {
-                    await pool.request()
-                        .input('invoiceid',     sql.Int, invoiceId)
-                        .input('entryaccepted', sql.Bit, 1)
-                        .input('entryid',       sql.Int, entry.entryid)
-                        .query('UPDATE Entry SET invoiceid=@invoiceid, entryaccepted=@entryaccepted WHERE entryid=@entryid');
+                if (totals.appliedDiscount?.type === 'code') {
+                    await incrementDiscountUsecount(totals.appliedDiscount.discountid);
                 }
 
-                // Create payment allocation
+                for (const entry of entries) {
+                    await pool.request()
+                        .input('invoiceid',     sql.Int,   invoiceId)
+                        .input('entryaccepted', sql.Bit,   1)
+                        .input('costex',        sql.Money, parseFloat(entry.costex) || 0)
+                        .input('gst',           sql.Money, parseFloat(entry.gst)    || 0)
+                        .input('entryid',       sql.Int,   entry.entryid)
+                        .query('UPDATE Entry SET invoiceid=@invoiceid, entryaccepted=@entryaccepted, costex=@costex, gst=@gst WHERE entryid=@entryid');
+                }
+
                 await pool.request()
                     .input('invoiceid',  sql.Int,   invoiceId)
                     .input('paymentid',  sql.Int,   paymentid)
@@ -293,7 +319,10 @@ router.post('/', async (req, res, next) => {
 
                     const r = await pool.request()
                         .input('invoiceid', sql.Int, inv.invoiceid)
-                        .query(`SELECT Entry.*, Entrant.name AS entrantname, Category.name AS categoryname
+                        .query(`SELECT Entry.entryid, Entry.userid, Entry.entrantid, Entry.categoryid,
+                                       Entry.invoiceid, Entry.userref, Entry.deleted, Entry.entryaccepted, Entry.tpkid,
+                                       Category.costex, Category.gst,
+                                       Entrant.name AS entrantname, Category.name AS categoryname
                                 FROM Entry LEFT JOIN Entrant ON Entry.entrantid=Entrant.entrantid
                                 LEFT JOIN Category ON Entry.categoryid=Category.categoryid
                                 WHERE Entry.invoiceid=@invoiceid AND Entry.deleted=0`);

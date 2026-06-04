@@ -30,7 +30,10 @@ export async function getAllEntriesByUser({ userId }) {
     const result = await pool.request()
         .input('userId', sql.Int, userId)
         .query(`
-      SELECT Entry.*, Entrant.name AS entrantname, Category.name AS categoryname
+      SELECT Entry.*,
+             COALESCE(Entry.costex, Category.costex) AS costex,
+             COALESCE(Entry.gst,    Category.gst)    AS gst,
+             Entrant.name AS entrantname, Category.name AS categoryname
       FROM Entry
         INNER JOIN Entrant  ON Entry.entrantid  = Entrant.entrantid
         INNER JOIN Category ON Entry.categoryid = Category.categoryid
@@ -102,7 +105,7 @@ export async function getInvoicesByUser({ userId }) {
         .input('userId', sql.Int, userId)
         .query(`
       SELECT Invoice.*,
-             (Invoice.totalex + Invoice.gst - Invoice.partnerdiscount + Invoice.multientryadjustment) AS totalamt
+             (Invoice.totalex + Invoice.gst - ISNULL(Invoice.partnerdiscount,0) - ISNULL(Invoice.ebdiscount,0) + ISNULL(Invoice.multientryadjustment,0)) AS totalamt
       FROM Invoice
       WHERE Invoice.userid  = @userId
         AND Invoice.deleted = 0

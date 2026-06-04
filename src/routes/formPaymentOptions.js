@@ -8,6 +8,7 @@ import { Router } from 'express';
 import { requireAuth } from '../middleware/auth.js';
 import { getPool, sql } from '../config/database.js';
 import { currency } from '../services/helpers.js';
+import { getApplicableDiscounts } from '../services/pricing.js';
 
 const router = Router();
 router.use(requireAuth);
@@ -36,12 +37,18 @@ async function getUnpaidInvoices(userId) {
     });
 }
 
+const ENTRY_COLS = `
+    e.entryid, e.userid, e.entrantid, e.categoryid, e.invoiceid,
+    e.userref, e.deleted, e.entryaccepted, e.tpkid,
+    c.costex, c.gst,
+    en.name AS entrantname, c.name AS categoryname`;
+
 async function getUninvoicedEntries(userId) {
     const pool = await getPool();
     const result = await pool.request()
         .input('userId', sql.Int, userId)
         .query(`
-            SELECT e.*, en.name AS entrantname, c.name AS categoryname
+            SELECT ${ENTRY_COLS}
             FROM Entry e
             INNER JOIN Entrant  en ON e.entrantid  = en.entrantid
             INNER JOIN Category c  ON e.categoryid = c.categoryid
@@ -57,7 +64,7 @@ async function getAllEntries(userId) {
     const result = await pool.request()
         .input('userId', sql.Int, userId)
         .query(`
-            SELECT e.*, en.name AS entrantname, c.name AS categoryname
+            SELECT ${ENTRY_COLS}
             FROM Entry e
             INNER JOIN Entrant  en ON e.entrantid  = en.entrantid
             INNER JOIN Category c  ON e.categoryid = c.categoryid
@@ -65,6 +72,11 @@ async function getAllEntries(userId) {
               AND e.deleted = 0
         `);
     return result.recordset;
+}
+
+async function getEarlyBirdDiscount(programId) {
+    const discounts = await getApplicableDiscounts(programId);
+    return discounts.find(d => d.type === 'earlybird') || null;
 }
 
 // ── GET /formPaymentOptions ───────────────────────────────────────────────────
@@ -84,13 +96,16 @@ router.get('/', async (req, res, next) => {
 
         // ccdpaymentonly — skip straight to step 2 (pay now)
         if (program.ccdpaymentonly) {
-            const allEntries = await getAllEntries(user.userid);
+            const [allEntries, earlyBird] = await Promise.all([
+                getAllEntries(user.userid),
+                getEarlyBirdDiscount(program.programid),
+            ]);
             return res.renderInShell('formPaymentOptions', {
                 user, program, mode: 'step2',
                 pmtoption: 3,
                 allEntries, uninvoicedEntries: [], unpaidInvoices: [],
                 alert: null, caption: 'Choose entries to pay for now, then click Continue',
-                nextAction: '/formPayment', currency,
+                nextAction: '/formPayment', currency, earlyBird,
             });
         }
 
@@ -133,10 +148,11 @@ router.post('/', async (req, res, next) => {
         }
 
         const pmtoption = parseInt(body.pmtoption, 10);
-        const [unpaidInvoices, uninvoicedEntries, allEntries] = await Promise.all([
+        const [unpaidInvoices, uninvoicedEntries, allEntries, earlyBird] = await Promise.all([
             getUnpaidInvoices(user.userid),
             getUninvoicedEntries(user.userid),
             getAllEntries(user.userid),
+            getEarlyBirdDiscount(program.programid),
         ]);
 
         let caption, nextAction;
@@ -144,7 +160,7 @@ router.post('/', async (req, res, next) => {
             caption    = 'Choose invoices to pay using your credit card then click Continue';
             nextAction = '/formPayment';
         } else if (pmtoption === 2) {
-            caption    = 'Choose entries to appear on an invoice, then click Continue';
+            caption    = 'Choose entries to appear on an invoice for payment by EFT, then click Continue';
             nextAction = '/formInvoice';
         } else if (pmtoption === 3) {
             caption    = 'Choose entries to pay for now, then click Continue';
@@ -155,7 +171,7 @@ router.post('/', async (req, res, next) => {
             user, program, mode: 'step2',
             pmtoption, unpaidInvoices, uninvoicedEntries, allEntries,
             alert: action === 'nodata' ? '! No Data. Please select from the list below' : null,
-            caption, nextAction, currency,
+            caption, nextAction, currency, earlyBird,
         });
 
     } catch (err) {

@@ -76,7 +76,7 @@ ALTER TABLE [User] ALTER COLUMN password NVARCHAR(100);
 
 ## 003 — Create ProgramDiscount table
 
-**Date tested:** (pending)
+**Date tested:** 2026-06-04
 **Purpose:** Flexible discount system supporting early bird deadlines and discount codes, per-program (categoryid nullable for future per-category expansion).
 
 ```sql
@@ -96,6 +96,17 @@ CREATE TABLE ProgramDiscount (
     FOREIGN KEY (programid) REFERENCES Program(programid),
     FOREIGN KEY (categoryid) REFERENCES Category(categoryid)
 );
+```
+
+---
+
+## 004 — Add name column to ProgramDiscount
+
+**Date tested:** 2026-06-04
+**Purpose:** Human-readable label for each discount, shown in admin UI, payment options banner, and invoice notes.
+
+```sql
+ALTER TABLE ProgramDiscount ADD name NVARCHAR(100) NULL;
 ```
 
 ---

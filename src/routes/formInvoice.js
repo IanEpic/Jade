@@ -1,35 +1,30 @@
 // routes/formInvoice.js
-// Equivalent of formInvoice.cgi
-// Handles invoice creation (cheque/EFT path) and invoice viewing.
+// Handles invoice creation (EFT path) and invoice viewing.
 // Flow: formPaymentOptions (pmtoption=2) → POST here with entry checkboxes
 //       → show invoice form → POST Create Invoice → show completed invoice
 
 import { Router }           from 'express';
 import { requireAuth }      from '../middleware/auth.js';
 import Invoice              from '../models/Invoice.js';
-import Entry                from '../models/Entry.js'; // used for update operations
+import Entry                from '../models/Entry.js';
 import Address              from '../models/Address.js';
 import TravelPackage        from '../models/TravelPackage.js';
 import { getPool, sql }     from '../config/database.js';
 import { currency, currentDatetime } from '../services/helpers.js';
 import { mailHtml }         from '../services/mailer.js';
+import { getApplicableDiscounts, computeBestDiscount, incrementDiscountUsecount } from '../services/pricing.js';
+import ProgramDiscount from '../models/ProgramDiscount.js';
 import fs                   from 'fs/promises';
 import path                 from 'path';
 
-const EARLY_BIRD_DATE        = new Date('2026-06-01');
-const EARLY_BIRD_DISCOUNT    = 80.30;   // inc GST per entry
-const BUSINESS_DISCOUNT_INC  = 38.50;  // inc GST per entry
+const BUSINESS_DISCOUNT_INC = 38.50;  // inc GST per entry — partner/industry discount
 
 const router = Router();
 router.use(requireAuth);
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
-function isEarlyBird(referenceDate = new Date()) {
-    return referenceDate <= EARLY_BIRD_DATE;
-}
-
-function calcTotals(entries, invoice = null, status = null) {
+async function calcTotals(program, entries, { invoice = null, status = null, promoCode = null } = {}) {
     let subtotalEx  = 0;
     let subtotalGst = 0;
     for (const e of entries) {
@@ -47,30 +42,43 @@ function calcTotals(entries, invoice = null, status = null) {
     const partnerDiscountEx  = partnerDiscountInc / 1.1;
     const partnerDiscountGst = partnerDiscountInc / 11;
 
-    let adjEx  = subtotalEx  + partnerDiscountEx;
-    let adjGst = subtotalGst + partnerDiscountGst;
+    const adjEx  = subtotalEx  + partnerDiscountEx;
+    const adjGst = subtotalGst + partnerDiscountGst;
+    const totalInc = adjEx + adjGst;
 
-    // Early bird discount
-    let ebDiscountInc = 0;
+    // Early bird / promo code discount — DB driven
+    let ebDiscountInc  = 0;
+    let appliedDiscount = null;
+
     if (invoice) {
+        // Already stored on the invoice
         ebDiscountInc = parseFloat(invoice.ebdiscount) || 0;
-    } else if (isEarlyBird()) {
-        ebDiscountInc = EARLY_BIRD_DISCOUNT * entries.length;
+    } else {
+        const discounts = await getApplicableDiscounts(program.programid, new Date(), promoCode);
+        const best = computeBestDiscount(discounts, entries.length, totalInc);
+        if (best) {
+            ebDiscountInc   = best.discountInc;
+            appliedDiscount = best.discount;
+        }
     }
-    const ebDiscountEx  = ebDiscountInc / 1.1;
-    const ebDiscountGst = ebDiscountInc / 11;
 
-    const totalInc    = adjEx + adjGst;
     const totalAfterEb = totalInc - ebDiscountInc;
+
+    let earlyBirdDate = null;
+    if (appliedDiscount?.type === 'earlybird' && appliedDiscount.validto) {
+        earlyBirdDate = new Date(appliedDiscount.validto)
+            .toLocaleDateString('en-AU', { day: 'numeric', month: 'long', year: 'numeric' });
+    }
 
     return {
         subtotalEx, subtotalGst,
         partnerDiscountInc, partnerDiscountEx, partnerDiscountGst,
         adjEx, adjGst, totalInc,
-        ebDiscountInc, ebDiscountEx, ebDiscountGst,
-        totalAfterEb,
+        ebDiscountInc, totalAfterEb,
         earlyBirdActive: ebDiscountInc > 0,
-        earlyBirdDate: EARLY_BIRD_DATE.toLocaleDateString('en-AU', { day: 'numeric', month: 'long', year: 'numeric' }),
+        earlyBirdDate,
+        appliedDiscount,
+        isPromoCode: appliedDiscount?.type === 'code',
     };
 }
 
@@ -81,7 +89,10 @@ async function getEntriesWithNames(where) {
     const req = pool.request();
     for (const [k, v] of Object.entries(where)) req.input(k, v);
     const r = await req.query(`
-        SELECT Entry.*, Entrant.name AS entrantname, Category.name AS categoryname
+        SELECT Entry.entryid, Entry.userid, Entry.entrantid, Entry.categoryid,
+               Entry.invoiceid, Entry.userref, Entry.deleted, Entry.entryaccepted, Entry.tpkid,
+               Category.costex, Category.gst,
+               Entrant.name AS entrantname, Category.name AS categoryname
         FROM Entry
         LEFT JOIN Entrant  ON Entry.entrantid  = Entrant.entrantid
         LEFT JOIN Category ON Entry.categoryid = Category.categoryid
@@ -136,10 +147,9 @@ router.get('/', async (req, res, next) => {
             return res.redirect('/formPaymentOptions?submit=1&pmtoption=1');
         }
 
-        // View invoice
-        const entries  = await getEntriesForInvoice(invoice.invoiceid);
-        const address  = await Address.findByPk(invoice.postaladdressid);
-        const totals   = calcTotals(entries, invoice);
+        const entries   = await getEntriesForInvoice(invoice.invoiceid);
+        const address   = await Address.findByPk(invoice.postaladdressid);
+        const totals    = await calcTotals(program, entries, { invoice });
         const invoiceNo = invoiceNumber(program, invoice.invoiceid);
 
         return res.renderInShell('formInvoice', {
@@ -147,7 +157,7 @@ router.get('/', async (req, res, next) => {
             pmtInstructions: substituteInvoiceNo(program.paymentinstructionstext, invoiceNo),
             remittance:      substituteInvoiceNo(program.remittanceadvicetext, invoiceNo),
             isNew: false, error: null,
-            emailed: req.query.emailed === '1',
+            emailed:    req.query.emailed === '1',
             emailSentTo: req.query.sentto || invoice.email,
         });
 
@@ -162,13 +172,13 @@ router.post('/', async (req, res, next) => {
         const program = user.program;
         const body    = req.body;
 
-        // ── Email action — handle before entry ID check ───────────────────────
+        // ── Email action ──────────────────────────────────────────────────────
         if (req.query.action === 'email' && body.invoiceid) {
             const invoice  = await Invoice.findByPk(parseInt(body.invoiceid));
             if (!invoice || invoice.userid !== user.userid) return res.redirect('/home');
             const entries  = await getEntriesForInvoice(invoice.invoiceid);
             const address  = await Address.findByPk(invoice.postaladdressid);
-            const totals   = calcTotals(entries, invoice);
+            const totals   = await calcTotals(program, entries, { invoice });
             const invoiceNo = invoiceNumber(program, invoice.invoiceid);
             const TEMPLATE_ROOT = process.env.TEMPLATE_ROOT;
             const emailShell = await fs.readFile(path.join(TEMPLATE_ROOT, program.emailhtml), 'utf8');
@@ -206,7 +216,10 @@ router.post('/', async (req, res, next) => {
         const pool2  = await getPool();
         const idList = entryIds.join(',');
         const r2     = await pool2.request().query(`
-            SELECT Entry.*, Entrant.name AS entrantname, Category.name AS categoryname
+            SELECT Entry.entryid, Entry.userid, Entry.entrantid, Entry.categoryid,
+                   Entry.invoiceid, Entry.userref, Entry.deleted, Entry.entryaccepted, Entry.tpkid,
+                   Category.costex, Category.gst,
+                   Entrant.name AS entrantname, Category.name AS categoryname
             FROM Entry
             LEFT JOIN Entrant  ON Entry.entrantid  = Entrant.entrantid
             LEFT JOIN Category ON Entry.categoryid = Category.categoryid
@@ -216,8 +229,11 @@ router.post('/', async (req, res, next) => {
 
         // ── Step 1: Show invoice form ─────────────────────────────────────────
         if (body.submit === 'Continue') {
-            const addresses = await Address.findAll({ where: { userid: user.userid } });
-            const totals    = calcTotals(entries, null, body.status);
+            const [addresses, totals, codeDiscountCount] = await Promise.all([
+                Address.findAll({ where: { userid: user.userid } }),
+                calcTotals(program, entries, { status: body.status }),
+                ProgramDiscount.count({ where: { programid: program.programid, type: 'code', active: true } }),
+            ]);
 
             return res.renderInShell('formInvoice', {
                 user, program, entries, addresses, totals,
@@ -225,19 +241,24 @@ router.post('/', async (req, res, next) => {
                 email:    user.email,
                 isNew: true, error: null,
                 entryIds, status: body.status || '',
+                promoCode: '', hasPromoCodes: codeDiscountCount > 0,
             });
         }
 
         // ── Step 2: Create invoice ────────────────────────────────────────────
         if (body.submit === 'Create Invoice') {
             if (body.postaladdressid === 'a') {
-                const addresses = await Address.findAll({ where: { userid: user.userid } });
-                const totals    = calcTotals(entries, null, body.status);
+                const [addresses, totals, codeDiscountCount] = await Promise.all([
+                    Address.findAll({ where: { userid: user.userid } }),
+                    calcTotals(program, entries, { status: body.status, promoCode: body.promocode }),
+                    ProgramDiscount.count({ where: { programid: program.programid, type: 'code', active: true } }),
+                ]);
                 return res.renderInShell('formInvoice', {
                     user, program, entries, addresses, totals,
                     invoicee: body.invoicee, email: body.email,
                     isNew: true, error: 'Please select or enter a postal address.',
                     entryIds, status: body.status || '',
+                    promoCode: body.promocode || '', hasPromoCodes: codeDiscountCount > 0,
                 });
             }
 
@@ -255,20 +276,20 @@ router.post('/', async (req, res, next) => {
                 postaladdressid = newAddr.addressid;
             }
 
-            const totals = calcTotals(entries, null, body.status);
+            const promoCode = body.promocode || null;
+            const totals    = await calcTotals(program, entries, { status: body.status, promoCode });
 
-            // Create invoice using raw SQL to avoid Sequelize date conversion issues
             const insertPool = await getPool();
             const insertResult = await insertPool.request()
-                .input('userid',          sql.Int,          user.userid)
-                .input('invoicee',        sql.VarChar,      body.invoicee)
-                .input('email',           sql.VarChar,      body.email)
-                .input('postaladdressid', sql.Int,          postaladdressid)
-                .input('totalex',         sql.Money,        totals.subtotalEx)
-                .input('gst',             sql.Money,        totals.subtotalGst)
-                .input('ebdiscount',      sql.Money,        totals.ebDiscountInc)
-                .input('partnerdiscount', sql.Money,        Math.abs(totals.partnerDiscountInc))
-                .input('promocode',       sql.VarChar,      body.promocode || null)
+                .input('userid',          sql.Int,     user.userid)
+                .input('invoicee',        sql.VarChar,  body.invoicee)
+                .input('email',           sql.VarChar,  body.email)
+                .input('postaladdressid', sql.Int,      postaladdressid)
+                .input('totalex',         sql.Money,    totals.subtotalEx)
+                .input('gst',             sql.Money,    totals.subtotalGst)
+                .input('ebdiscount',      sql.Money,    totals.ebDiscountInc)
+                .input('partnerdiscount', sql.Money,    Math.abs(totals.partnerDiscountInc))
+                .input('promocode',       sql.VarChar,  promoCode)
                 .query(`
                     INSERT INTO Invoice (userid, date, invoicee, email, postaladdressid, totalex, gst, ebdiscount, partnerdiscount, promocode, deleted)
                     VALUES (@userid, GETDATE(), @invoicee, @email, @postaladdressid, @totalex, @gst, @ebdiscount, @partnerdiscount, @promocode, 0);
@@ -276,19 +297,24 @@ router.post('/', async (req, res, next) => {
                 `);
             const invoice = await Invoice.findByPk(insertResult.recordset[0].invoiceid);
 
-            // Link entries to invoice
-            const linkPool = await getPool();
+            // Increment usecount for code discounts
+            if (totals.appliedDiscount?.type === 'code') {
+                await incrementDiscountUsecount(totals.appliedDiscount.discountid);
+            }
+
+            // Link entries to invoice and lock in the current category cost
             for (const entry of entries) {
-                await linkPool.request()
-                    .input('invoiceid', sql.Int, invoice.invoiceid)
-                    .input('entryid',   sql.Int, entry.entryid)
-                    .query('UPDATE Entry SET invoiceid = @invoiceid WHERE entryid = @entryid');
+                await insertPool.request()
+                    .input('invoiceid', sql.Int,   invoice.invoiceid)
+                    .input('costex',    sql.Money, parseFloat(entry.costex) || 0)
+                    .input('gst',       sql.Money, parseFloat(entry.gst)    || 0)
+                    .input('entryid',   sql.Int,   entry.entryid)
+                    .query('UPDATE Entry SET invoiceid=@invoiceid, costex=@costex, gst=@gst WHERE entryid=@entryid');
             }
 
             const invoiceNo = invoiceNumber(program, invoice.invoiceid);
             const address   = await Address.findByPk(postaladdressid);
 
-            // Send HTML email
             const TEMPLATE_ROOT = process.env.TEMPLATE_ROOT;
             const emailShell    = await fs.readFile(path.join(TEMPLATE_ROOT, program.emailhtml), 'utf8');
             const invoiceLocals = {
@@ -310,7 +336,6 @@ router.post('/', async (req, res, next) => {
                 }
             });
 
-            // Show invoice on screen
             return res.renderInShell('formInvoice', {
                 user, program, invoice, entries, address, totals, invoiceNo,
                 pmtInstructions: substituteInvoiceNo(program.paymentinstructionstext, invoiceNo),

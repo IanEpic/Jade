@@ -27,12 +27,16 @@ mixin entryTable(entries, totals)
             tr.total-row
                 td(colspan='4') Total
                 td.r= '$' + totals.totalInc.toFixed(2)
-        if totals.earlyBirdActive
+        if totals.earlyBirdActive && !totals.isPromoCode
             tr
                 td(colspan='5')
                     p.eb-note
-                        | Note: A discount of $#{totals.ebDiscountInc.toFixed(2)} is applicable if payment is made on or before #{totals.earlyBirdDate}.
-                        |  In this instance, the total payable is $#{totals.totalAfterEb.toFixed(2)}.
+                        | Note: #{totals.appliedDiscount && totals.appliedDiscount.name || 'Early Bird Discount'} of $#{totals.ebDiscountInc.toFixed(2)} (incl. $#{(totals.ebDiscountInc / 11).toFixed(2)} GST) applies if paid on or before #{totals.earlyBirdDate}.
+                        |  Total payable: $#{totals.totalAfterEb.toFixed(2)}.
+        if totals.isPromoCode && totals.earlyBirdActive
+            tr
+                td(colspan='5')
+                    p.eb-note #{totals.appliedDiscount && totals.appliedDiscount.name || 'Promo Code'} discount of $#{totals.ebDiscountInc.toFixed(2)} (incl. $#{(totals.ebDiscountInc / 11).toFixed(2)} GST) applied. Total payable: $#{totals.totalAfterEb.toFixed(2)}.
 
 style.
     .invoice-wrap { max-width: 700px; margin: 0 auto; font-size: 14px; }
@@ -93,6 +97,10 @@ style.
                     tr
                         td Email To
                         td: input(type='email' name='email' value=email maxlength='300')
+                    if hasPromoCodes
+                        tr
+                            td Promo Code
+                            td: input(type='text' name='promocode' value=promoCode placeholder='Optional discount code' maxlength='50' style='width:200px')
                     tr
                         td Postal Address
                         td
