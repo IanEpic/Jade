@@ -15,7 +15,7 @@ if scorePanel.canFinalise
     td(colspan='2' align='center')
         a(href='/home') Home
         | &nbsp;
-        button(type='button' onclick=`document.location.href='/formResponses?entryid=${entry.entryid}'`) Edit Entry
+        button(type='button' onclick=`document.location.href='/${slug}/formResponses?entryid=${entry.entryid}'`) Edit Entry
 else
     td(colspan='2')
         div(style='border:2px solid #c48f06; padding:10px; margin-bottom:10px;')

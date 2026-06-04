@@ -44,13 +44,13 @@ router.post('/', async (req, res, next) => {
                 msg = salutation + existingUserText + signoff;
             }
 
-            await mailHtml({
+            mailHtml({
                 to:      judge.email,
                 subject: `${program.name} Judging Open`,
                 html:    msg.replace(/\n/g, '<br>'),
                 from:    program.emailfromaddress,
                 smtpHost: program.smtpserver,
-            });
+            }).catch(err => console.warn(`Judge email failed for ${judge.email}:`, err.message));
         }
 
         return res.redirect('/home');

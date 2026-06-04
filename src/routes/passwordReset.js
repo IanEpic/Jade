@@ -7,27 +7,13 @@
 //   POST /password-reset (userid+answer)→ verify answer, reset & email if correct
 
 import { Router } from 'express';
-import { getProgramByHost } from '../services/auth.js';
 import { randomPassword, encryptPassword } from '../services/helpers.js';
 import { mail } from '../services/mailer.js';
 import User from '../models/User.js';
 
 const router = Router();
 
-async function resolveProgram(req, res, next) {
-    try {
-        let hostname = req.hostname;
-        if (hostname === 'localhost' || hostname === '127.0.0.1') {
-            hostname = process.env.DEV_FQDN || hostname;
-        }
-        const program = await getProgramByHost(hostname);
-        if (!program) return res.status(404).send(`No program found for host "${hostname}"`);
-        req.program = program;
-        next();
-    } catch (err) { next(err); }
-}
-
-router.use(resolveProgram);
+// req.program already set by resolveProgram middleware in program.js
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -47,13 +33,13 @@ To log into the portal, please use the credentials below:
 Please log in immediately and change your password by clicking "My Profile" on your home screen.
 `;
 
-    await mail({
+    mail({
         to:      user.email,
         subject: `${program.name} Reset Password`,
         text,
         smtpHost: program.smtpserver || undefined,
         from:     program.emailfromaddress || undefined,
-    });
+    }).catch(err => console.warn('Password reset email failed:', err.message));
 }
 
 // ── GET /password-reset ───────────────────────────────────────────────────────

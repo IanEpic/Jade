@@ -77,6 +77,6 @@ form(method='POST' action='/formJudge')
                     | Click below to save your judge details
         tr(align='left' valign='top')
             td(colspan='2' align='center')
-                button(type='button' onclick="document.location.href='/home'") Cancel
+                button(type='button' onclick=`document.location.href='/${slug}/home'`) Cancel
                 |
                 input(type='submit' name='submit' value=(isNew ? 'Create Judge' : 'Save Judge'))

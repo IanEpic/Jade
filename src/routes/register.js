@@ -5,7 +5,7 @@
 import { Router }                       from 'express';
 import User                             from '../models/User.js';
 import Address                          from '../models/Address.js';
-import { getProgramByHost }             from '../services/auth.js';
+import { getProgramByHost }             from '../services/auth.js'; // kept for reference, not used below
 import { encryptPassword, randomPassword } from '../services/helpers.js';
 import { mail }                         from '../services/mailer.js';
 
@@ -27,7 +27,7 @@ router.use(async (req, res, next) => {
 
 router.get('/', async (req, res, next) => {
     try {
-        const program = await getProgramByHost(req.hostname);
+        const program = req.program;
         const isAdmin = !!req.session?.userId;
         res.renderInShell('register', { program, error: null, body: {}, isAdmin }, { useLoginShell: true });
     } catch (err) { next(err); }
@@ -37,7 +37,7 @@ router.get('/', async (req, res, next) => {
 
 router.post('/', async (req, res, next) => {
     try {
-        const program = await getProgramByHost(req.hostname);
+        const program = req.program;
         const body    = req.body;
 
         const isAdmin = !!req.session?.userId;
@@ -64,21 +64,11 @@ router.post('/', async (req, res, next) => {
             return renderError('An account with this email address already exists. Use the password reset function if you have forgotten your password.');
         }
 
-        // Create address first (userid set after user created)
-        const newAddress = await Address.create({
-            userid:  0, // temporary — updated below
-            address: body.address.trim(),
-            city:    body.city.trim(),
-            state:   body.state.trim(),
-            code:    body.code.trim(),
-            country: body.country.trim(),
-        });
-
         // Generate password
         const password          = randomPassword();
         const encryptedPassword = await encryptPassword(password);
 
-        // Create user
+        // Create user first (address needs a valid userid due to FK constraint)
         const newUser = await User.create({
             programid:       program.programid,
             email:           body.email.trim(),
@@ -88,7 +78,7 @@ router.post('/', async (req, res, next) => {
             firstname:       body.firstname.trim(),
             lastname:        body.lastname.trim(),
             organisation:    body.organisation?.trim() || '',
-            postaladdressid: newAddress.addressid,
+            postaladdressid: null, // set after address is created
             telephone:       body.telephone?.trim() || '',
             mobile:          body.mobile.trim(),
             paymentsopen:    program.paymentsopendefault ? 1 : 0,
@@ -99,20 +89,30 @@ router.post('/', async (req, res, next) => {
             deleted:         0,
         });
 
-        // Link address back to user
-        await newAddress.update({ userid: newUser.userid });
+        // Create address linked to the new user
+        const newAddress = await Address.create({
+            userid:  newUser.userid,
+            address: body.address.trim(),
+            city:    body.city.trim(),
+            state:   body.state.trim(),
+            code:    body.code.trim(),
+            country: body.country.trim(),
+        });
 
-        // Send welcome email
-        await mail({
+        // Link address back to user
+        await newUser.update({ postaladdressid: newAddress.addressid });
+
+        // Fire-and-forget — don't block the response on email delivery
+        mail({
             to:       newUser.email,
             subject:  `${program.name} — Your Login Details`,
             text:     `Dear ${newUser.firstname},\n\nThank you for registering with the ${program.name} portal.\n\nYour login details are:\n\nEmail:    ${newUser.email}\nPassword: ${password}\n\nPlease log in immediately and change your password by clicking "My Profile" on your home screen.\n`,
             from:     program.emailfromaddress,
             smtpHost: program.smtpserver,
-        });
+        }).catch(err => console.warn('Welcome email failed:', err.message));
 
         // Admins go back to user list, new registrants see success page
-        if (req.user?.admin) return res.redirect('/home?action=users');
+        if (isAdmin) return res.redirect('/home?action=users');
 
         res.renderInShell('register', {
             program, error: null, body: {}, success: true,

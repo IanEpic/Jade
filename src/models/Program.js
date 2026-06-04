@@ -6,6 +6,7 @@ class Program extends Model {}
 Program.init(
   {
     programid:                  { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+    slug:                       { type: DataTypes.STRING(50) },
     fqdn:                       { type: DataTypes.STRING },
     port:                       { type: DataTypes.INTEGER },
     name:                       { type: DataTypes.STRING },

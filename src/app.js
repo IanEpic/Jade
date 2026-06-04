@@ -10,37 +10,8 @@ import { fileURLToPath } from 'url';
 
 import sequelize from './config/sequelize.js';
 import { setupAssociations } from './models/associations.js';
-import entryRouter from './routes/entry.js';
-import loginRouter from './routes/login.js';
-import homeRouter            from './routes/home.js';
-import formEntrantRouter     from './routes/formEntrant.js';
-import tcRouter              from './routes/tc.js';
-import formEntryRouter       from './routes/formEntry.js';
-import viewEntryRouter       from './routes/viewEntry.js';
-import formPaymentOptionsRouter from './routes/formPaymentOptions.js';
-import formAdminRouter       from './routes/formAdmin.js';
-import formCategoryRouter    from './routes/formCategory.js';
-import formUserRouter        from './routes/formUser.js';
-import registerRouter        from './routes/register.js';
-import formInvoiceRouter     from './routes/formInvoice.js';
-import formPaymentRouter     from './routes/formPayment.js';
-import formResponsesRouter   from './routes/formResponses.js';
-import formQuestionRouter    from './routes/formQuestion.js';
-import recordScoresRouter    from './routes/recordScores.js';
-import simpleReviewRouter    from './routes/simpleReview.js';
-import finaliseEntryRouter   from './routes/finaliseEntry.js';
-import formJudgeRouter       from './routes/formJudge.js';
-import judgeAllocationRouter from './routes/judgeAllocation.js';
-import judgeEmailRouter      from './routes/judgeEmail.js';
-import judgetcRouter         from './routes/judgetc.js';
-import nominateWinnerRouter  from './routes/nominatewinner.js';
-import nominateWildcardRouter from './routes/nominatewildcard.js';
-import feedbackRouter        from './routes/feedback.js';
-import passwordResetRouter   from './routes/passwordReset.js';
-import formEligibilityRouter from './routes/formEligibility.js';
-import formPageRouter        from './routes/formPage.js';
-import explainscoresRouter   from './routes/explainscores.js';
-import viewPageRouter        from './routes/viewPage.js';
+import { resolveProgram } from './middleware/resolveProgram.js';
+import programRouter from './routes/program.js';
 // import judgeRouter   from './routes/judge.js';
 // import adminRouter   from './routes/admin.js';
 // import paymentRouter from './routes/payment.js';
@@ -143,7 +114,29 @@ app.use((req, res, next) => {
       const contentView = `${viewName}-content`;
       res.render(contentView, { ...locals, ...options }, (err, content) => {
         if (err) return next(err);
-        res.send(shell.replace('<CGIINSERT>', content));
+
+        // Inject a small script that rewrites all absolute internal href/action
+        // attributes to be slug-prefixed (e.g. /home → /aea25/home).
+        // This means templates don't need to know the slug — they keep using
+        // plain absolute paths and the rewriter fixes them at runtime.
+        const slug = program.slug;
+        const rewriterScript = `<script>
+(function(){
+  var base='/${slug}';
+  function fix(el,attr){
+    var v=el.getAttribute(attr);
+    if(v&&v.charAt(0)==='/'&&v.indexOf(base)!==0)el.setAttribute(attr,base+v);
+  }
+  function rewrite(){
+    [].forEach.call(document.querySelectorAll('a[href]'),function(a){fix(a,'href');});
+    [].forEach.call(document.querySelectorAll('form[action]'),function(f){fix(f,'action');});
+  }
+  if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',rewrite);}
+  else{rewrite();}
+})();
+</script>`;
+
+        res.send(shell.replace('<CGIINSERT>', content + rewriterScript));
       });
 
     } catch (err) {
@@ -154,71 +147,29 @@ app.use((req, res, next) => {
 });
 
 // ── Routes ────────────────────────────────────────────────────────────────────
-app.use('/login',   loginRouter);
-app.get('/logout',  (req, res) => res.redirect('/login/logout'));
-app.use('/entry',   entryRouter);
-app.use('/home',                homeRouter);
-app.use('/formEntrant',         formEntrantRouter);
-app.use('/tc',                  tcRouter);
-app.use('/formEntry',           formEntryRouter);
-app.use('/viewEntry',           viewEntryRouter);
-app.use('/formPaymentOptions',  formPaymentOptionsRouter);
-app.use('/admin',               formAdminRouter);
-app.use('/formCategory',        formCategoryRouter);
-app.use('/formUser',            formUserRouter);
-app.use('/register',            registerRouter);
-app.use('/formInvoice',         formInvoiceRouter);
-app.use('/formPayment',         formPaymentRouter);
-app.use('/formResponses',       formResponsesRouter);
-app.use('/formQuestion',        formQuestionRouter);
-app.use('/recordScores',        recordScoresRouter);
-app.use('/simpleReview',        simpleReviewRouter);
-app.use('/finaliseEntry',       finaliseEntryRouter);
-app.use('/formJudge',           formJudgeRouter);
-app.use('/judgeAllocation',     judgeAllocationRouter);
-app.use('/judgeEmail',          judgeEmailRouter);
-app.use('/judgetc',             judgetcRouter);
-app.use('/nominatewinner',      nominateWinnerRouter);
-app.use('/nominatewildcard',    nominateWildcardRouter);
-app.use('/feedback',            feedbackRouter);
-app.use('/password-reset',      passwordResetRouter);
-app.use('/formEligibility',     formEligibilityRouter);
-app.use('/formPage',            formPageRouter);
-app.use('/explainscores',       explainscoresRouter);
-app.use('/viewPage',            viewPageRouter);
-app.get('/formUser.cgi',        (req, res) => res.redirect('/formUser' + (req.url.includes('?') ? req.url.slice(req.url.indexOf('?')) : '')));
-// Compat: old /response/:entryid/:page URLs → /formResponses?entryid=X
-app.get('/response/:entryid/:page', (req, res) => res.redirect(`/formResponses?entryid=${req.params.entryid}`));
-// app.use('/judge',   judgeRouter);
-// app.use('/admin',   adminRouter);
-// app.use('/payment', paymentRouter);
-
-// ── Emulation ─────────────────────────────────────────────────────────────────
-app.get('/emulate', (req, res) => {
-  const { userId } = req.query;
-  if (!req.session?.userId) return res.redirect('/login');
-  if (userId && req.session.adminUserId) {
-    // Switch to a different emulated user (still admin session)
-    req.session.emulateUserId = parseInt(userId);
-  } else if (userId) {
-    // Start emulation — store real admin id for cease
-    req.session.adminUserId   = req.session.userId;
-    req.session.emulateUserId = parseInt(userId);
-  } else {
-    // Cease emulation
-    req.session.emulateUserId = null;
+// Known static path prefixes that must NOT be treated as program slugs.
+// Add to this list if any other static assets conflict with the slug route.
+const NON_SLUG_PREFIXES = ['/tinymce', '/favicon.ico'];
+app.use((req, res, next) => {
+  if (NON_SLUG_PREFIXES.some(p => req.path.startsWith(p))) {
+    return res.status(404).end();
   }
-  res.redirect('/home');
+  next();
 });
 
+// All program-scoped routes live under /:slug.
+// resolveProgram middleware loads the program from the slug and wraps
+// res.redirect so internal absolute redirects are automatically slug-prefixed.
+app.use('/:slug', resolveProgram, programRouter);
+
 // ── Root ──────────────────────────────────────────────────────────────────────
-// Redirect unauthenticated users to login, authenticated to home.
-// Replace the res.redirect('/home') with homeRouter once home.cgi is converted.
+// TODO: replace with public marketing site once designed.
+// For now, if a session exists redirect to their last program, otherwise show placeholder.
 app.get('/', (req, res) => {
-  if (!req.session?.userId) {
-    return res.redirect('/login');
+  if (req.session?.programSlug) {
+    return res.redirect(`/${req.session.programSlug}/home`);
   }
-  res.redirect('/home');  // swap for homeRouter once converted
+  res.send('<h2>Welcome to JADE</h2><p>Please navigate to your program URL.</p>');
 });
 
 // ── 404 ───────────────────────────────────────────────────────────────────────

@@ -9,12 +9,17 @@
 import nodemailer from 'nodemailer';  // npm install nodemailer
 import { mail as mailConfig } from '../config.js';
 
-function createTransport() {
+const MAIL_TIMEOUT_MS = 5000; // fail fast in dev; production server should connect immediately
+
+function createTransport(host) {
     return nodemailer.createTransport({
-        host: mailConfig.host,
+        host: host || mailConfig.host,
         port: 25,
         secure: false,
-        tls: { rejectUnauthorized: false },   // internal mail servers often self-signed
+        tls:              { rejectUnauthorized: false },
+        connectionTimeout: MAIL_TIMEOUT_MS,
+        greetingTimeout:   MAIL_TIMEOUT_MS,
+        socketTimeout:     MAIL_TIMEOUT_MS,
     });
 }
 
@@ -38,12 +43,7 @@ export async function systemEmail(msg) {
 // Replaces: mail($email, $subject, $msg, $smtpserver, $senderaddress, $standardhtml, $filepath)
 // Plain text email, optional file attachment.
 export async function mail({ to, subject, text, from, smtpHost, attachmentPath } = {}) {
-    const transport = nodemailer.createTransport({
-        host: smtpHost || mailConfig.host,
-        port: 25,
-        secure: false,
-        tls: { rejectUnauthorized: false },
-    });
+    const transport = createTransport(smtpHost);
     const message = {
         from:    from || mailConfig.senderAddress,
         to,
@@ -73,12 +73,7 @@ export async function mailHtml({
                                    bcc,          // string or array
                                    attachments,  // array of file paths, equiv of $attachmentfilepath arrayref
                                } = {}) {
-    const transport = nodemailer.createTransport({
-        host: smtpHost || mailConfig.host,
-        port: 25,
-        secure: false,
-        tls: { rejectUnauthorized: false },
-    });
+    const transport = createTransport(smtpHost);
     const message = {
         from:    from || mailConfig.senderAddress,
         to:      Array.isArray(to) ? to.join(', ') : to,

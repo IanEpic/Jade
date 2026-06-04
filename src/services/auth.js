@@ -22,6 +22,13 @@ export async function getProgramByHost(hostname) {
   });
 }
 
+// Looks up a program by its slug (used by the new slug-based routing middleware).
+export async function getProgramBySlug(slug) {
+  return Program.findOne({
+    where: { slug },
+  });
+}
+
 // Replaces: login($email, $password, $emulateuser) from EPIC::JADE::Common
 // Returns the authenticated User, or null if auth fails.
 export async function login(email, password, programId, emulateUserId = null) {

@@ -10,7 +10,7 @@ if errors && errors.length
             p= error
 
 if form
-    form(method='POST' action='/login')
+    form(method='POST' action=`/${program.slug}/login`)
         table
             tr
                 td Email address
@@ -24,4 +24,4 @@ if form
                 td(colspan='2' align='center')
                     button(type='submit') Log In
 
-        p: a(href='/password-reset') Forgot your password?
+        p: a(href=`/${program.slug}/password-reset`) Forgot your password?

@@ -14,39 +14,12 @@
 //   GET  /logout              → destroy session
 
 import { Router } from 'express';
-import { getProgramByHost, login, recordLogon } from '../services/auth.js';
+import { login, recordLogon } from '../services/auth.js';
 
 const router = Router();
 
-// ── Middleware: resolve program from hostname ─────────────────────────────────
-// Replaces: EPIC::JADE::Program->search(fqdn => servername())
-// Runs on every login route — attaches req.program or renders an error.
-async function resolveProgram(req, res, next) {
-  try {
-    let hostname = req.hostname;
-
-    // In dev, req.hostname is 'localhost' which won't match any fqdn in the DB.
-    // Use DEV_FQDN in .env to specify which program to use while developing.
-    // e.g. DEV_FQDN=yourdomain.com.au
-    if (hostname === 'localhost' || hostname === '127.0.0.1') {
-      hostname = process.env.DEV_FQDN || hostname;
-    }
-
-    const program = await getProgramByHost(hostname);
-    if (!program) {
-      return res.status(404).send(
-          `Unable to route request for host "${hostname}". ` +
-          `Check DEV_FQDN in your .env matches an fqdn value in the Program table.`
-      );
-    }
-    req.program = program;
-    next();
-  } catch (err) {
-    next(err);
-  }
-}
-
-router.use(resolveProgram);
+// req.program is already set by the resolveProgram middleware in program.js
+// (extracted from the /:slug URL param). No fqdn lookup needed here.
 
 // ── GET /login ────────────────────────────────────────────────────────────────
 router.get('/', async (req, res, next) => {
@@ -65,7 +38,7 @@ router.get('/', async (req, res, next) => {
     // Already logged in — go home
     // Replaces: if ($user) { relocatehome; exit; }
     if (req.session.userId) {
-      return res.redirect('/');
+      return res.redirect('/home');
     }
 
     // Replaces: param('action') eq 'change_email' / 'change_password'
@@ -124,8 +97,9 @@ router.post('/', async (req, res, next) => {
 
     // Replaces: setting email + password cookies
     // Store userId in session instead — credentials never touch a cookie
-    req.session.userId = user.userid;
-    req.session.programId = program.programid;
+    req.session.userId      = user.userid;
+    req.session.programId   = program.programid;
+    req.session.programSlug = program.slug;
 
     // Support emulate-user if admin passes ?emulate=userId
     if (req.body.emulateuser && user.admin) {
@@ -133,7 +107,12 @@ router.post('/', async (req, res, next) => {
     }
 
     // Replaces: relocatehome
-    res.redirect('/');
+    // Explicit save ensures the session is written to the MSSQL store
+    // before the redirect fires (avoids a race condition).
+    req.session.save((err) => {
+      if (err) return next(err);
+      res.redirect('/home');
+    });
 
   } catch (err) {
     next(err);

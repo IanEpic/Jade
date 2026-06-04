@@ -218,13 +218,13 @@ router.post('/', async (req, res, next) => {
         if (body.email.trim() !== oldemail) {
             const newPwd = randomPassword();
             await targetUser.update({ password: await encryptPassword(newPwd) });
-            await mail({
+            mail({
                 to:       body.email.trim(),
                 subject:  `${program.name} — Email Address Changed`,
                 text:     `Dear ${body.firstname},\n\nYour email address has been updated. Your new login credentials are:\n\nEmail: ${body.email.trim()}\nPassword: ${newPwd}\n\nPlease log in and change your password immediately.\n`,
                 from:     program.emailfromaddress,
                 smtpHost: program.smtpserver,
-            });
+            }).catch(err => console.warn('Email change notification failed:', err.message));
             // If the operator changed their own email, force re-login
             if (targetUser.userid === operator.userid) {
                 req.session.destroy();
