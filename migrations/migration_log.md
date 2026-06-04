@@ -74,4 +74,30 @@ ALTER TABLE [User] ALTER COLUMN password NVARCHAR(100);
 
 ---
 
+## 003 — Create ProgramDiscount table
+
+**Date tested:** (pending)
+**Purpose:** Flexible discount system supporting early bird deadlines and discount codes, per-program (categoryid nullable for future per-category expansion).
+
+```sql
+CREATE TABLE ProgramDiscount (
+    discountid   INT IDENTITY(1,1) PRIMARY KEY,
+    programid    INT NOT NULL,
+    categoryid   INT NULL,
+    type         NVARCHAR(20) NOT NULL,      -- 'earlybird' | 'code'
+    code         NVARCHAR(50) NULL,          -- NULL for earlybird, code string for discount codes
+    amount       DECIMAL(10,2) NOT NULL,
+    amounttype   NVARCHAR(10) NOT NULL,      -- 'dollars' | 'percent'
+    validfrom    DATETIME NULL,
+    validto      DATETIME NULL,              -- early bird deadline
+    maxuses      INT NULL,                   -- NULL = unlimited
+    usecount     INT NOT NULL DEFAULT 0,
+    active       BIT NOT NULL DEFAULT 1,
+    FOREIGN KEY (programid) REFERENCES Program(programid),
+    FOREIGN KEY (categoryid) REFERENCES Category(categoryid)
+);
+```
+
+---
+
 _(further migrations will be added as we go)_

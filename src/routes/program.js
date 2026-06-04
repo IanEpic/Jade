@@ -5,6 +5,7 @@
 
 import { Router } from 'express';
 
+import entryRouter            from './entry.js';
 import loginRouter            from './login.js';
 import homeRouter             from './home.js';
 import formEntrantRouter      from './formEntrant.js';
@@ -43,6 +44,9 @@ router.get('/', (req, res) => res.redirect('/login'));
 
 // ── Auth ──────────────────────────────────────────────────────────────────────
 router.use('/login',    loginRouter);
+
+// ── Entry (legacy REST-style routes) ─────────────────────────────────────────
+router.use('/entry',    entryRouter);
 
 // ── Main routes ───────────────────────────────────────────────────────────────
 router.use('/home',                homeRouter);

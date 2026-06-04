@@ -121,8 +121,10 @@ app.use((req, res, next) => {
         // plain absolute paths and the rewriter fixes them at runtime.
         const slug = program.slug;
         const rewriterScript = `<script>
+window.JADE_SLUG='${slug}';
+window.JADE_BASE='/${slug}';
 (function(){
-  var base='/${slug}';
+  var base=window.JADE_BASE;
   function fix(el,attr){
     var v=el.getAttribute(attr);
     if(v&&v.charAt(0)==='/'&&v.indexOf(base)!==0)el.setAttribute(attr,base+v);
@@ -130,6 +132,7 @@ app.use((req, res, next) => {
   function rewrite(){
     [].forEach.call(document.querySelectorAll('a[href]'),function(a){fix(a,'href');});
     [].forEach.call(document.querySelectorAll('form[action]'),function(f){fix(f,'action');});
+    [].forEach.call(document.querySelectorAll('img[src]'),function(i){fix(i,'src');});
   }
   if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',rewrite);}
   else{rewrite();}
