@@ -179,4 +179,88 @@ ALTER TABLE [User] ADD CONSTRAINT FK_User_Credential
 
 ---
 
+## 008 — Soft-delete User rows with no login history
+
+**Date tested:**
+**Purpose:** After migration 007 linked all User rows to UserCredential by email, users who
+registered across multiple programs now appear in each other's program switchers. This cleans
+up rows where the person never actually logged into that program, has no entries/invoices/payments,
+and therefore has no meaningful data there.
+
+Run the inspection query first to review what will be affected before running the cleanup.
+
+```sql
+-- Inspection: review rows that will be soft-deleted
+SELECT
+    u.userid,
+    u.email,
+    u.programid,
+    p.slug,
+    p.name AS programname,
+    (SELECT COUNT(*) FROM LogOnRecord lor WHERE lor.userid = u.userid) AS logincount,
+    (SELECT COUNT(*) FROM Entry     e   WHERE e.userid   = u.userid) AS entrycount,
+    (SELECT COUNT(*) FROM Invoice   i   WHERE i.userid   = u.userid) AS invoicecount,
+    (SELECT COUNT(*) FROM Payment   pay WHERE pay.userid = u.userid) AS paymentcount
+FROM [User] u
+INNER JOIN Program p ON p.programid = u.programid
+WHERE u.deleted = 0
+  AND u.credentialid IS NOT NULL
+  AND NOT EXISTS (SELECT 1 FROM LogOnRecord lor WHERE lor.userid = u.userid)
+  AND NOT EXISTS (SELECT 1 FROM Entry       e   WHERE e.userid   = u.userid)
+  AND NOT EXISTS (SELECT 1 FROM Invoice     i   WHERE i.userid   = u.userid)
+  AND NOT EXISTS (SELECT 1 FROM Payment     pay WHERE pay.userid = u.userid)
+ORDER BY u.email, u.programid;
+
+-- Step 1: Soft-delete for verification (reversible)
+UPDATE [User]
+SET deleted = 1
+WHERE deleted = 0
+  AND credentialid IS NOT NULL
+  AND NOT EXISTS (SELECT 1 FROM LogOnRecord lor WHERE lor.userid = [User].userid)
+  AND NOT EXISTS (SELECT 1 FROM Entry       e   WHERE e.userid   = [User].userid)
+  AND NOT EXISTS (SELECT 1 FROM Invoice     i   WHERE i.userid   = [User].userid)
+  AND NOT EXISTS (SELECT 1 FROM Payment     pay WHERE pay.userid = [User].userid);
+
+-- Step 2: Hard-delete once soft-delete has been verified working
+-- (~35,000 rows on live DB — run after confirming the app behaves correctly with soft-deleted rows)
+DELETE FROM [User]
+WHERE deleted = 1
+  AND credentialid IS NOT NULL
+  AND NOT EXISTS (SELECT 1 FROM LogOnRecord lor WHERE lor.userid = [User].userid)
+  AND NOT EXISTS (SELECT 1 FROM Entry       e   WHERE e.userid   = [User].userid)
+  AND NOT EXISTS (SELECT 1 FROM Invoice     i   WHERE i.userid   = [User].userid)
+  AND NOT EXISTS (SELECT 1 FROM Payment     pay WHERE pay.userid = [User].userid);
+```
+
+---
+
+## 009 — (reserved)
+
+---
+
+## 010 — Delete orphaned UserCredential rows
+
+**Date tested:**
+**Purpose:** After migration 008 hard-deletes ghost User rows, some UserCredential rows will have
+no active User rows referencing them. Clean these up.
+
+Run after migration 008 step 2 is complete.
+
+```sql
+-- Inspection: review orphaned credentials
+SELECT uc.credentialid, uc.email
+FROM UserCredential uc
+WHERE NOT EXISTS (
+    SELECT 1 FROM [User] u WHERE u.credentialid = uc.credentialid
+);
+
+-- Cleanup
+DELETE FROM UserCredential
+WHERE NOT EXISTS (
+    SELECT 1 FROM [User] u WHERE u.credentialid = UserCredential.credentialid
+);
+```
+
+---
+
 _(further migrations will be added as we go)_
