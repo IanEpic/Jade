@@ -23,7 +23,7 @@ router.post('/', async (req, res, next) => {
         const finalised = req.body.finalise ? true : false;
         await entry.update({ finalised });
 
-        return res.redirect(`/viewEntry?entryid=${entryid}`);
+        return res.redirect('/home?action=entries');
 
     } catch (err) { next(err); }
 });

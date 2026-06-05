@@ -1,45 +1,103 @@
 //- viewEntry/editcomment.pug
-//- Equiv of $editcommentform — judge editing their comments after commentreview flag set.
+//- Judge editing their comments after commentreview flag set.
+//- Generates tr rows directly (same structure as scoreform.pug).
 
-form(method='POST' action='/recordScores')
-    input(type='hidden' name='entryid' value=entry.entryid)
-    input(type='hidden' name='userid'  value=user.userid)
-    table(width='600')
-        tr(align='left' valign='top')
-            th(align='left') Criteria
-            th(align='center') Score
+tr: td(colspan='2'): b Overall Judging Basis
+tr: td(colspan='2')= category.description
+tr: td(colspan='2'): hr
 
-        each c in (scorePanel.criteria || [])
-            - let myScore = (scorePanel.scores || []).find(s => s.criteriaid === c.criteriaid)
-            tr
-                td= c.description
-                td(align='center')= myScore ? myScore.score : 0
-            tr: td(colspan='2'): hr
+tr: td(colspan='2')
+    form(method='POST' action='/recordScores')
+        input(type='hidden' name='entryid' value=entry.entryid)
+        input(type='hidden' name='userid'  value=user.userid)
+        table(width='600')
+            tr(align='left' valign='top')
+                th(align='left') Criteria
+                th(align='center') Score
 
-        tr
-            td(colspan='2') &nbsp;
-        tr
-            td(colspan='2')
+            each c in (scorePanel.criteria || [])
+                - let myScore = (scorePanel.scores || []).find(s => s.criteriaid === c.criteriaid)
+                if !c.weight
+                    tr: td(colspan='2')!= c.description
+                else
+                    tr
+                        td!= c.description
+                        td(align='center')= myScore ? myScore.score : 0
+                    tr: td(colspan='2'): hr
+
+            tr: td(colspan='2') &nbsp;
+            tr: td(colspan='2')
                 b Entrants consistently tell us that constructive feedback from judges is vitally important to them. Please bear this in mind as you provide your responses below. Your responses will be passed directly to the entrant without editing. Your identity will not be revealed to the entrant (but may be revealed to other judges).
-                br
-                br
-        tr
-            td(colspan='2')
+
+            tr: td(colspan='2')
                 | Please provide a message to the entrant highlighting areas in which this entrant has excelled:
                 br
                 textarea(name='comment~excel' rows='5' cols='80')= scorePanel.excel
-        tr
-            td(colspan='2')
-                | Please provide a message to the entrant highlighting areas in which this entrant could improve next year:
+            tr: td(colspan='2')
+                | If this entry does not win its category, the entrant will benefit from your advice on areas in which they could improve next year:
                 br
                 textarea(name='comment~improve' rows='5' cols='80')= scorePanel.improve
-        tr
-            td(colspan='2')
+            tr: td(colspan='2')
                 | Do you have any other constructive comments that may assist this entrant?
                 br
                 textarea(name='comment~other' rows='5' cols='80')= scorePanel.other
-        tr: td(colspan='2'): hr
-        tr
-            td(colspan='2' align='center')
-                button(type='submit') Record Edited Messages
-        tr: td(colspan='2'): hr
+            tr: td(colspan='2'): hr
+
+            tr: td(colspan='2')
+                - let editFeedbackStyle = 'background:#c0392b;color:#fff;padding:12px;margin-bottom:8px;' + (scorePanel.commentFeedback ? '' : 'display:none;')
+                div#comment-feedback(style=editFeedbackStyle)
+                    b Your comments could not be saved — please review the feedback below and make changes before resubmitting:
+                    br
+                    br
+                    span#comment-feedback-text= scorePanel.commentFeedback || ''
+
+            tr: td(colspan='2' align='center')
+                button#score-submit(type='submit') Record Edited Messages
+            tr: td(colspan='2'): hr
+
+script.
+    (function() {
+        var form = document.querySelector('form[action$="/recordScores"]');
+        var btn  = document.getElementById('score-submit');
+        var box  = document.getElementById('comment-feedback');
+        var msg  = document.getElementById('comment-feedback-text');
+
+        if (box && box.style.display !== 'none') {
+            box.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            btn.disabled = true;
+            var label = btn.textContent;
+            btn.textContent = 'Saving…';
+            box.style.display = 'none';
+
+            var data = new URLSearchParams(new FormData(form)).toString();
+            fetch(form.action, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+                body: data,
+            })
+            .then(function(r) { return r.json(); })
+            .then(function(result) {
+                if (result.ok) {
+                    window.location = (window.JADE_BASE || '') + result.redirect;
+                } else {
+                    msg.textContent = result.feedback || 'Your comments could not be saved. Please review and try again.';
+                    box.style.display = 'block';
+                    box.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    btn.disabled = false;
+                    btn.textContent = label;
+                }
+            })
+            .catch(function() {
+                btn.disabled = false;
+                btn.textContent = label;
+                form.submit();
+            });
+        });
+    })();

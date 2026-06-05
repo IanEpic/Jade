@@ -6,6 +6,10 @@ style.
     .resp-wrap .entry-meta { color: #aaa; font-size: 13px; margin-bottom: 16px; text-align: center; }
     .resp-wrap .question-block { border-top: 1px solid #2a2a2a; padding: 14px 0; text-align: left; }
     .resp-wrap .question-label { font-weight: bold; margin-bottom: 6px; text-align: left; }
+    .resp-wrap .dd-row { display: flex; align-items: center; gap: 12px; }
+    .resp-wrap .dd-row .question-label { margin-bottom: 0; flex: 1; }
+    .resp-wrap .dd-row select { flex-shrink: 0; }
+    .resp-wrap .dd-row + .question-desc { margin-top: 8px; }
     .resp-wrap .question-desc { font-size: 12px; color: #aaa; font-style: italic; margin-bottom: 8px; text-align: left; }
     .resp-wrap .word-limit { font-size: 12px; color: #c48f06; margin-bottom: 6px; }
     .resp-wrap .noinput-block { border-top: 1px solid #2a2a2a; padding: 14px 0; text-align: center; }
@@ -18,14 +22,14 @@ style.
     .resp-wrap .checkbox-group label, .resp-wrap .radio-group label { display: flex; align-items: center; gap: 6px; font-size: 13px; }
     .resp-wrap .file-current { font-size: 13px; margin-bottom: 8px; color: #aaa; display: flex; gap: 16px; align-items: center; flex-wrap: wrap; }
     .resp-wrap .file-current a { color: #c48f06; }
-    .resp-wrap .btn-dz-remove { position: relative; z-index: 2; background: transparent; color: #c44; border: 1px solid #c44; border-radius: 3px; padding: 2px 8px; font-size: 11px; cursor: pointer; margin-top: 6px; display: inline-block; }
+    .resp-wrap .btn-dz-remove { margin-left: 10px; background: transparent; color: #c44; border: 1px solid #c44; border-radius: 3px; padding: 2px 8px; font-size: 11px; cursor: pointer; margin-top: 6px; display: inline-block; }
     .resp-wrap .btn-dz-remove:hover { background: #c44; color: #fff; }
     .resp-wrap .dropzone { border: 2px dashed #555; border-radius: 6px; padding: 20px; text-align: center; cursor: pointer; transition: all 0.2s; position: relative; margin-top: 6px; }
     .resp-wrap .dropzone:hover, .resp-wrap .dropzone.drag-over { border-color: #c48f06; background: rgba(196,143,6,0.06); }
     .resp-wrap .dropzone.uploaded { border-color: #4caf50; border-style: solid; }
     .resp-wrap .dz-icon { font-size: 28px; margin-bottom: 6px; }
     .resp-wrap .dz-text { color: #aaa; font-size: 13px; }
-    .resp-wrap .dz-input { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+    .resp-wrap .dz-input { position: absolute; width: 0; height: 0; opacity: 0; overflow: hidden; pointer-events: none; }
     .resp-wrap .dz-bar { height: 6px; background: #333; border-radius: 3px; margin-top: 10px; overflow: hidden; }
     .resp-wrap .dz-bar-fill { height: 100%; background: #c48f06; width: 0; transition: width 0.2s; }
     .resp-wrap .dz-preview { margin-top: 8px; }
@@ -35,10 +39,13 @@ style.
     @keyframes dz-pulse { 0%,100% { opacity: 0.3; } 50% { opacity: 1; } }
     .resp-wrap .dz-uploading-icon { font-size: 24px; animation: dz-pulse 1.2s ease-in-out infinite; }
     .resp-wrap .dz-filename { font-size: 12px; color: #4caf50; }
+    .resp-wrap .dz-file-icon { display: inline-block; color: #fff; font-size: 11px; font-weight: bold; padding: 3px 6px; border-radius: 3px; margin-right: 6px; vertical-align: middle; letter-spacing: 0.5px; }
     .resp-wrap .dz-err { color: #c44; font-size: 12px; margin-top: 6px; }
     .resp-wrap .progress-bar { display: none; height: 8px; background: #333; border-radius: 4px; margin-top: 12px; overflow: hidden; }
     .resp-wrap .progress-bar-fill { height: 100%; background: #c48f06; width: 0; transition: width 0.3s; }
     .resp-wrap .save-status { text-align: center; font-size: 13px; margin-top: 8px; min-height: 20px; }
+    .resp-wrap .btn-undo { background: transparent; color: #c48f06; border: 1px solid #c48f06; border-radius: 3px; padding: 1px 6px; font-size: 11px; cursor: pointer; margin-left: 6px; vertical-align: middle; }
+    .resp-wrap .btn-undo:hover { background: #c48f06; color: #000; }
     .resp-wrap .form-actions { display: flex; justify-content: center; gap: 12px; margin-top: 20px; padding-top: 16px; border-top: 1px solid #333; }
     .resp-wrap .btn { display: inline-flex; align-items: center; gap: 6px; padding: 9px 20px; font-size: 14px; border-radius: 3px; cursor: pointer; text-decoration: none; border: none; transition: all 0.2s; font-family: inherit; }
     .resp-wrap .btn-primary { background: #c48f06; color: #000; font-weight: 600; }
@@ -78,26 +85,35 @@ style.
                     .noinput-block!= q.questiontext
                 else
                     .question-block
-                        .question-label= num + '. ' + q.questiontext
-                        if q.description
-                            .question-desc!= q.description
+                        if q.inputtype === 'drop down list'
+                            .dd-row
+                                .question-label!= num + '. ' + q.questiontext
+                                - const ddopts2 = q.options || []
+                                select(name=fieldbase+'dd')
+                                    option(value='') -- Select --
+                                    each opt in ddopts2.filter(o => !/^[-\s]*(select|please select)[-\s]*$/i.test(o.name))
+                                        option(value=opt.inputoptionid selected=(respval == opt.inputoptionid))= opt.name
+                            if q.description
+                                .question-desc!= q.description
+                        else
+                            .question-label!= num + '. ' + q.questiontext
+                            if q.description
+                                .question-desc!= q.description
                         if q.inputtype === 'textfield'
-                            input(type='text' name=fieldbase+'tf' value=respval style=('width:' + (q.inputwidth||'400px')))
+                            - const tfWidth = q.inputwidth ? q.inputwidth + 'ch' : '600px'
+                            input(type='text' name=fieldbase+'tf' value=respval style=('width:' + tfWidth))
+                            button.btn-undo(type='button' style='display:none' onclick='undoField(this)') ↩ Undo
                         else if q.inputtype === 'textarea'
                             if q.maxsize
                                 .word-limit Word limit: #{q.maxsize} words
                             - const taname = fieldbase + 'ta'
-                            textarea(name=taname rows=q.inputheight||6 style='width:100%' onkeyup='countWords(this,' + q.maxsize + ')')= respval
-                            if q.maxsize
-                                .word-count
+                            textarea(name=taname rows=q.inputheight||6 style='width:100%' onkeyup='countWords(this,' + q.maxsize + ');trackChange(this)')= respval
+                            .word-count
+                                if q.maxsize
                                     | Word count:&nbsp;
                                     input(type='text' name=taname+'c' value=respval ? respval.trim().split(/\s+/).filter(Boolean).length : 0 readonly)
-                        else if q.inputtype === 'drop down list'
-                            - const ddopts = q.options || []
-                            select(name=fieldbase+'dd')
-                                option(value='') -- Select --
-                                each opt in ddopts
-                                    option(value=opt.inputoptionid selected=(respval == opt.inputoptionid))= opt.name
+                                    | &nbsp;
+                                button.btn-undo(type='button' style='display:none' onclick='undoField(this)') ↩ Undo
                         else if q.inputtype === 'checkbox'
                             - const cbopts = q.options || []
                             - const cbvals = respval ? respval.split('~') : []
@@ -123,7 +139,13 @@ style.
                                 input(type='file' class='dz-input')
                                 .dz-preview(style=(respval ? 'display:block' : 'display:none'))
                                     if resp && respval
-                                        a.dz-filename(href='/formResponses/download?responseid='+resp.responseid target='_blank') 📄 #{respval}
+                                        - const ext = (respval.split('.').pop() || '').toLowerCase()
+                                        - const iconColors = {pdf:'#e74c3c',doc:'#2980b9',docx:'#2980b9',xls:'#27ae60',xlsx:'#27ae60',ppt:'#e67e22',pptx:'#e67e22',zip:'#8e44ad',rar:'#8e44ad','7z':'#8e44ad',csv:'#16a085',txt:'#7f8c8d'}
+                                        - const iconColor = iconColors[ext] || '#555'
+                                        - const iconLabel = ext ? ext.toUpperCase() : 'FILE'
+                                        a.dz-filename(href='/formResponses/download?responseid='+resp.responseid target='_blank')
+                                            span.dz-file-icon(style='background:'+iconColor)= iconLabel
+                                            = respval
                                     else
                                         span.dz-filename
                                     button.btn-dz-remove(type='button' onclick='removeFile(event,this)') ✕ Remove
@@ -156,9 +178,9 @@ style.
                                 input(type='file' class='dz-input' accept='video/*')
                                 .dz-preview(style=(respval ? 'display:block' : 'display:none'))
                                     if resp && respval
-                                        a.dz-filename(href='/formResponses/video?responseid='+resp.responseid target='_blank') 🎬 #{respval}
+                                        video.dz-video-player(src='/formResponses/video?responseid='+resp.responseid controls preload='metadata' style='max-width:100%;max-height:200px;display:block;margin-bottom:4px;')
                                     else
-                                        span.dz-filename
+                                        video.dz-video-player(controls preload='metadata' style='max-width:100%;max-height:200px;display:none;margin-bottom:4px;')
                                     button.btn-dz-remove(type='button' onclick='removeFile(event,this)') ✕ Remove
                                 .dz-bar(style='display:none'): .dz-bar-fill
                                 .dz-err(style='display:none')
@@ -168,7 +190,7 @@ style.
             .form-actions
                 a.btn.btn-secondary(href='/home') ← Home
                 button.btn.btn-primary(type='button' id='btn-save' onclick='saveResponses()') 💾 Save
-                a.btn.btn-secondary(href='/viewEntry/' + entry.entryid) Review &amp; Finalise
+                a.btn.btn-secondary(href='/viewEntry?entryid=' + entry.entryid) Review &amp; Finalise
 
 script.
     // ── Upload activity tracker ───────────────────────────────────────────────
@@ -217,6 +239,15 @@ script.
         else ta.style.borderColor = '';
     }
 
+    // ── File type icon ────────────────────────────────────────────────────────
+    var _iconColors = {pdf:'#e74c3c',doc:'#2980b9',docx:'#2980b9',xls:'#27ae60',xlsx:'#27ae60',ppt:'#e67e22',pptx:'#e67e22',zip:'#8e44ad',rar:'#8e44ad','7z':'#8e44ad',csv:'#16a085',txt:'#7f8c8d'};
+    function fileIconHtml(filename) {
+        var ext = (filename || '').split('.').pop().toLowerCase();
+        var color = _iconColors[ext] || '#555';
+        var label = ext ? ext.toUpperCase() : 'FILE';
+        return '<span class="dz-file-icon" style="background:' + color + '">' + label + '</span>' + filename;
+    }
+
     // ── Dropzone wiring ───────────────────────────────────────────────────────
     document.querySelectorAll('.dropzone').forEach(function(dz) {
         var input       = dz.querySelector('.dz-input');
@@ -244,10 +275,16 @@ script.
             if (files.length) handleFile(files[0]);
         });
 
-        // File chosen via the native file picker (input covers whole dropzone)
+        // Click on dropzone opens file picker, unless clicking a video player or remove button
+        dz.addEventListener('click', function(e) {
+            if (!e.target.closest('.dz-video-player') && !e.target.closest('.btn-dz-remove')) input.click();
+        });
+
+
         input.addEventListener('change', function() {
             if (input.files.length) handleFile(input.files[0]);
         });
+
 
         function handleFile(file) {
             // If a pending file is already on disk, delete it before uploading the replacement
@@ -343,13 +380,14 @@ script.
         function showPreview(r, file) {
             preview.style.display = 'block';
             if (type === 'image') {
-                // Show thumbnail — use local object URL for instant display, no round-trip needed
                 var img = preview.querySelector('.dz-thumb');
                 if (img) img.src = URL.createObjectURL(file);
+            } else if (type === 'video') {
+                var vid = preview.querySelector('.dz-video-player');
+                if (vid) { vid.src = URL.createObjectURL(file); vid.style.display = 'block'; }
             } else {
-                // Show filename for file/video uploads
                 var fnEl = preview.querySelector('.dz-filename');
-                if (fnEl) fnEl.textContent = r.originalname || r.filename;
+                if (fnEl) fnEl.innerHTML = fileIconHtml(r.originalname || r.filename);
             }
             if (dzText) dzText.textContent = 'Click or drop to replace';
         }
@@ -376,9 +414,13 @@ script.
             var img     = preview.querySelector('.dz-thumb');
             var fn      = preview.querySelector('.dz-filename');
             if (img) { img.src = ''; img.style.display = ''; }
+            var vid = preview.querySelector('.dz-video-player');
+            if (vid) { vid.src = ''; vid.style.display = 'none'; }
             var uploadingEl = preview.querySelector('.dz-uploading');
             if (uploadingEl) uploadingEl.classList.remove('active');
             if (fn)  { fn.textContent = ''; if (fn.tagName === 'A') { fn.removeAttribute('href'); fn.textContent = ''; } }
+            var removeBtn = preview.querySelector('.btn-dz-remove');
+            if (removeBtn) { removeBtn.disabled = false; removeBtn.textContent = '✕ Remove'; }
             preview.style.display = 'none';
             dz.classList.remove('uploaded');
             dz.dataset.responseid  = '';
@@ -449,6 +491,7 @@ script.
                 var resp = JSON.parse(xhr.responseText);
                 if (resp.status === 'OK') {
                     status.innerHTML = '<span style="color:#4caf50">✓ Saved successfully</span>';
+                    updateUndoBaselines();
                 } else if (resp.status === 'E_CLOSED') {
                     status.innerHTML = '<span style="color:#c44">✗ ' + (resp.msg || 'Entries are closed') + '</span>';
                 } else {
@@ -467,3 +510,67 @@ script.
         xhr.open('POST', window.JADE_BASE+'/formResponses');
         xhr.send(data);
     }
+
+    // ── Undo support ──────────────────────────────────────────────────────────
+    var _savedValues = {};
+
+    function initUndoBaselines() {
+        var form = document.getElementById('response-form');
+        form.querySelectorAll('input[type="text"]:not([readonly]), textarea').forEach(function(el) {
+            if (el.name) _savedValues[el.name] = el.value;
+            el.addEventListener('input', function() { trackChange(el); });
+            el.addEventListener('change', function() { trackChange(el); });
+        });
+    }
+
+    function trackChange(el) {
+        var btn = undoBtnFor(el);
+        if (!btn) return;
+        btn.style.display = (_savedValues[el.name] !== undefined && el.value !== _savedValues[el.name]) ? '' : 'none';
+    }
+
+    function undoBtnFor(el) {
+        // undo button is the next .btn-undo sibling, or inside the nearest .word-count
+        var next = el.nextElementSibling;
+        if (next && next.classList.contains('btn-undo')) return next;
+        var wc = el.parentElement && el.parentElement.querySelector('.word-count .btn-undo');
+        return wc || null;
+    }
+
+    function undoField(btn) {
+        var el;
+        // btn is either sibling of input, or inside .word-count after a textarea
+        var wc = btn.closest('.word-count');
+        if (wc) {
+            el = wc.previousElementSibling;
+            // previousElementSibling might be .word-limit, skip it
+            while (el && el.tagName !== 'TEXTAREA') el = el.previousElementSibling;
+        } else {
+            el = btn.previousElementSibling;
+        }
+        if (!el || _savedValues[el.name] === undefined) return;
+        el.value = _savedValues[el.name];
+        btn.style.display = 'none';
+        if (el.tagName === 'TEXTAREA') countWords(el, null);
+    }
+
+    function updateUndoBaselines() {
+        var form = document.getElementById('response-form');
+        form.querySelectorAll('input[type="text"]:not([readonly]), textarea').forEach(function(el) {
+            if (el.name) _savedValues[el.name] = el.value;
+            var btn = undoBtnFor(el);
+            if (btn) btn.style.display = 'none';
+        });
+    }
+
+    initUndoBaselines();
+
+    // ── Auto-save on exit via sendBeacon ─────────────────────────────────────
+    // Fires on tab close, browser close, or navigation away.
+    // sendBeacon is fire-and-forget so the browser delivers it even during unload.
+    window.addEventListener('beforeunload', function() {
+        if (_uploadsInFlight > 0) return; // don't beacon mid-upload — incomplete data
+        var form = document.getElementById('response-form');
+        var data = new FormData(form);
+        navigator.sendBeacon(window.JADE_BASE + '/formResponses', data);
+    });

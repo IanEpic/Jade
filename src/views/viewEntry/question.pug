@@ -2,14 +2,13 @@
 //- Renders one question + its response as tr elements.
 
 - let resp = responses[q.questionid]
-- let num  = i + 1
+- let num  = questionNum
 - let desc = q.description ? '<br><i>' + q.description + '</i>' : ''
 - let noResp = '[No Response Provided]'
 
 if q.inputtype === 'textfield'
-    tr(align='left' valign='top')
-        td!= num + '. ' + q.questiontext + desc
-        td= resp ? resp.value : noResp
+    tr: td(colspan='2' align='left')!= num + '. ' + q.questiontext + desc
+    tr: td(colspan='2' align='left')= resp ? resp.value : noResp
 
 else if q.inputtype === 'drop down list' || q.inputtype === 'radio'
     - let rawVal = resp ? resp.value : null
@@ -18,8 +17,10 @@ else if q.inputtype === 'drop down list' || q.inputtype === 'radio'
     - let resolvedOpt = (optById || optByName)
     - let displayVal = resolvedOpt ? resolvedOpt.name : (rawVal && rawVal !== '--Please Select--' ? rawVal : null)
     tr(align='left' valign='top')
-        td!= num + '. ' + q.questiontext + desc
-        td= displayVal || noResp
+        td(colspan='2')
+            div(style='display:flex; justify-content:space-between; align-items:baseline; gap:16px;')
+                span!= num + '. ' + q.questiontext + desc
+                span(style='white-space:nowrap; flex-shrink:0;')= displayVal || noResp
 
 else if q.inputtype === 'textarea'
     tr: td(colspan='2' align='left')!= num + '. ' + q.questiontext + desc
@@ -44,34 +45,46 @@ else if q.inputtype === 'checkbox'
 
 else if q.inputtype === 'upload'
     tr: td(colspan='2' align='left')!= num + '. ' + q.questiontext + desc
-    tr: td(colspan='2' align='center')
+    tr: td(colspan='2')
         if !resp
-            | [No File Uploaded]
+            p(style='color:#888;') [No File Uploaded]
         else
             - let ext = (resp.value || '').split('.').pop().toLowerCase()
             if ['jpg','jpeg','png','gif'].includes(ext)
-                img(width='600' src=`/${slug}/formResponses/image?responseid=${resp.responseid}`)
+                div(style='border:2px solid #c48f06; padding:14px 18px; margin:8px 0; background:rgba(196,143,6,0.08); text-align:center;')
+                    img(width='600' src='/' + slug + '/formResponses/image?responseid=' + resp.responseid)
             else
-                a(href=`/${slug}/formResponses/download?responseid=${resp.responseid}` target='_blank') View the current file
+                - let docExt = ext.toUpperCase()
+                - let docColour = ({PDF:'#e74c3c', DOC:'#2980b9', DOCX:'#2980b9', XLS:'#27ae60', XLSX:'#27ae60', PPT:'#e67e22', PPTX:'#e67e22'})[docExt] || '#7f8c8d'
+                div(style='border:2px solid #c48f06; padding:14px 18px; margin:8px 0; background:rgba(196,143,6,0.08);')
+                    p(style='margin:0 0 10px 0;')
+                        b Supporting Document
+                    p(style='margin:0 0 12px 0; font-size:13px;') Click the link below to open the supporting document. This document forms part of the entry and should be reviewed alongside the responses above.
+                    a(href='/' + slug + '/formResponses/download?responseid=' + resp.responseid target='_blank' style='font-size:15px; font-weight:bold; text-decoration:none;')
+                        span(style='display:inline-block; background:' + docColour + '; color:#fff; font-size:11px; font-weight:bold; padding:3px 6px; border-radius:3px; margin-right:8px; vertical-align:middle;')= docExt
+                        span(style='font-size:28px; vertical-align:middle; margin-right:6px;') &#x1F4C4;
+                        span(style='vertical-align:middle;') Open supporting document
 
 else if q.inputtype === 'image'
     tr: td(colspan='2' align='left')!= num + '. ' + q.questiontext + desc
-    tr: td(colspan='2' align='center')
+    tr: td(colspan='2')
         if !resp
-            | [No Image Uploaded]
+            p(style='color:#888;') [No Image Uploaded]
         else
-            img(src=`/${slug}/formResponses/image?responseid=${resp.responseid}` width='600')
+            div(style='border:2px solid #c48f06; padding:14px 18px; margin:8px 0; background:rgba(196,143,6,0.08); text-align:center;')
+                img(src='/' + slug + '/formResponses/image?responseid=' + resp.responseid width='600')
 
 else if q.inputtype === 'video'
     tr: td(colspan='2' align='left')!= num + '. ' + q.questiontext + desc
-    tr: td(colspan='2' align='center')
+    tr: td(colspan='2')
         if !resp
-            | [No Video Uploaded]
+            p(style='color:#888;') [No Video Uploaded]
         else
             - let videoSrc = '/' + slug + '/formResponses/video?responseid=' + resp.responseid
-            video(width='425' height='350' controls)
-                source(src=videoSrc type='video/mp4')
-                | Your browser does not support the video tag.
+            div(style='border:2px solid #c48f06; padding:14px 18px; margin:8px 0; background:rgba(196,143,6,0.08); text-align:center;')
+                video(width='425' height='350' controls)
+                    source(src=videoSrc type='video/mp4')
+                    | Your browser does not support the video tag.
 
 else if q.inputtype === 'noinput'
     tr: td(colspan='2' align='left')!= q.questiontext + desc

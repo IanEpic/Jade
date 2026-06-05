@@ -202,8 +202,8 @@ router.get('/', async (req, res, next) => {
             responses[r.questionid] = r;
         }
 
-        // Filter out omitforjudging if judge view
-        const isJudgeView = mejudge.length && (category.judgingopen || mejudge.some(l => l.judgingopen));
+        // Filter out omitforjudging if judge view — always hidden for any judge, regardless of judging state
+        const isJudgeView = mejudge.length > 0;
         const visibleQuestions = questions.filter(q =>
             !q.deleted && (!isJudgeView || !q.omitforjudging)
         );
@@ -286,6 +286,11 @@ router.get('/', async (req, res, next) => {
                 finalised:  entry.finalised,
                 entry,
             };
+        }
+
+        if (scorePanel && req.session.commentFeedback?.entryid === entry.entryid) {
+            scorePanel.commentFeedback = req.session.commentFeedback.feedback;
+            delete req.session.commentFeedback;
         }
 
         const entrant = entry.entrant || null;

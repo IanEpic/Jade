@@ -30,10 +30,10 @@ tr: td(colspan='2')
 
             each c in (scorePanel.criteria || [])
                 if !c.weight
-                    tr: td(colspan='2')= c.description
+                    tr: td(colspan='2')!= c.description
                 else
                     tr
-                        td= c.description
+                        td!= c.description
                         td
                             select(name='score~' + c.criteriaid)
                                 option(value='') Select
@@ -61,6 +61,61 @@ tr: td(colspan='2')
                     textarea(name='comment~other' rows='5' cols='80')= scorePanel.other
                 tr: td(colspan='2'): hr
 
+            tr: td(colspan='2')
+                - let feedbackStyle = 'background:#c0392b;color:#fff;padding:12px;margin-bottom:8px;' + (scorePanel.commentFeedback ? '' : 'display:none;')
+                div#comment-feedback(style=feedbackStyle)
+                    b Your comments could not be saved — please review the feedback below and make changes before resubmitting:
+                    br
+                    br
+                    span#comment-feedback-text= scorePanel.commentFeedback || ''
+
             tr: td(colspan='2' align='center')
-                button(type='submit')= jm.submitbuttonlabel || 'Save Scores'
+                button#score-submit(type='submit')= jm.submitbuttonlabel || 'Save Scores'
             tr: td(colspan='2'): hr
+
+script.
+    (function() {
+        var form = document.querySelector('form[action$="/recordScores"]');
+        var btn  = document.getElementById('score-submit');
+        var box  = document.getElementById('comment-feedback');
+        var msg  = document.getElementById('comment-feedback-text');
+
+        if (box && box.style.display !== 'none') {
+            box.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            btn.disabled = true;
+            var label = btn.textContent;
+            btn.textContent = 'Saving…';
+            box.style.display = 'none';
+
+            var data = new URLSearchParams(new FormData(form)).toString();
+            fetch(form.action, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+                body: data,
+            })
+            .then(function(r) { return r.json(); })
+            .then(function(result) {
+                if (result.ok) {
+                    window.location = (window.JADE_BASE || '') + result.redirect;
+                } else {
+                    msg.textContent = result.feedback || 'Your comments could not be saved. Please review and try again.';
+                    box.style.display = 'block';
+                    box.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    btn.disabled = false;
+                    btn.textContent = label;
+                }
+            })
+            .catch(function() {
+                btn.disabled = false;
+                btn.textContent = label;
+                form.submit();
+            });
+        });
+    })();

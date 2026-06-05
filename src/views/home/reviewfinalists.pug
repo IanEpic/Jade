@@ -52,7 +52,7 @@ form(name='nominationform' method='POST' action='/nominatewinner')
                     else
                         td
                     td(align='center' valign='center' bgcolor=statusBg): b= statusLabel
-                    td: a(href='/viewEntry/' + entry.entryid + '?task=review') View
+                    td: a(href='/viewEntry?entryid=' + entry.entryid + '&task=review') View
 
                     //- Radio button for lead judge nominee selection
                     if cat.winnernomination && isLeadJudge && isFinalist

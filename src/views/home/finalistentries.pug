@@ -25,4 +25,4 @@ table
             - let displayName = entry.finalisttext || entry.entrantname
             tr
                 td(valign='center')= displayName
-                td: a(href='/viewEntry/' + entry.entryid + '?task=headjudge') View
+                td: a(href='/viewEntry?entryid=' + entry.entryid + '&task=headjudge') View

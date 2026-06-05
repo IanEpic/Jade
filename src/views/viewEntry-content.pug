@@ -14,17 +14,16 @@ else
 
         //- ── Criteria table ───────────────────────────────────────────────────
         if criteria && criteria.length
+            tr: td(colspan='2' align='left'): b Judging Criteria
             tr(align='left' valign='top')
-                td(style='width:300px; vertical-align:top;')
-                    | Entries in this category will be assessed according to the following criteria:
-                td
+                td(colspan='2')
                     table
                         tr
                             td: b Criteria
                             td: b Weight
                         each c in criteria
                             tr
-                                td= c.description
+                                td!= c.description
                                 td(align='center')= c.weight + '%'
             tr: td(colspan='2'): hr
 
@@ -33,7 +32,9 @@ else
         tr: td(colspan='2'): hr
 
         //- ── Questions / Responses ────────────────────────────────────────────
+        - let questionNum = 0
         each q, i in questions
+            - if (q.inputtype !== 'noinput') questionNum++
             if i > 0
                 tr: td(colspan='2'): hr
             include viewEntry/question.pug
@@ -46,8 +47,7 @@ else
                 when 'scoreform'
                     include viewEntry/scoreform.pug
                 when 'editcomment'
-                    tr: td(colspan='2')
-                        include viewEntry/editcomment.pug
+                    include viewEntry/editcomment.pug
                 when 'hjcomment'
                     tr: td(colspan='2')
                         include viewEntry/hjcomment.pug

@@ -49,7 +49,7 @@ style.
                     td= costDisplay
                     td(class=statusClass)= pmt + finalisedLabel
                     td.actions
-                        a(href='/viewEntry/' + entry.entryid title='View') 👁
+                        a(href='/viewEntry?entryid=' + entry.entryid title='View') 👁
                         if canEdit
                             a(href='/entry/' + entry.entryid + '/edit' title='Edit') ✏️
                             a(href='/entry/' + entry.entryid + '/delete' title='Delete' onclick='return confirm("Delete this entry?")' style='color:#c44') ✕
