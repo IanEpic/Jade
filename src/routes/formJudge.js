@@ -5,10 +5,12 @@
 
 import { Router } from 'express';
 import { requireAuth } from '../middleware/auth.js';
-import User             from '../models/User.js';
-import Category         from '../models/Category.js';
+import User              from '../models/User.js';
+import UserCredential    from '../models/UserCredential.js';
+import Category          from '../models/Category.js';
 import JudgeCategoryLink from '../models/JudgeCategoryLink.js';
-import { getPool, sql } from '../config/database.js';
+import { getPool, sql }  from '../config/database.js';
+import { encryptPassword, randomPassword } from '../services/helpers.js';
 
 const router = Router();
 router.use(requireAuth);
@@ -192,11 +194,20 @@ router.post('/', async (req, res, next) => {
         }
 
         // ── Create new judge user ─────────────────────────────────────────────
+        const password   = randomPassword();
+        const hashed     = await encryptPassword(password);
+        const [credential] = await UserCredential.findOrCreate({
+            where:    { email },
+            defaults: { email, password: hashed },
+        });
+
         const newUser = await User.create({
             email,
+            credentialid: credential.credentialid,
             programid:    program.programid,
             firstname:    body.firstname,
             lastname:     body.lastname,
+            password:     hashed,
             paymentsopen: program.paymentsopendefault || false,
             judge:        program.usesimplejudging ? false : true,
             simplejudge:  program.usesimplejudging ? true  : false,

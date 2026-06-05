@@ -1,0 +1,17 @@
+extends layout
+
+block content
+    div(style='max-width:400px; margin:80px auto; font-family:sans-serif;')
+        h2(style='text-align:center;') JADE Awards — Login
+        if error
+            p(style='color:red; text-align:center;')= error
+        form(method='POST' action='/login' style='display:flex; flex-direction:column; gap:12px;')
+            div
+                label(for='email') Email
+                br
+                input#email(type='email' name='email' required style='width:100%; padding:6px; box-sizing:border-box;')
+            div
+                label(for='password') Password
+                br
+                input#password(type='password' name='password' required style='width:100%; padding:6px; box-sizing:border-box;')
+            button(type='submit' style='padding:8px; cursor:pointer;') Log In

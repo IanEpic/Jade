@@ -29,8 +29,9 @@ export async function requireAuth(req, res, next) {
                 };
                 return req.session.save(err => {
                     if (err) return next(err);
-                    // Show the confirmation under the current (source) program's shell
-                    res.redirect(`/${req.session.programSlug}/switch-confirm`);
+                    // Use redirectAbsolute — we're under the target slug's router but
+                    // need to send the user back to their current program's shell
+                    res.redirectAbsolute(`/${req.session.programSlug}/switch-confirm`);
                 });
             }
         }

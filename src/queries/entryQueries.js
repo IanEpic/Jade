@@ -34,15 +34,16 @@ export async function getEntriesToBeJudgedByJudge({ userId }) {
     const result = await pool.request()
         .input('userId', sql.Int, userId)
         .query(`
-      SELECT Entry.*
+      SELECT Entry.*, Entrant.name AS entrantname, Category.name AS categoryname
       FROM Entry
-        INNER JOIN JudgeEntryLink ON Entry.entryid       = JudgeEntryLink.entryid
-        INNER JOIN Category       ON Entry.categoryid    = Category.categoryid
+        INNER JOIN JudgeEntryLink ON Entry.entryid    = JudgeEntryLink.entryid
+        INNER JOIN Category       ON Entry.categoryid = Category.categoryid
+        INNER JOIN Entrant        ON Entry.entrantid  = Entrant.entrantid
       WHERE JudgeEntryLink.userid = @userId
         AND (
-          Category.judgingopen         = 1
-          OR JudgeEntryLink.judgingopen    = 1
-          OR JudgeEntryLink.commentreview  = 1
+          Category.judgingopen        = 1
+          OR JudgeEntryLink.judgingopen   = 1
+          OR JudgeEntryLink.commentreview = 1
         )
       ORDER BY Entry.categoryid, Entry.entryid
     `);

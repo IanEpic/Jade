@@ -110,10 +110,12 @@ router.post('/', async (req, res, next) => {
         const targetUser = await resolveEditUser(operator, body);
         if (!targetUser) return next(Object.assign(new Error('User not found'), { status: 404 }));
 
-        // Validate required fields
-        const required = ['email','question','answer','firstname','lastname','mobile'];
+        // Validate required fields — admins only need email, self-service needs full profile
+        const required = operator.admin
+            ? ['email']
+            : ['email','question','answer','firstname','lastname','mobile'];
         const missing  = required.filter(f => !body[f]?.trim());
-        if (missing.length || body.postaladdressid === 'a') {
+        if (missing.length || (!operator.admin && body.postaladdressid === 'a')) {
             const [addresses, categories] = await Promise.all([
                 getAddresses(targetUser.userid),
                 operator.admin ? getCategories(program.programid, targetUser.userid) : [],
@@ -147,7 +149,7 @@ router.post('/', async (req, res, next) => {
         // New address
         let postaladdressid = body.postaladdressid;
         if (postaladdressid === 'b') {
-            if (!body.postaladdress || !body.postalcity || !body.postalstate || !body.postalcode || !body.postalcountry) {
+            if (!operator.admin && (!body.postaladdress || !body.postalcity || !body.postalstate || !body.postalcode || !body.postalcountry)) {
                 const [addresses, categories] = await Promise.all([
                     getAddresses(targetUser.userid),
                     operator.admin ? getCategories(program.programid, targetUser.userid) : [],

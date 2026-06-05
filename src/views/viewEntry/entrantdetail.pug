@@ -1,28 +1,28 @@
 //- viewEntry/entrantdetail.pug
 - let addr = entrant && entrant.streetaddress
-td(colspan='2') Entrant Details
-td(colspan='2')
-    table
-        tr
-            td Name:
-            td= entrant ? entrant.name : ''
-        tr
-            td Company:
-            td= entrant ? entrant.legalentity : ''
-        if addr
+tr(align='left' valign='top')
+    td: b Entrant Details
+    td
+        table
             tr
-                td Address:
-                td= [addr.address, addr.city, addr.state, addr.code, addr.country].filter(Boolean).join(' ')
-        tr
-            td Telephone:
-            td= entrant ? entrant.telephone : ''
-        tr
-            td Fax:
-            td= entrant ? entrant.fax : ''
-        tr
-            td Mobile:
-            td= entrant ? entrant.mobile : ''
-        tr
-            td Email:
-            td= entrant ? entrant.email : ''
-td(colspan='2'): hr
+                td Name:
+                td= entrant ? entrant.name : ''
+            tr
+                td Company:
+                td= entrant ? entrant.legalentity : ''
+            if addr
+                tr
+                    td Address:
+                    td= [addr.address, addr.city, addr.state, addr.code, addr.country].filter(Boolean).join(' ')
+            tr
+                td Telephone:
+                td= entrant ? entrant.telephone : ''
+            tr
+                td Fax:
+                td= entrant ? entrant.fax : ''
+            tr
+                td Mobile:
+                td= entrant ? entrant.mobile : ''
+            tr
+                td Email:
+                td= entrant ? entrant.email : ''

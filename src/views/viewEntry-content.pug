@@ -4,21 +4,20 @@ if error === 'noaccess'
     p You do not have permission to view this entry.
     p: a(href='/home') Return Home
 else
-    = category.name
-    br
-    if entry
-        | Entry by #{entrant ? entrant.name : entry.entrantid}
-    br
-    br
+    p(align='center')
+        b= category.name
+        br
+        if entry
+            | Entry by #{entrant ? entrant.name : entry.entrantid}
 
     table(style='width:780px;')
-        tr(align='left' valign='top')
 
-            //- ── Criteria table ───────────────────────────────────────────
-            if criteria && criteria.length
-                td(colspan='2')
+        //- ── Criteria table ───────────────────────────────────────────────────
+        if criteria && criteria.length
+            tr(align='left' valign='top')
+                td(style='width:300px; vertical-align:top;')
                     | Entries in this category will be assessed according to the following criteria:
-                td(colspan='2')
+                td
                     table
                         tr
                             td: b Criteria
@@ -27,38 +26,37 @@ else
                             tr
                                 td= c.description
                                 td(align='center')= c.weight + '%'
-                td(colspan='2'): hr
+            tr: td(colspan='2'): hr
 
-            //- ── Entrant detail ───────────────────────────────────────────
-            include viewEntry/entrantdetail.pug
+        //- ── Entrant detail ───────────────────────────────────────────────────
+        include viewEntry/entrantdetail.pug
+        tr: td(colspan='2'): hr
 
-            //- ── Questions / Responses ────────────────────────────────────
-            each q, i in questions
-                if i > 0
-                    td(colspan='2'): hr
-                include viewEntry/question.pug
+        //- ── Questions / Responses ────────────────────────────────────────────
+        each q, i in questions
+            if i > 0
+                tr: td(colspan='2'): hr
+            include viewEntry/question.pug
 
-            td(colspan='2'): hr
+        tr: td(colspan='2'): hr
 
-            //- ── Score / action panel ─────────────────────────────────────
-            //- scoreform and entrantpanel emit td elements directly.
-            //- editcomment, hjcomment, simplereview emit block content so need a td wrapper.
-            if scorePanel
-                case scorePanel.type
-                    when 'scoreform'
-                        include viewEntry/scoreform.pug
-                    when 'editcomment'
-                        td(colspan='2')
-                            include viewEntry/editcomment.pug
-                    when 'hjcomment'
-                        td(colspan='2')
-                            include viewEntry/hjcomment.pug
-                    when 'simplereview'
-                        td(colspan='2')
-                            include viewEntry/simplereview.pug
-                    when 'entrant'
-                        include viewEntry/entrantpanel.pug
+        //- ── Score / action panel ─────────────────────────────────────────────
+        if scorePanel
+            case scorePanel.type
+                when 'scoreform'
+                    include viewEntry/scoreform.pug
+                when 'editcomment'
+                    tr: td(colspan='2')
+                        include viewEntry/editcomment.pug
+                when 'hjcomment'
+                    tr: td(colspan='2')
+                        include viewEntry/hjcomment.pug
+                when 'simplereview'
+                    tr: td(colspan='2')
+                        include viewEntry/simplereview.pug
+                when 'entrant'
+                    include viewEntry/entrantpanel.pug
 
-            //- ── Bottom buttons (non-entrant roles) ──────────────────────
-            if !scorePanel || scorePanel.type !== 'entrant'
-                td(colspan='2' align='center'): a(href='/home') Home
+        //- ── Bottom buttons ───────────────────────────────────────────────────
+        if !scorePanel || scorePanel.type !== 'entrant'
+            tr: td(colspan='2' align='center'): a(href='/home') Home

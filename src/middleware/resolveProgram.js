@@ -43,13 +43,7 @@ export async function resolveProgram(req, res, next) {
             }
 
             if (typeof url === 'string' && url.startsWith('/') && !url.startsWith(slugBase)) {
-                // Don't prefix if the URL already starts with a different slug
-                // e.g. /aea25/switch-confirm when currently under /aea26
-                const firstSeg = url.split('/')[1];
-                const alreadySlugPrefixed = firstSeg && /^[a-z0-9_-]+$/.test(firstSeg) && firstSeg !== slug;
-                if (!alreadySlugPrefixed) {
-                    url = `${slugBase}${url}`;
-                }
+                url = `${slugBase}${url}`;
             }
 
             return originalRedirect(status, url);

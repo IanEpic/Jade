@@ -1,0 +1,11 @@
+extends layout
+
+block content
+    div(style='max-width:400px; margin:80px auto; font-family:sans-serif;')
+        h2(style='text-align:center;') Select a Program
+        if error
+            p(style='color:red; text-align:center;')= error
+        form(method='POST' action='/login/pick' style='display:flex; flex-direction:column; gap:10px;')
+            each prog in programs
+                button(type='submit' name='slug' value=prog.slug style='padding:10px; text-align:left; cursor:pointer; font-size:1em;')
+                    = prog.name

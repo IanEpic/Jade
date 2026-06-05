@@ -1,20 +1,29 @@
 //- viewEntry/question.pug
-//- Renders one question + its response. Called in a loop from viewEntry-content.pug.
-//- `q` = question object, `i` = loop index (0-based), `responses` = hash by questionid
+//- Renders one question + its response as tr elements.
 
 - let resp = responses[q.questionid]
 - let num  = i + 1
 - let desc = q.description ? '<br><i>' + q.description + '</i>' : ''
 - let noResp = '[No Response Provided]'
 
-if q.inputtype === 'textfield' || q.inputtype === 'drop down list' || q.inputtype === 'radio'
-    td
-        != num + '. ' + q.questiontext + desc
-    td= resp ? resp.value : noResp
+if q.inputtype === 'textfield'
+    tr(align='left' valign='top')
+        td!= num + '. ' + q.questiontext + desc
+        td= resp ? resp.value : noResp
+
+else if q.inputtype === 'drop down list' || q.inputtype === 'radio'
+    - let rawVal = resp ? resp.value : null
+    - let optById = rawVal && q.inputoptions ? q.inputoptions.find(o => String(o.inputoptionid) === String(rawVal)) : null
+    - let optByName = rawVal && q.inputoptions ? q.inputoptions.find(o => o.name === rawVal) : null
+    - let resolvedOpt = (optById || optByName)
+    - let displayVal = resolvedOpt ? resolvedOpt.name : (rawVal && rawVal !== '--Please Select--' ? rawVal : null)
+    tr(align='left' valign='top')
+        td!= num + '. ' + q.questiontext + desc
+        td= displayVal || noResp
 
 else if q.inputtype === 'textarea'
-    td(colspan='2' align='left')!= num + '. ' + q.questiontext + desc
-    td(colspan='2' align='left')
+    tr: td(colspan='2' align='left')!= num + '. ' + q.questiontext + desc
+    tr: td(colspan='2' align='left')
         if resp && resp.value
             p(style='font-size:100%;')!= resp.value.replace(/\n/g, "</p><p style='font-size:100%;'>")
         else
@@ -22,44 +31,47 @@ else if q.inputtype === 'textarea'
 
 else if q.inputtype === 'checkbox'
     - let selected = resp ? resp.value.split('~') : []
-    td!= num + '. ' + q.questiontext + desc
-    td
-        if q.inputoptions
-            table
-                each opt in q.inputoptions
-                    tr
-                        td= opt.name
-                        td= selected.includes(String(opt.inputoptionid)) ? 'YES' : 'NO'
+    tr(align='left' valign='top')
+        td!= num + '. ' + q.questiontext + desc
+        td
+            if q.inputoptions
+                table
+                    each opt in q.inputoptions
+                        - let isSelected = selected.includes(String(opt.inputoptionid)) || selected.includes(opt.name)
+                        tr
+                            td= opt.name
+                            td= isSelected ? 'YES' : 'NO'
 
 else if q.inputtype === 'upload'
-    td(colspan='2' align='left')!= num + '. ' + q.questiontext + desc
-    td(colspan='2' align='center')
+    tr: td(colspan='2' align='left')!= num + '. ' + q.questiontext + desc
+    tr: td(colspan='2' align='center')
         if !resp
             | [No File Uploaded]
         else
-            - let ext = resp.value.split('.').pop().toLowerCase()
+            - let ext = (resp.value || '').split('.').pop().toLowerCase()
             if ['jpg','jpeg','png','gif'].includes(ext)
-                img(width='600' src='/formResponses/image?file=' + encodeURIComponent(resp.value))
+                img(width='600' src=`/${slug}/formResponses/image?responseid=${resp.responseid}`)
             else
-                a(href='/formResponses/download?file=' + encodeURIComponent(resp.value) target='_blank') View the current file
+                a(href=`/${slug}/formResponses/download?responseid=${resp.responseid}` target='_blank') View the current file
 
 else if q.inputtype === 'image'
-    td(colspan='2' align='left')!= num + '. ' + q.questiontext + desc
-    td(colspan='2' align='center')
+    tr: td(colspan='2' align='left')!= num + '. ' + q.questiontext + desc
+    tr: td(colspan='2' align='center')
         if !resp
             | [No Image Uploaded]
         else
-            img(src='/formResponses/image?file=' + encodeURIComponent(resp.value) width='600')
+            img(src=`/${slug}/formResponses/image?responseid=${resp.responseid}` width='600')
 
 else if q.inputtype === 'video'
-    td(colspan='2' align='left')!= num + '. ' + q.questiontext + desc
-    td(colspan='2' align='center')
+    tr: td(colspan='2' align='left')!= num + '. ' + q.questiontext + desc
+    tr: td(colspan='2' align='center')
         if !resp
             | [No Video Uploaded]
         else
+            - let videoSrc = '/' + slug + '/formResponses/video?responseid=' + resp.responseid
             video(width='425' height='350' controls)
-                source(src='/formResponses/video?file=' + encodeURIComponent(resp.value) type='video/mp4')
+                source(src=videoSrc type='video/mp4')
                 | Your browser does not support the video tag.
 
 else if q.inputtype === 'noinput'
-    td(colspan='2' align='left')!= q.questiontext + desc
+    tr: td(colspan='2' align='left')!= q.questiontext + desc

@@ -11,6 +11,7 @@ import { fileURLToPath } from 'url';
 import sequelize from './config/sequelize.js';
 import { setupAssociations } from './models/associations.js';
 import { resolveProgram } from './middleware/resolveProgram.js';
+import rootLoginRouter   from './routes/rootLogin.js';
 import programRouter from './routes/program.js';
 // import judgeRouter   from './routes/judge.js';
 // import adminRouter   from './routes/admin.js';
@@ -120,19 +121,24 @@ app.use((req, res, next) => {
         // This means templates don't need to know the slug — they keep using
         // plain absolute paths and the rewriter fixes them at runtime.
         const slug = program.slug;
+        const otherSlugs = (req.session?.linkedPrograms || [])
+            .map(p => p.slug)
+            .filter(s => s !== slug);
         const rewriterScript = `<script>
 window.JADE_SLUG='${slug}';
 window.JADE_BASE='/${slug}';
 (function(){
   var base=window.JADE_BASE;
+  var otherSlugs=${JSON.stringify(otherSlugs)};
   function fix(el,attr){
     var v=el.getAttribute(attr);
-    if(v&&v.charAt(0)==='/'&&v.indexOf(base)!==0){var seg=v.split('/')[1];if(seg&&seg!==window.JADE_SLUG&&/^[a-z0-9_-]+$/.test(seg))return;el.setAttribute(attr,base+v);}
+    if(v&&v.charAt(0)==='/'&&v.indexOf(base)!==0){var seg=v.split('/')[1];if(seg&&otherSlugs.indexOf(seg)!==-1)return;el.setAttribute(attr,base+v);}
   }
   function rewrite(){
     [].forEach.call(document.querySelectorAll('a[href]'),function(a){fix(a,'href');});
     [].forEach.call(document.querySelectorAll('form[action]'),function(f){fix(f,'action');});
     [].forEach.call(document.querySelectorAll('img[src]'),function(i){fix(i,'src');});
+    [].forEach.call(document.querySelectorAll('source[src]'),function(s){fix(s,'src');});
   }
   if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',rewrite);}
   else{rewrite();}
@@ -160,19 +166,25 @@ app.use((req, res, next) => {
   next();
 });
 
+// Platform-level login — must be mounted before /:slug to avoid 'login' being
+// treated as a program slug.
+app.use('/login', rootLoginRouter);
+
 // All program-scoped routes live under /:slug.
 // resolveProgram middleware loads the program from the slug and wraps
 // res.redirect so internal absolute redirects are automatically slug-prefixed.
 app.use('/:slug', resolveProgram, programRouter);
 
 // ── Root ──────────────────────────────────────────────────────────────────────
-// TODO: replace with public marketing site once designed.
-// For now, if a session exists redirect to their last program, otherwise show placeholder.
+// TODO: Replace with public marketing site (features, pricing, signup).
 app.get('/', (req, res) => {
-  if (req.session?.programSlug) {
-    return res.redirect(`/${req.session.programSlug}/home`);
-  }
-  res.send('<h2>Welcome to JADE</h2><p>Please navigate to your program URL.</p>');
+  res.send(`
+    <html><body style="font-family:sans-serif; max-width:600px; margin:80px auto; text-align:center;">
+      <h1>JADE Awards Platform</h1>
+      <p>Public marketing site coming soon.</p>
+      <p><a href="/login">Log in</a></p>
+    </body></html>
+  `);
 });
 
 // ── 404 ───────────────────────────────────────────────────────────────────────
