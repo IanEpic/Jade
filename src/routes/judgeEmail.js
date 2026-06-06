@@ -6,7 +6,7 @@
 import { Router } from 'express';
 import { requireAuth } from '../middleware/auth.js';
 import User from '../models/User.js';
-import { mailHtml } from '../services/mailer.js';
+import { mailHtml, parseSmtp } from '../services/mailer.js';
 import { randomPassword, encryptPassword } from '../services/helpers.js';
 
 const router = Router();
@@ -49,7 +49,7 @@ router.post('/', async (req, res, next) => {
                 subject: `${program.name} Judging Open`,
                 html:    msg.replace(/\n/g, '<br>'),
                 from:    program.emailfromaddress,
-                smtpHost: program.smtpserver,
+                ...parseSmtp(program.smtpserver),
             }).catch(err => console.warn(`Judge email failed for ${judge.email}:`, err.message));
         }
 

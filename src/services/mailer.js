@@ -11,10 +11,22 @@ import { mail as mailConfig } from '../config.js';
 
 const MAIL_TIMEOUT_MS = 5000; // fail fast in dev; production server should connect immediately
 
-function createTransport(host) {
+// Parses program.smtpserver — accepts either a plain hostname string (legacy)
+// or a JSON object: { "host": "...", "port": 1234 }
+export function parseSmtp(smtpserver) {
+    if (!smtpserver) return {};
+    try {
+        const parsed = JSON.parse(smtpserver);
+        return { host: parsed.host || undefined, port: parsed.port || undefined };
+    } catch {
+        return { host: smtpserver }; // plain string — legacy format
+    }
+}
+
+function createTransport(host, port) {
     return nodemailer.createTransport({
         host: host || mailConfig.host,
-        port: 25,
+        port: port || mailConfig.port,
         secure: false,
         tls:              { rejectUnauthorized: false },
         connectionTimeout: MAIL_TIMEOUT_MS,
@@ -42,8 +54,8 @@ export async function systemEmail(msg) {
 
 // Replaces: mail($email, $subject, $msg, $smtpserver, $senderaddress, $standardhtml, $filepath)
 // Plain text email, optional file attachment.
-export async function mail({ to, subject, text, from, smtpHost, attachmentPath } = {}) {
-    const transport = createTransport(smtpHost);
+export async function mail({ to, subject, text, from, smtpHost, smtpPort, attachmentPath } = {}) {
+    const transport = createTransport(smtpHost, smtpPort);
     const message = {
         from:    from || mailConfig.senderAddress,
         to,

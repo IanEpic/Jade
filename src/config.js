@@ -32,7 +32,8 @@ export const db = {
 // ── Mail ─────────────────────────────────────────────────────────────────────
 // Replaces: get_mail_server(), get_eblast_mail_server()
 export const mail = {
-    host:          process.env.MAIL_HOST        || 'mail.internal.epicteam.com.au',
+    host:          process.env.MAIL_HOST || null,
+    port:          process.env.MAIL_PORT ? parseInt(process.env.MAIL_PORT) : 25,
     eblastHost:    process.env.EBLAST_MAIL_HOST || '192.168.50.4',
     systemAddress: process.env.SYSTEM_EMAIL     || 'website.notifications@epicteam.com.au',
     senderAddress: process.env.SENDER_EMAIL     || 'Web.Servers@epicteam.com.au',

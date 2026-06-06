@@ -15,7 +15,7 @@ import JudgeComment        from '../models/JudgeComment.js';
 import Score               from '../models/Score.js';
 import { getPool, sql }    from '../config/database.js';
 import { encryptPassword, randomPassword } from '../services/helpers.js';
-import { mail }            from '../services/mailer.js';
+import { mail, parseSmtp } from '../services/mailer.js';
 
 const router = Router();
 router.use(requireAuth);
@@ -239,7 +239,7 @@ router.post('/', async (req, res, next) => {
                 subject:  `${program.name} — Email Address Changed`,
                 text:     `Dear ${body.firstname},\n\nYour email address has been updated. Your new login credentials are:\n\nEmail: ${body.email.trim()}\nPassword: ${newPwd}\n\nPlease log in and change your password immediately.\n`,
                 from:     program.emailfromaddress,
-                smtpHost: program.smtpserver,
+                ...parseSmtp(program.smtpserver),
             }).catch(err => console.warn('Email change notification failed:', err.message));
             // If the operator changed their own email, force re-login
             if (targetUser.userid === operator.userid) {

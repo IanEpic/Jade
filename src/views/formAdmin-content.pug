@@ -97,7 +97,11 @@ else
                     td: input(type='text' name='loginhtml' value=program.loginhtml || '' size='50' maxlength='200')
                 tr
                     td SMTP Server
-                    td: input(type='text' name='smtpserver' value=program.smtpserver || '' size='50' maxlength='200')
+                    - let smtpParsed = (() => { try { return JSON.parse(program.smtpserver || '{}'); } catch(e) { return { host: program.smtpserver || '' }; } })()
+                    td
+                        input(type='text' name='smtp_host' placeholder='host' value=smtpParsed.host || '' size='40' maxlength='200')
+                        |  Port:
+                        input(type='number' name='smtp_port' placeholder='25' value=smtpParsed.port || '' size='6' maxlength='5')
                 tr
                     td Email From Address
                     td: input(type='text' name='emailfromaddress' value=program.emailfromaddress || '' size='50' maxlength='200')

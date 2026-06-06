@@ -13,6 +13,15 @@ import { getPool, sql } from '../config/database.js';
 const NO_OF_MENU_BUTTONS = 6;
 
 const router = Router();
+
+function buildSmtpJson(body, program) {
+    const host = (body.smtp_host || '').trim();
+    const port = parseInt(body.smtp_port) || null;
+    if (!host) return program.smtpserver; // unchanged
+    const obj = { host };
+    if (port) obj.port = port;
+    return JSON.stringify(obj);
+}
 router.use(requireAuth);
 
 // Admin guard
@@ -132,7 +141,7 @@ router.post('/', async (req, res, next) => {
             standardhtml:            body.standardhtml            || program.standardhtml,
             emailhtml:               body.emailhtml               || program.emailhtml,
             loginhtml:               body.loginhtml               || program.loginhtml,
-            smtpserver:              body.smtpserver              || program.smtpserver,
+            smtpserver:              buildSmtpJson(body, program),
             emailfromaddress:        body.emailfromaddress        || program.emailfromaddress,
             invoicenoprecursor:      body.invoicenoprecursor      || program.invoicenoprecursor,
             ewaycustomerno:          body.ewaycustomerno          || program.ewaycustomerno,

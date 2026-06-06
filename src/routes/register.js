@@ -7,7 +7,7 @@ import User                             from '../models/User.js';
 import UserCredential                   from '../models/UserCredential.js';
 import Address                          from '../models/Address.js';
 import { encryptPassword, randomPassword } from '../services/helpers.js';
-import { mail }                         from '../services/mailer.js';
+import { mail, parseSmtp }              from '../services/mailer.js';
 
 const router = Router();
 
@@ -116,7 +116,7 @@ router.post('/', async (req, res, next) => {
             subject:  `${program.name} — Your Login Details`,
             text:     `Dear ${newUser.firstname},\n\nThank you for registering with the ${program.name} portal.\n\nYour login details are:\n\nEmail:    ${newUser.email}\nPassword: ${password}\n\nPlease log in immediately and change your password by clicking "My Profile" on your home screen.\n`,
             from:     program.emailfromaddress,
-            smtpHost: program.smtpserver,
+            ...parseSmtp(program.smtpserver),
         }).catch(err => console.warn('Welcome email failed:', err.message));
 
         // Admins go back to user list, new registrants see success page

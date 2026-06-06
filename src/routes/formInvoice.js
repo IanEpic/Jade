@@ -11,7 +11,7 @@ import Address              from '../models/Address.js';
 import TravelPackage        from '../models/TravelPackage.js';
 import { getPool, sql }     from '../config/database.js';
 import { currency, currentDatetime } from '../services/helpers.js';
-import { mailHtml }         from '../services/mailer.js';
+import { mailHtml, parseSmtp } from '../services/mailer.js';
 import { getApplicableDiscounts, computeBestDiscount, incrementDiscountUsecount } from '../services/pricing.js';
 import ProgramDiscount from '../models/ProgramDiscount.js';
 import fs                   from 'fs/promises';
@@ -196,7 +196,7 @@ router.post('/', async (req, res, next) => {
                         subject:  `${program.name} Invoice No ${invoiceNo}`,
                         html,
                         from:     program.emailfromaddress,
-                        smtpHost: program.smtpserver,
+                        ...parseSmtp(program.smtpserver),
                     }).catch(e => console.error('Invoice resend failed:', e));
                 }
             });
@@ -331,7 +331,7 @@ router.post('/', async (req, res, next) => {
                         subject:  `${program.name} Invoice No ${invoiceNo}`,
                         html,
                         from:     program.emailfromaddress,
-                        smtpHost: program.smtpserver,
+                        ...parseSmtp(program.smtpserver),
                     }).catch(e => console.error('Invoice email failed:', e));
                 }
             });
