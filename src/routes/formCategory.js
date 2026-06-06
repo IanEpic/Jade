@@ -5,104 +5,32 @@ import { Router } from 'express';
 import { requireAuth } from '../middleware/auth.js';
 import Category             from '../models/Category.js';
 import Question             from '../models/Question.js';
-import Eligibility          from '../models/Eligibility.js';
 import Criteria             from '../models/Criteria.js';
 import CategoryQuestionLink from '../models/CategoryQuestionLink.js';
 import CategoryEligibilityLink from '../models/CategoryEligibilityLink.js';
+import Eligibility             from '../models/Eligibility.js';
 import { getPool, sql }     from '../config/database.js';
-
-const NO_NEW_CRITERIA = 12;
 
 const router = Router();
 router.use(requireAuth);
 
 router.use((req, res, next) => {
-    if (!req.user.admin) return res.renderInShell('error', { message: 'You do not have permission to access this page.' });
+    if (!req.user.admin) return res.redirect('/home');
     next();
 });
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
-
-async function getCriteria(categoryid) {
-    return Criteria.findAll({ where: { categoryid }, order: [['orda', 'ASC'], ['criteriaid', 'ASC']] });
-}
-
-async function getQuestions(programid, categoryid) {
-    const questions = await Question.findAll({
-        where: { programid, deleted: false },
-        order: [['orda', 'ASC'], ['questionid', 'ASC']],
-    });
-    const links = await CategoryQuestionLink.findAll({ where: { categoryid } });
-    const linkedIds = new Set(links.map(l => l.questionid));
-    return questions.map(q => ({ ...q.toJSON(), linked: linkedIds.has(q.questionid) }));
-}
-
-async function getEligibilities(programid, categoryid) {
-    const eligibilities = await Eligibility.findAll({
-        where: { programid, deleted: false },
-        order: [['orda', 'ASC'], ['eligibilityid', 'ASC']],
-    });
-    const links = await CategoryEligibilityLink.findAll({ where: { categoryid } });
-    const linkedIds = new Set(links.map(l => l.eligibilityid));
-    return eligibilities.map(e => ({ ...e.toJSON(), linked: linkedIds.has(e.eligibilityid) }));
-}
-
 // ── GET /formCategory ─────────────────────────────────────────────────────────
-
+// Category form is now served within the home framework at home?action=category.
+// Only the delete action is kept here (destructive, no render needed).
 router.get('/', async (req, res, next) => {
     try {
-        const user    = req.user;
-        const program = user.program;
         const categoryid = req.query.categoryid ? parseInt(req.query.categoryid) : null;
-
-        // Delete action
         if (req.query.action === 'delete' && categoryid) {
             await Category.update({ deleted: true }, { where: { categoryid } });
             return res.redirect('/home?action=categories');
         }
-
-        // Delete criteria action
-        if (req.query.action === 'deletecriteria' && req.query.no) {
-            await Criteria.destroy({ where: { criteriaid: parseInt(req.query.no) } });
-            return res.redirect(`/formCategory?categoryid=${categoryid}`);
-        }
-
-        // Reorder action
-        if (req.query.task === 'reorder') {
-            const pool = await getPool();
-            for (const [key, val] of Object.entries(req.query)) {
-                const parts = key.split('#');
-                if (parts[1]) {
-                    await pool.request()
-                        .input('orda', sql.Float, parseFloat(val))
-                        .input('categoryid', sql.Int, parseInt(parts[1]))
-                        .query('UPDATE Category SET orda = @orda WHERE categoryid = @categoryid');
-                }
-            }
-            return res.redirect('/home?action=categories');
-        }
-
-        if (categoryid) {
-            const category = await Category.findByPk(categoryid);
-            if (!category) return next(Object.assign(new Error('Category not found'), { status: 404 }));
-            const [criteria, questions, eligibilities] = await Promise.all([
-                getCriteria(categoryid),
-                getQuestions(program.programid, categoryid),
-                getEligibilities(program.programid, categoryid),
-            ]);
-            return res.renderInShell('formCategory', {
-                user, program, category, criteria, questions, eligibilities,
-                noNewCriteria: NO_NEW_CRITERIA, isNew: false,
-            });
-        }
-
-        // New category form — pre-check program defaults
-        return res.renderInShell('formCategory', {
-            user, program, category: null,
-            criteria: [], questions: [], eligibilities: [],
-            noNewCriteria: NO_NEW_CRITERIA, isNew: true,
-        });
-
+        const qs = categoryid ? `?categoryid=${categoryid}` : '';
+        return res.redirect(`/home?action=category${categoryid ? '&categoryid=' + categoryid : ''}`);
     } catch (err) { next(err); }
 });
 
@@ -134,11 +62,11 @@ router.post('/', async (req, res, next) => {
             await category.update({ orda: category.categoryid });
 
             // Auto-link questions marked allcats
-            const allcatQuestions = await Question.findAll({ where: { programid: program.programid, allcats: true } });
-            for (const q of allcatQuestions) {
-                await CategoryQuestionLink.create({ categoryid: category.categoryid, questionid: q.questionid });
+            const allcatQuestions = await Question.findAll({ where: { programid: program.programid, allcats: true }, order: [['orda', 'ASC'], ['questionid', 'ASC']] });
+            for (let i = 0; i < allcatQuestions.length; i++) {
+                await CategoryQuestionLink.create({ categoryid: category.categoryid, questionid: allcatQuestions[i].questionid, orda: i + 1 });
             }
-            return res.redirect('/home?action=categories');
+            return res.redirect(`/home?action=category&categoryid=${category.categoryid}&saved=1`);
         }
 
         // ── Edit category ──
@@ -152,21 +80,31 @@ router.post('/', async (req, res, next) => {
             judgingopen: bool('judgingopen'),
         });
 
-        // Eligibility links — replace all
+        // Eligibility links — replace all, preserving submitted order via eord~ID
         await CategoryEligibilityLink.destroy({ where: { categoryid } });
+        const eOrdaMap = {};
+        for (const key of Object.keys(body)) {
+            const [prefix, id] = key.split('~');
+            if (prefix === 'eord') eOrdaMap[id] = parseInt(body[key]) || 0;
+        }
         for (const key of Object.keys(body)) {
             const [prefix, eligibilityid] = key.split('~');
             if (prefix === 'e' && eligibilityid) {
-                await CategoryEligibilityLink.create({ categoryid, eligibilityid: parseInt(eligibilityid) });
+                await CategoryEligibilityLink.create({ categoryid, eligibilityid: parseInt(eligibilityid), orda: eOrdaMap[eligibilityid] ?? 0 });
             }
         }
 
-        // Question links — replace all
+        // Question links — replace all, preserving submitted order via qord~ID
         await CategoryQuestionLink.destroy({ where: { categoryid } });
+        const qOrdaMap = {};
+        for (const key of Object.keys(body)) {
+            const [prefix, id] = key.split('~');
+            if (prefix === 'qord') qOrdaMap[id] = parseInt(body[key]) || 0;
+        }
         for (const key of Object.keys(body)) {
             const [prefix, questionid] = key.split('~');
             if (prefix === 'q' && questionid) {
-                await CategoryQuestionLink.create({ categoryid, questionid: parseInt(questionid) });
+                await CategoryQuestionLink.create({ categoryid, questionid: parseInt(questionid), orda: qOrdaMap[questionid] ?? 0 });
             }
         }
 
@@ -184,8 +122,12 @@ router.post('/', async (req, res, next) => {
             }
         }
 
-        // New criteria
-        for (let i = 0; i < NO_NEW_CRITERIA; i++) {
+        // New criteria — collect all submitted ~~new~desc~crN keys regardless of count
+        const newCriteriaIndices = Object.keys(body)
+            .filter(k => k.startsWith('~~new~desc~cr'))
+            .map(k => parseInt(k.replace('~~new~desc~cr', '')))
+            .sort((a, b) => a - b);
+        for (const i of newCriteriaIndices) {
             const desc   = body[`~~new~desc~cr${i}`];
             const weight = body[`~~new~weight~cr${i}`];
             if (desc && desc.trim()) {
@@ -194,8 +136,45 @@ router.post('/', async (req, res, next) => {
             }
         }
 
-        return res.redirect('/home?action=categories');
+        return res.redirect(`/home?action=category&categoryid=${categoryid}&saved=1`);
 
+    } catch (err) { next(err); }
+});
+
+// ── POST /formCategory/create-eligibility ────────────────────────────────────
+// AJAX: create a new eligibility rule and return {eligibilityid, eligibilityrule}
+
+router.post('/create-eligibility', async (req, res, next) => {
+    try {
+        const program = req.user.program;
+        const { eligibilityrule } = req.body;
+        if (!eligibilityrule || !eligibilityrule.trim()) return res.status(400).json({ error: 'Rule text required' });
+        const e = await Eligibility.create({
+            programid:       program.programid,
+            eligibilityrule: eligibilityrule.trim(),
+            deleted:         false,
+        });
+        await e.update({ orda: e.eligibilityid });
+        return res.json({ eligibilityid: e.eligibilityid, eligibilityrule: e.eligibilityrule });
+    } catch (err) { next(err); }
+});
+
+// ── POST /formCategory/create-question ───────────────────────────────────────
+// AJAX: create a new question and return {questionid, questiontext}
+
+router.post('/create-question', async (req, res, next) => {
+    try {
+        const program = req.user.program;
+        const { questiontext, questiontype } = req.body;
+        if (!questiontext || !questiontext.trim()) return res.status(400).json({ error: 'Question text required' });
+        const q = await Question.create({
+            programid:    program.programid,
+            questiontext: questiontext.trim(),
+            questiontype: questiontype || 'text',
+            deleted:      false,
+        });
+        await q.update({ orda: q.questionid });
+        return res.json({ questionid: q.questionid, questiontext: q.questiontext });
     } catch (err) { next(err); }
 });
 

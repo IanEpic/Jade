@@ -12,6 +12,16 @@ import { Router } from 'express';
 import { requireAuth } from '../middleware/auth.js';
 import { translate } from '../services/translate.js';
 import { currency } from '../services/helpers.js';
+import JudgingModel from '../models/JudgingModel.js';
+import Category from '../models/Category.js';
+import User from '../models/User.js';
+import ProgramDiscount from '../models/ProgramDiscount.js';
+import Question from '../models/Question.js';
+import Eligibility from '../models/Eligibility.js';
+import Criteria from '../models/Criteria.js';
+import CategoryQuestionLink from '../models/CategoryQuestionLink.js';
+import CategoryEligibilityLink from '../models/CategoryEligibilityLink.js';
+
 
 import {
     getEntrantsByUser,
@@ -50,6 +60,7 @@ import {
     getJudgeCommentsForEntryByJudge,
     getWildcardNominationsByJudge,
     getEntryStats,
+    getMenuButtonsForEdit,
 } from '../queries/homeQueries.js';
 
 import {
@@ -65,6 +76,12 @@ import {
 
 const router = Router();
 router.use(requireAuth);
+
+async function loadJudgingModel(judgingmodelid) {
+    if (!judgingmodelid) return {};
+    const jm = await JudgingModel.findByPk(judgingmodelid);
+    return jm ? jm.toJSON() : {};
+}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Data helpers
@@ -149,7 +166,10 @@ async function getDefaultContent(user, program, data) {
     return { view: 'home/welcome', text: program.standardwelcometext || '' };
 }
 
-// Equiv of $sidebar — builds nav link list
+// Equiv of $sidebar — builds nav panel tree for drill-down sidebar.
+// Returns a dict of panels keyed by panel name. Each panel:
+//   { items: [{href,label}|{submenu,label}], back?, backLabel? }
+// The 'main' panel has no back. All others have back + backLabel.
 async function buildSidebar(user, program, data) {
     const {
         allEntries, entrants, invoices, payments,
@@ -157,115 +177,156 @@ async function buildSidebar(user, program, data) {
         finalistsNotOpen, nonFinalistsNotOpen, userPages,
     } = data;
 
-    const links = [];
-    const add = (href, label) => links.push({ href, label });
+    // ── Main panel ───────────────────────────────────────────────────────────
+    const main = [];
+    const addMain = (href, label) => main.push({ href, label });
 
     if (catsOpenForEntries.length)
-        add('/home?action=newentry', 'New Entry');
+        addMain('/home?action=newentry', 'New Entry');
 
     if (allEntries.length)
-        add('/home?action=entries', 'My Entries');
+        addMain('/home?action=entries', 'My Entries');
 
     if (entrants.length && catsOpenForEntries.length) {
         const label = await translate(program.programid, 'My Entrants');
-        add('/home?action=entrants', label);
+        addMain('/home?action=entrants', label);
     }
 
     if (invoices.length)
-        add('/home?action=invoices', 'My Invoices');
+        addMain('/home?action=invoices', 'My Invoices');
+
+    if (payments.length)
+        addMain('/home?action=payments', 'My Payments');
 
     if (program.downloadpagehtml)
-        add('/home?action=downloads', 'Downloads');
+        addMain('/home?action=downloads', 'Downloads');
 
     if (afeNominees.length)
-        add('/home?action=favouriteevent', "Australia's Favourite Event");
+        addMain('/home?action=favouriteevent', "Australia's Favourite Event");
 
     const hasFinalistScores    = program.finalistscoresavailable && finalistsNotOpen.length;
     const hasNonFinalistScores = program.nonfinalistscoresavailable && nonFinalistsNotOpen.length;
     if (hasFinalistScores || hasNonFinalistScores)
-        add('/home?action=scorescomments', 'Judge Comments');
+        addMain('/home?action=scorescomments', 'Judge Comments');
 
     if (program.feedbackopen)
-        add('/home?action=feedback', 'Leave Feedback');
+        addMain('/home?action=feedback', 'Leave Feedback');
 
-    if (payments.length)
-        add('/home?action=payments', 'My Payments');
-
-    // Admin-only links
-    if (user.admin) {
-        add('/formDiscount',               'Discounts');
-        add('/home?action=eligibility',    'Eligibility');
-        add('/home?action=categories',     'Categories');
-        add('/home?action=questions&type=entry', 'Questions');
-        add('/home?action=userpages',      'User Pages');
-        add('/home?action=judges',         'Judges');
-        if (!program.usesimplejudging)
-            add('/home?action=allocatejudges', 'Allocate Judges');
-        add('/home?action=emailjudges',    'Email Judges');
-        if (!program.usesimplejudging)
-            add('/home?action=judgecheck', 'Check Judging');
-    }
-
-    // Judge judging links
+    // Judge links
     if (user.judge) {
         const openLinks = await getEntriesAssignedToJudge({ userId: user.userid });
         if (openLinks.length)
-            add('/home?action=tojudge', 'To Judge');
+            addMain('/home?action=tojudge', 'To Judge');
     }
 
-    // View entries
     if (user.viewentries)
-        add('/home?action=entrylist', 'View Entries');
+        addMain('/home?action=entrylist', 'View Entries');
 
-    // Reviewer
     if (user.reviewer) {
         const openForReview = await getSimpleEntriesOpenForReview({ programId: program.programid });
         if (openForReview.length)
-            add('/home?action=review', 'Review Entries');
+            addMain('/home?action=review', 'Review Entries');
     }
 
-    // Simple judge
     if (user.simplejudge) {
         if (!user.onlyjudgepostreview) {
             const openForReview = await getSimpleEntriesOpenForReview({ programId: program.programid });
             if (openForReview.length)
-                add('/home?action=simplejudge', 'Judge Entries');
+                addMain('/home?action=simplejudge', 'Judge Entries');
         } else {
             const approved = await getSimpleEntriesApprovedByReviewer({ programId: program.programid });
             if (approved.length)
-                add('/home?action=simplejudge', 'Judge Entries');
+                addMain('/home?action=simplejudge', 'Judge Entries');
         }
     }
 
-    // Finalist review for judges
     if (user.judge) {
         const reviewCats = user.chairperson
             ? await getCatsOpenForReviewOrNomination({ programId: program.programid })
             : await getCatsOpenForReviewByJudge({ userId: user.userid });
         if (reviewCats.length)
-            add('/home?action=reviewfinalists', 'Review Nominees');
+            addMain('/home?action=reviewfinalists', 'Review Nominees');
     }
 
-    // User pages (conditional visibility)
     for (const page of userPages) {
         if (
             (page.show4user) ||
             (page.show4judge && (user.judge || user.simplejudge)) ||
             (page.show4admin && user.admin)
         ) {
-            links.push({ href: `/home?action=userpage&pid=${page.userpageid}`, label: page.name });
+            main.push({ href: `/home?action=userpage&pid=${page.userpageid}`, label: page.name });
         }
     }
 
-    // TODO: replace with program.showstats once that boolean column is added to
-    //       the Program table and deployed. See homeQueries.js for instructions.
+    // TODO: replace with program.showstats once that column is added to Program
     if (user.admin && program.programid === 1055)
-        add('/home?action=stats', 'Stats');
+        addMain('/home?action=stats', 'Stats');
 
-    if (user.admin)
-        add('/admin', 'Admin');
+    const panels = { main: { items: main } };
 
-    return links;
+    // ── Admin panels (admin users only) ──────────────────────────────────────
+    if (user.admin) {
+        main.push({ submenu: 'admin', label: 'Admin' });
+
+        const judgingItems = [{ href: '/home?action=judges', label: 'Judges' }];
+        if (!program.usesimplejudging)
+            judgingItems.push({ href: '/home?action=allocatejudges', label: 'Allocate Judges' });
+        judgingItems.push({ href: '/home?action=emailjudges', label: 'Email Judges' });
+        if (!program.usesimplejudging)
+            judgingItems.push({ href: '/home?action=judgecheck', label: 'Check Judging' });
+
+        panels.admin = {
+            back: 'main', backLabel: '< Main Menu',
+            items: [
+                { href: '/home?action=program', label: 'Program' },
+                { submenu: 'setup',    label: 'Setup' },
+                { submenu: 'judging',  label: 'Judging' },
+                { submenu: 'adminpay', label: 'Payments' },
+                { submenu: 'tools',    label: 'Tools' },
+                { submenu: 'reports',  label: 'Reports' },
+            ],
+        };
+        panels.setup = {
+            back: 'admin', backLabel: '< Admin',
+            items: [
+                { href: '/home?action=discounts',           label: 'Discounts' },
+                { href: '/home?action=categories',          label: 'Categories' },
+                { href: '/home?action=eligibility',         label: 'Eligibility' },
+                { href: '/home?action=questions&type=entry', label: 'Questions' },
+                { href: '/home?action=userpages',           label: 'User Pages' },
+            ],
+        };
+        panels.judging = {
+            back: 'admin', backLabel: '< Admin',
+            items: judgingItems,
+        };
+        panels.adminpay = {
+            back: 'admin', backLabel: '< Admin',
+            items: [
+                { href: '#', label: 'Receive Payment' },
+                { href: '#', label: 'Create Invoice' },
+                { href: '#', label: 'Issue Refund' },
+            ],
+        };
+        panels.tools = {
+            back: 'admin', backLabel: '< Admin',
+            items: [
+                { href: '#', label: 'Export PR Info' },
+                { href: '#', label: 'Calc Final Scores' },
+                { href: '#', label: 'Create Category' },
+            ],
+        };
+        panels.reports = {
+            back: 'admin', backLabel: '< Admin',
+            items: [
+                { href: '#', label: 'Active Users' },
+                { href: '#', label: 'Finalised Unpaid' },
+                { href: '#', label: 'Paid Unfinalised' },
+            ],
+        };
+    }
+
+    return panels;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -293,7 +354,7 @@ router.get('/', async (req, res, next) => {
         }
 
         // ── Build sidebar ───────────────────────────────────────────────────
-        const sidebarLinks = await buildSidebar(user, program, data);
+        const sidebarMenus = await buildSidebar(user, program, data);
 
         // ── Resolve content section ─────────────────────────────────────────
         let content = {};   // { view, ...viewData }
@@ -450,7 +511,107 @@ router.get('/', async (req, res, next) => {
 
         // ── Admin-only actions ────────────────────────────────────────────
         if (user.admin) {
-            if (action === 'categories') {
+            if (action === 'program') {
+                const isEntriesOpenDefault  = !!program.entriesopendefault;
+                const isPaymentsOpenDefault = !!program.paymentsopendefault;
+                const isJudgingOpenDefault  = !!program.judgingopendefault;
+                const [[adminButtons, judgeButtons, userButtons], entryExceptions, paymentExceptions, judgingExceptions] = await Promise.all([
+                    Promise.all([
+                        getMenuButtonsForEdit({ topMenuId: program.adminmenu }),
+                        getMenuButtonsForEdit({ topMenuId: program.judgemenu }),
+                        getMenuButtonsForEdit({ topMenuId: program.usermenu }),
+                    ]),
+                    Category.findAll({ where: { programid: program.programid, entriesopen: isEntriesOpenDefault ? 0 : 1 } }),
+                    User.findAll({     where: { programid: program.programid, paymentsopen: isPaymentsOpenDefault ? 0 : 1 } }),
+                    Category.findAll({ where: { programid: program.programid, judgingopen: isJudgingOpenDefault ? 0 : 1 } }),
+                ]);
+                content = {
+                    view: 'home/program',
+                    menuButtons: { admin: adminButtons, judge: judgeButtons, user: userButtons },
+                    entryExceptions, paymentExceptions, judgingExceptions,
+                    error: null,
+                    saved: req.query.saved === '1',
+                };
+            }
+            else if (action === 'discounts') {
+                const { edit: editId, delete: deleteId } = req.query;
+                if (deleteId) {
+                    await ProgramDiscount.destroy({ where: { discountid: parseInt(deleteId), programid: program.programid } });
+                    return res.redirect('/home?action=discounts');
+                }
+                let editing = null;
+                if (editId) {
+                    editing = await ProgramDiscount.findOne({ where: { discountid: parseInt(editId), programid: program.programid } });
+                }
+                const discounts = await ProgramDiscount.findAll({
+                    where: { programid: program.programid },
+                    order: [['type', 'ASC'], ['discountid', 'ASC']],
+                });
+                const formatDate = (val) => {
+                    if (!val) return '';
+                    const d = new Date(val);
+                    if (isNaN(d)) return '';
+                    const pad = n => String(n).padStart(2, '0');
+                    return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+                };
+                content = {
+                    view: 'home/discounts',
+                    discounts, editing, formatDate,
+                    error:   req.query.error   || null,
+                    success: req.query.success === '1',
+                };
+            }
+            else if (action === 'category') {
+                const categoryid = req.query.categoryid ? parseInt(req.query.categoryid) : null;
+                const deletecriteria = req.query.deletecriteria ? parseInt(req.query.deletecriteria) : null;
+
+                if (deletecriteria && categoryid) {
+                    await Criteria.destroy({ where: { criteriaid: deletecriteria } });
+                    return res.redirect(`/home?action=category&categoryid=${categoryid}`);
+                }
+
+                let category = null, criteria = [], questions = [], eligibilities = [];
+                if (categoryid) {
+                    category = await Category.findByPk(categoryid);
+                    if (!category) return next(Object.assign(new Error('Category not found'), { status: 404 }));
+                    const allQuestions = await Question.findAll({
+                        where: { programid: program.programid, deleted: false },
+                        order: [['orda', 'ASC'], ['questionid', 'ASC']],
+                    });
+                    const qLinks = await CategoryQuestionLink.findAll({ where: { categoryid }, order: [['orda', 'ASC'], ['questionid', 'ASC']] });
+                    const qLinkMap = new Map(qLinks.map(l => [l.questionid, l]));
+                    const linkedQs   = qLinks.map(l => {
+                        const q = allQuestions.find(q => q.questionid === l.questionid);
+                        return q ? { ...q.toJSON(), linked: true, linkOrda: l.orda } : null;
+                    }).filter(Boolean);
+                    const unlinkedQs = allQuestions.filter(q => !qLinkMap.has(q.questionid)).map(q => ({ ...q.toJSON(), linked: false }));
+                    questions = [...linkedQs, ...unlinkedQs];
+
+                    const allEligibilities = await Eligibility.findAll({
+                        where: { programid: program.programid, deleted: false },
+                        order: [['orda', 'ASC'], ['eligibilityid', 'ASC']],
+                    });
+                    const eLinks = await CategoryEligibilityLink.findAll({ where: { categoryid }, order: [['orda', 'ASC'], ['eligibilityid', 'ASC']] });
+                    const eLinkMap = new Map(eLinks.map(l => [l.eligibilityid, l]));
+                    const linkedEs   = eLinks.map(l => {
+                        const e = allEligibilities.find(e => e.eligibilityid === l.eligibilityid);
+                        return e ? { ...e.toJSON(), linked: true, linkOrda: l.orda } : null;
+                    }).filter(Boolean);
+                    const unlinkedEs = allEligibilities.filter(e => !eLinkMap.has(e.eligibilityid)).map(e => ({ ...e.toJSON(), linked: false }));
+                    eligibilities = [...linkedEs, ...unlinkedEs];
+
+                    criteria = await Criteria.findAll({ where: { categoryid }, order: [['orda', 'ASC'], ['criteriaid', 'ASC']] });
+                }
+
+                content = {
+                    view: 'home/category',
+                    category: category ? category.toJSON() : null,
+                    criteria, questions, eligibilities,
+                    isNew: !categoryid,
+                    saved: req.query.saved === '1',
+                };
+            }
+            else if (action === 'categories') {
                 const cats = await getAllCategories({ programId: program.programid });
                 content = { view: 'home/categories', cats, currency };
             }
@@ -497,7 +658,7 @@ router.get('/', async (req, res, next) => {
             }
             else if (action === 'judgecheck') {
                 const cats = await getAllCategories({ programId: program.programid });
-                const judgingModel = program.judgingmodel || {};
+                const judgingModel = await loadJudgingModel(program.judgingmodelid);
                 const catData = await Promise.all(cats.map(async cat => {
                     const catJudges  = await getJudgesForCategory({ categoryId: cat.categoryid });
                     const criteria   = await getCriteriaForCategory({ categoryId: cat.categoryid });
@@ -505,7 +666,7 @@ router.get('/', async (req, res, next) => {
                         const entries = await getEntriesAssignedToJudge({ userId: judge.userid });
                         const catEntries = entries.filter(e => e.categoryid === cat.categoryid);
                         const entryData = await Promise.all(catEntries.map(async entry => {
-                            const scores   = await Promise.all(
+                            const scores   = (await Promise.all(
                                 criteria.filter(c => c.weight).map(c =>
                                     getScoreForEntryCriteriaJudge({
                                         entryId:    entry.entryid,
@@ -513,7 +674,7 @@ router.get('/', async (req, res, next) => {
                                         userId:     judge.userid,
                                     })
                                 )
-                            );
+                            )).filter(Boolean);
                             const comments = await getJudgeCommentsForEntryByJudge({
                                 entryId: entry.entryid,
                                 userId:  judge.userid,
@@ -532,7 +693,7 @@ router.get('/', async (req, res, next) => {
             }
             else if (action === 'tojudge') {
                 const entries = await getEntriesToBeJudgedByJudge({ userId: user.userid });
-                const judgingModel = program.judgingmodel || {};
+                const judgingModel = await loadJudgingModel(program.judgingmodelid);
                 const entryData = await Promise.all(entries.map(async e => {
                     const criteria = await getCriteriaForCategory({ categoryId: e.categoryid });
                     const scores   = await getScoresForEntryByJudge({ entryId: e.entryid, userId: user.userid });
@@ -583,7 +744,7 @@ router.get('/', async (req, res, next) => {
         if (user.judge) {
             if (action === 'tojudge') {
                 const entries = await getEntriesToBeJudgedByJudge({ userId: user.userid });
-                const judgingModel = program.judgingmodel || {};
+                const judgingModel = await loadJudgingModel(program.judgingmodelid);
                 const entryData = await Promise.all(entries.map(async e => {
                     const criteria = await getCriteriaForCategory({ categoryId: e.categoryid });
                     const scores   = await getScoresForEntryByJudge({ entryId: e.entryid, userId: user.userid });
@@ -658,7 +819,7 @@ router.get('/', async (req, res, next) => {
             program,
             topText,
             menuButtons,
-            sidebarLinks,
+            sidebarMenus,
             content,
             isEmulating,
             action,

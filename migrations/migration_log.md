@@ -316,4 +316,83 @@ WHERE NOT EXISTS (
 
 ---
 
+## 011 — Add commentguidelines to JudgingModel
+
+**Date tested:**
+**Purpose:** Store per-program judging comment guidelines used by the AI comment checker
+to validate judge comments before they are saved.
+
+```sql
+ALTER TABLE JudgingModel ADD commentguidelines NVARCHAR(MAX) NULL;
+```
+
+---
+
+## 012 — Add mustchangepassword to UserCredential
+
+**Date tested:**
+**Purpose:** Flag set when a password reset is issued. Forces the user to choose a new password
+on next login before reaching the portal.
+
+```sql
+ALTER TABLE UserCredential ADD mustchangepassword BIT NOT NULL DEFAULT 0;
+```
+
+---
+
+## 013 — Add email activation to UserCredential
+
+**Date tested:**
+**Purpose:** New users who self-register via the signup form must confirm their email before
+they can log in a second time. Existing users default to activated = 1 so they are unaffected.
+
+```sql
+ALTER TABLE UserCredential ADD activated BIT NOT NULL DEFAULT 1;
+ALTER TABLE UserCredential ADD activationtoken NVARCHAR(100) NULL;
+```
+
+---
+
+## 014 — Add orda to CategoryQuestionLink
+
+**Date tested:**
+**Purpose:** Allow per-category question ordering. Previously questions were ordered at the
+program level; this enables each category to have its own question sequence.
+
+```sql
+-- Step 1: Add column
+ALTER TABLE CategoryQuestionLink ADD orda INT NULL;
+
+-- Step 2: Populate with per-category row numbers ordered by questionid
+UPDATE cql
+SET cql.orda = sub.rn
+FROM CategoryQuestionLink cql
+INNER JOIN (
+    SELECT linkid,
+           ROW_NUMBER() OVER (PARTITION BY categoryid ORDER BY questionid) AS rn
+    FROM CategoryQuestionLink
+) sub ON sub.linkid = cql.linkid;
+```
+
+---
+
+## 015 — Populate orda on CategoryEligibilityLink
+
+**Date tested:**
+**Purpose:** Allow per-category eligibility rule ordering. The `orda FLOAT` column already
+exists in the table (no ALTER needed). Just populate existing rows so they have a default order.
+
+```sql
+UPDATE cel
+SET cel.orda = sub.rn
+FROM CategoryEligibilityLink cel
+INNER JOIN (
+    SELECT linkid,
+           ROW_NUMBER() OVER (PARTITION BY categoryid ORDER BY eligibilityid) AS rn
+    FROM CategoryEligibilityLink
+) sub ON sub.linkid = cel.linkid;
+```
+
+---
+
 _(further migrations will be added as we go)_

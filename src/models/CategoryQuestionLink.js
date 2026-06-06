@@ -8,6 +8,7 @@ CategoryQuestionLink.init(
     linkid:     { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
     categoryid: { type: DataTypes.INTEGER },
     questionid: { type: DataTypes.INTEGER },
+    orda:       { type: DataTypes.INTEGER },
   },
   {
     sequelize,
