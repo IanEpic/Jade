@@ -1,0 +1,147 @@
+//- home/question-edit.pug
+
+- const inputTypes = ['textfield','textarea','drop down list','checkbox','radio','address','upload','image','video','noinput']
+
+style.
+    .q-edit-form { max-width: 800px; margin: 0 auto; }
+    .q-edit-form fieldset { border: 1px solid #666; border-radius: 4px; margin-bottom: 16px; padding: 12px 18px; }
+    .q-edit-form legend { font-weight: bold; padding: 0 6px; }
+    .q-edit-form table { border-collapse: collapse; width: 100%; }
+    .q-edit-form td { padding: 4px 8px; vertical-align: top; }
+    .q-edit-form td:first-child { white-space: nowrap; text-align: right; padding-right: 12px; width: 1%; }
+    .q-edit-form td.full { text-align: left; }
+    .q-edit-form textarea { width: 100%; box-sizing: border-box; }
+    .q-edit-form input[type=text] { width: 100%; box-sizing: border-box; }
+    .q-edit-form .small-input { width: 80px !important; }
+    .q-edit-form .opt-row td:first-child { width: 1%; white-space: nowrap; }
+    .q-edit-form .cat-grid { columns: 3; column-gap: 20px; margin-top: 4px; }
+    .q-edit-form .cat-grid label { font-size: 13px; display: flex; align-items: baseline; gap: 5px; break-inside: avoid; padding: 3px 0; }
+    .q-edit-form .form-actions { text-align: center; margin-top: 10px; }
+    .q-edit-form .form-actions a, .q-edit-form .form-actions button { margin: 0 6px; }
+
+if content.saved
+    p(style='color:#4caf50; text-align:center') Saved.
+
+form.q-edit-form(method='POST' action='/formQuestion')
+    if content.question
+        input(type='hidden' name='questionid' value=content.question.questionid)
+    input(type='hidden' name='type' value='entry')
+
+    h2(style='text-align:center')= content.isNew ? 'New Question' : 'Edit Question'
+
+    //- ── Question text ────────────────────────────────────────────────────────
+    fieldset
+        legend Question Text
+        table
+            tr
+                td(colspan='2' class='full') Question
+            tr
+                td(colspan='2'): textarea(name='questiontext' rows='4')= content.question ? content.question.questiontext : ''
+            tr
+                td(colspan='2' class='full' style='padding-top:8px') Description
+            tr
+                td(colspan='2'): textarea(name='description' rows='3')= content.question ? content.question.description : ''
+
+    //- ── Input settings ───────────────────────────────────────────────────────
+    fieldset
+        legend Input Settings
+        table
+            tr
+                td Input Type
+                td
+                    select(name='inputtype')
+                        each it in inputTypes
+                            option(value=it selected=(content.question ? content.question.inputtype === it : it === 'textfield'))= it
+            tr
+                td Input Width
+                td: input.small-input(type='text' name='inputwidth' value=(content.question ? content.question.inputwidth : '') maxlength='10')
+            tr
+                td Input Height
+                td: input.small-input(type='text' name='inputheight' value=(content.question ? content.question.inputheight : '') maxlength='10')
+            tr
+                td Word Limit
+                td: input.small-input(type='text' name='maxsize' value=(content.question ? content.question.maxsize : '') maxlength='6')
+            tr
+                td Columns
+                td: input.small-input(type='text' name='cols' value=(content.question ? content.question.cols : '') maxlength='3')
+            tr
+                td Address Above Question
+                td
+                    select(name='addressaboveoption')
+                        if content.addressQuestions && content.addressQuestions.length
+                            option(value='0') — None —
+                            each aq in content.addressQuestions
+                                option(value=aq.questionid selected=(content.question && content.question.addressaboveoption == aq.questionid))= aq.questiontext
+                        else
+                            option(value='0') No address questions defined
+            tr
+                td Apply to all categories
+                td
+                    select(name='allcats')
+                        option(value='0' selected=!(content.question && content.question.allcats)) No
+                        option(value='1' selected=(content.question && content.question.allcats)) Yes
+            tr
+                td Hide from judging
+                td
+                    select(name='omitforjudging')
+                        option(value='0' selected=!(content.question && content.question.omitforjudging)) No
+                        option(value='1' selected=(content.question && content.question.omitforjudging)) Yes
+            tr#caption-row
+                td Caption Label
+                td: input(type='text' name='captionlabel' value=(content.question ? content.question.captionlabel || '' : '') placeholder='e.g. Please describe this image')
+
+    //- ── Options ──────────────────────────────────────────────────────────────
+    fieldset
+        legend Options
+        if !content.isNew && content.inputoptions && content.inputoptions.length
+            table(style='width:100%; margin-bottom:12px')
+                thead
+                    tr
+                        th(style='text-align:left; font-size:11px; color:#c48f06; border-bottom:1px solid #555; padding:4px 8px') Current Options
+                        th(style='width:60px; font-size:11px; color:#c48f06; border-bottom:1px solid #555; padding:4px 8px') Order
+                        th(style='width:60px; border-bottom:1px solid #555')
+                tbody
+                    each opt in content.inputoptions
+                        tr
+                            td: input(type='text' name='io' + opt.inputoptionid value=opt.name maxlength='100')
+                            td: input.small-input(type='text' name='#' + opt.inputoptionid value=opt.orda)
+                            td: a(href='/formQuestion?action=deleteoption&inputoptionid=' + opt.inputoptionid + '&questionid=' + content.question.questionid style='color:#c44; font-size:12px') Delete
+        table(style='width:100%')
+            thead
+                tr
+                    th(style='text-align:left; font-size:11px; color:#c48f06; border-bottom:1px solid #555; padding:4px 8px') New Options
+            tbody
+                each n in [1,2,3,4,5]
+                    tr
+                        td: input(type='text' name='option' + n value='' maxlength='100' placeholder='Option ' + n)
+
+    //- ── Categories ───────────────────────────────────────────────────────────
+    fieldset
+        legend Categories
+        .cat-grid
+            each cat in content.categories
+                label
+                    input(type='checkbox' name='cat~' + cat.categoryid value='1' checked=cat.linked)
+                    = cat.name
+
+    .form-actions
+        a(href='/home?action=questions&type=entry') < Questions
+        button(type='submit') Save Question
+
+script.
+    (function () {
+        var optionTypes  = ['drop down list', 'checkbox', 'radio'];
+        var captionTypes = ['image', 'video'];
+        var typeSelect   = document.querySelector('select[name="inputtype"]');
+        var optFieldset  = typeSelect.closest('form').querySelectorAll('fieldset')[2];
+        var captionRow   = document.getElementById('caption-row');
+
+        function syncOptions() {
+            var val = typeSelect.value;
+            optFieldset.style.display = optionTypes.indexOf(val) !== -1 ? '' : 'none';
+            if (captionRow) captionRow.style.display = captionTypes.indexOf(val) !== -1 ? '' : 'none';
+        }
+
+        typeSelect.addEventListener('change', syncOptions);
+        syncOptions();
+    })();

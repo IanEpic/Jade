@@ -35,6 +35,9 @@ form.cat-form(method='POST' action='/formCategory')
                 td Name
                 td: input(type='text' name='name' value=(category ? category.name : '') maxlength='200')
             tr
+                td Short name
+                td: input(type='text' name='shortname' value=(category ? category.shortname : '') maxlength='50' style='width:200px')
+            tr
                 td Description
                 td: textarea(name='description' rows='4')= category ? category.description : ''
             tr
@@ -54,6 +57,21 @@ form.cat-form(method='POST' action='/formCategory')
             tr
                 td: input(type='checkbox' name='judgingopen' value='ON' checked=(category ? category.judgingopen : program.judgingopendefault))
                 td: label Judging Open
+            tr
+                td: input(type='checkbox' name='scoreready' value='ON' checked=(category ? category.scoreready : false))
+                td: label Score Ready
+            tr
+                td: input(type='checkbox' name='finalistreview' value='ON' checked=(category ? category.finalistreview : false))
+                td: label Finalist Review
+            tr
+                td: input(type='checkbox' name='wildcarddecision' value='ON' checked=(category ? category.wildcarddecision : false))
+                td: label Wildcard Decision
+            tr
+                td: input(type='checkbox' name='winnernomination' value='ON' checked=(category ? category.winnernomination : false))
+                td: label Winner Nomination
+            tr
+                td: input(type='checkbox' name='adminonly' value='ON' checked=(category ? category.adminonly : false))
+                td: label Admin only (hidden from public entry list)
 
     if !isNew
 
@@ -303,12 +321,15 @@ form.cat-form(method='POST' action='/formCategory')
                 div#q-new-form(style='display:none; margin-top:8px; padding:10px; background:#111; border:1px solid #555; border-radius:3px')
                     table(style='width:100%')
                         tr
-                            td(style='white-space:nowrap; padding-right:8px') Question text
+                            td(style='white-space:nowrap; padding-right:8px; vertical-align:top; padding-top:5px') Question text
                             td: input#q-new-text(type='text' style='width:100%; box-sizing:border-box; background:#1a1a1a; color:#eee; border:1px solid #555; padding:4px 6px')
                         tr
-                            td(style='padding-right:8px') Type
-                            td
-                                select#q-new-type(style='background:#1a1a1a; color:#eee; border:1px solid #555; padding:4px 6px')
+                            td(style='padding-right:8px; padding-top:6px; vertical-align:top') Description
+                            td(style='padding-top:6px'): textarea#q-new-desc(rows='2' style='width:100%; box-sizing:border-box; background:#1a1a1a; color:#eee; border:1px solid #555; padding:4px 6px')
+                        tr
+                            td(style='padding-right:8px; padding-top:6px') Type
+                            td(style='padding-top:6px')
+                                select#q-new-type(style='background:#1a1a1a; color:#eee; border:1px solid #555; padding:4px 6px' onchange='toggleCatQOptions(this.value)')
                                     option(value='text') Text field
                                     option(value='textarea') Text area
                                     option(value='select') Dropdown
@@ -318,6 +339,11 @@ form.cat-form(method='POST' action='/formCategory')
                                     option(value='image') Image upload
                                     option(value='video') Video upload
                                     option(value='noinput') No input (heading/text)
+                        tr#q-new-options-row(style='display:none')
+                            td(style='padding-right:8px; padding-top:6px; vertical-align:top') Options
+                            td(style='padding-top:6px')
+                                textarea#q-new-options(rows='4' style='width:100%; box-sizing:border-box; background:#1a1a1a; color:#eee; border:1px solid #555; padding:4px 6px' placeholder='One option per line')
+                                div(style='font-size:11px; color:#888; margin-top:2px') Enter each option on a new line
                     div(style='margin-top:8px; display:flex; gap:8px')
                         button#q-new-save(type='button' style='padding:4px 14px') Add Question
                         a#q-new-cancel(href='#' style='line-height:28px; font-size:12px; color:#aaa') Cancel
@@ -386,23 +412,44 @@ form.cat-form(method='POST' action='/formCategory')
 
                         search.addEventListener('blur', function () { setTimeout(function () { dropdown.style.display = 'none'; }, 150); });
 
-                        newCancel.addEventListener('click', function (e) { e.preventDefault(); hideNewForm(); });
+                        var newDesc    = document.getElementById('q-new-desc');
+                        var newOptions = document.getElementById('q-new-options');
+
+                        window.toggleCatQOptions = function(type) {
+                            var row = document.getElementById('q-new-options-row');
+                            if (row) row.style.display = (type === 'select' || type === 'radio' || type === 'checkbox') ? '' : 'none';
+                        };
+
+                        newCancel.addEventListener('click', function (e) {
+                            e.preventDefault();
+                            hideNewForm();
+                            if (newDesc) newDesc.value = '';
+                            if (newOptions) newOptions.value = '';
+                            toggleCatQOptions('text');
+                        });
 
                         newSave.addEventListener('click', function () {
                             var text = newText.value.trim();
                             if (!text) { newText.focus(); return; }
                             newSave.disabled = true;
                             newSave.textContent = 'Saving…';
+                            var body = 'questiontext=' + encodeURIComponent(text)
+                                + '&questiontype=' + encodeURIComponent(newType.value)
+                                + '&description=' + encodeURIComponent(newDesc ? newDesc.value.trim() : '')
+                                + '&options=' + encodeURIComponent(newOptions ? newOptions.value : '');
                             fetch('/formCategory/create-question', {
                                 method: 'POST',
                                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                                body: 'questiontext=' + encodeURIComponent(text) + '&questiontype=' + encodeURIComponent(newType.value),
+                                body: body,
                             })
                             .then(function (r) { return r.json(); })
                             .then(function (data) {
                                 if (data.error) { alert(data.error); return; }
                                 pool.push({ qid: String(data.questionid), text: data.questiontext, label: data.questiontext });
                                 addQuestion(data.questionid, data.questiontext);
+                                if (newDesc) newDesc.value = '';
+                                if (newOptions) newOptions.value = '';
+                                toggleCatQOptions('text');
                                 hideNewForm();
                             })
                             .catch(function () { alert('Failed to create question.'); })

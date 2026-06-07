@@ -6,8 +6,14 @@
 - let loginUrl     = '/' + slug + '/login'
 - let resetUrl     = '/' + slug + '/password-reset'
 
-if program && program.loginpagetext
-    div.login-intro!= program.loginpagetext
+- let loginText  = (program && program.loginpagetext) || ''
+- let marker     = '&lt;~form~&gt;'
+- let markerIdx  = loginText.indexOf(marker)
+- let textBefore = markerIdx !== -1 ? loginText.substring(0, markerIdx) : loginText
+- let textAfter  = markerIdx !== -1 ? loginText.substring(markerIdx + marker.length) : ''
+
+if textBefore
+    != textBefore
 
 if message
     div.alert.alert-info= message
@@ -25,10 +31,9 @@ if form
         form#form-email(autocomplete='on')
             table
                 tr
-                    td(colspan='2'): label(for='login-email') Email address
+                    td(colspan='2'): input#login-email(type='email' name='email' size='40' maxlength='300' autocomplete='email' placeholder='Please enter your email address' value=locals.loginEmail || '')
                 tr
-                    td: input#login-email(type='email' name='email' size='40' maxlength='300' autocomplete='email' value=locals.loginEmail || '')
-                    td: button#btn-continue(type='submit') Continue →
+                    td(colspan='2'): button#btn-continue(type='submit' style='padding:8px 40px; font-size:1em;') Continue
                 tr: td(colspan='2')
                     div#email-error(style='color:#c0392b; margin-top:6px; display:none;')
 
@@ -39,45 +44,53 @@ if form
             table
                 tr: td(colspan='2')
                     span#password-greeting
+                tr: td(colspan='2', style='padding-top:12px;')
                 tr
-                    td(colspan='2'): label(for='login-password') Password
+                    td(colspan='2'): input#login-password(type='password' name='password' size='40' maxlength='50' autocomplete='current-password' placeholder='Password')
                 tr
-                    td: input#login-password(type='password' name='password' size='40' maxlength='50' autocomplete='current-password')
-                    td: button(type='submit') Log In
+                    td(colspan='2'): button(type='submit' style='padding:8px 40px; font-size:1em;') Log In
                 tr: td(colspan='2')
                     div#password-error(style='color:#c0392b; margin-top:6px; display:none;')
                     if errors && errors.length
                         each e in errors
                             p(style='color:#c0392b; margin:4px 0;')= e
-            br
-            a(href=resetUrl) Forgot your password?
-            |  ·
-            a(href='#' id='btn-back-from-pw') Use a different email
+        div(style='margin-top:10px; font-size:0.85em; color:#aaa; text-align:center;')
+            div
+                a#reset-link(href=resetUrl style='color:#aaa;') Forgot your password?
+                span(style='margin:0 8px;') ·
+                a(href='#' id='btn-back-from-pw' style='color:#aaa;') Use a different email
 
     //- ── Step 2b: Sign up ─────────────────────────────────────────────────────
+    style.
+        #form-signup input[type=text] { width: 200px !important; }
     div#step-signup(style='display:none;')
         p#signup-intro
-        form#form-signup(autocomplete='on')
+        form#form-signup(autocomplete='on' style='width:340px; margin:0 auto; text-align:left;')
             input#signup-email(type='hidden' name='email' value='')
-            table
-                tr
-                    td First name
-                    td: input#signup-firstname(type='text' name='firstname' size='25' maxlength='100' autocomplete='given-name' required)
-                tr
-                    td Last name
-                    td: input#signup-lastname(type='text' name='lastname' size='25' maxlength='100' autocomplete='family-name' required)
-                tr
-                    td Mobile
-                    td: input(type='text' name='mobile' size='20' maxlength='50' autocomplete='tel')
-                tr: td(colspan='2'): hr
-                tr: td(colspan='2')
+            div(style='display:flex; align-items:center; margin-bottom:6px;')
+                label(style='width:130px; flex-shrink:0;') First name
+                input#signup-firstname(type='text' name='firstname' maxlength='100' autocomplete='given-name' required style='width:200px !important;')
+            div(style='display:flex; align-items:center; margin-bottom:6px;')
+                label(style='width:130px; flex-shrink:0;') Last name
+                input#signup-lastname(type='text' name='lastname' maxlength='100' autocomplete='family-name' required style='width:200px !important;')
+            div(style='display:flex; align-items:center; margin-bottom:6px;')
+                label(style='width:130px; flex-shrink:0;') Mobile
+                input(type='text' name='mobile' maxlength='50' autocomplete='tel' style='width:200px !important;')
+            div(style='display:flex; align-items:center; margin-bottom:6px;')
+                label(style='width:130px; flex-shrink:0;') Password
+                input(type='password' name='password' maxlength='100' autocomplete='new-password' required style='width:200px !important;')
+            div(style='display:flex; align-items:center; margin-bottom:6px;')
+                label(style='width:130px; flex-shrink:0;') Confirm password
+                input(type='password' name='password2' maxlength='100' autocomplete='new-password' required style='width:200px !important;')
+            p(style='font-size:0.85em; color:#aaa; margin:4px 0 10px;')= passwordRules || ''
+            hr
+            div(style='text-align:center;')
+                div(style='margin-bottom:6px;')
                     label
                         input(type='checkbox' name='tc' id='signup-tc' required)
                         |  I agree to the terms and conditions
-                tr: td(colspan='2')
-                    div#signup-error(style='color:#c0392b; margin-top:6px; display:none;')
-                tr: td(colspan='2' align='center')
-                    button#btn-signup(type='submit') Create Account
+                div#signup-error(style='color:#c0392b; margin-top:6px; display:none;')
+                button#btn-signup(type='submit' style='margin-top:6px;') Create Account
             br
             a(href='#' id='btn-back-from-signup') Use a different email
 
@@ -90,6 +103,10 @@ if form
     div#step-disabled(style='display:none;')
         p Your account has been disabled. Please contact the program administrator for assistance.
         a(href='#' id='btn-back-from-disabled') Use a different email
+
+if textAfter
+    div(style='margin-top:16px;')
+        != textAfter
 
 script.
     (function () {
@@ -144,6 +161,7 @@ script.
                     } else {
                         greeting.textContent = 'Welcome back' + (data.name ? ', ' + data.name : '') + '! Please enter your password.';
                     }
+                    document.getElementById('reset-link').href = RESET_URL + '?email=' + encodeURIComponent(email);
                     show('password');
                     document.getElementById('login-password').focus();
 
@@ -192,8 +210,10 @@ script.
             .then(function(result) {
                 btn.disabled = false;
                 btn.textContent = 'Create Account';
-                if (result.ok) {
-                    document.getElementById('done-message').textContent = 'Account created! We\'ve emailed your login details. Please check your inbox (and spam folder) and come back here to log in.';
+                if (result.ok && result.redirect) {
+                    window.location.href = result.redirect;
+                } else if (result.ok) {
+                    document.getElementById('done-message').textContent = 'Account created! Please check your email to activate your account before logging in.';
                     show('done');
                 } else {
                     setError('signup-error', result.error || 'Something went wrong. Please try again.');
@@ -211,6 +231,10 @@ script.
             var el = document.getElementById(id);
             if (el) el.addEventListener('click', function(e) {
                 e.preventDefault();
+                // Clear any server-rendered errors from the password step
+                document.querySelectorAll('#step-password p[style*="color:#c0392b"]').forEach(function(p) { p.remove(); });
+                setError('password-error', '');
+                document.getElementById('login-password').value = '';
                 show('email');
                 document.getElementById('login-email').focus();
             });

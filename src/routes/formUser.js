@@ -14,7 +14,7 @@ import JudgeEntryLink      from '../models/JudgeEntryLink.js';
 import JudgeComment        from '../models/JudgeComment.js';
 import Score               from '../models/Score.js';
 import { getPool, sql }    from '../config/database.js';
-import { encryptPassword, randomPassword } from '../services/helpers.js';
+import { encryptPassword, randomPassword, validatePassword, PASSWORD_RULES } from '../services/helpers.js';
 import { mail, parseSmtp } from '../services/mailer.js';
 
 const router = Router();
@@ -72,6 +72,17 @@ router.get('/', async (req, res, next) => {
             return res.redirect('/home?action=users');
         }
 
+        if (action === 'activate' && operator.admin && targetUser.credentialid) {
+            await UserCredential.update(
+                { activated: 1, activationtoken: null },
+                { where: { credentialid: targetUser.credentialid } },
+            );
+            if (req.headers['x-requested-with'] === 'XMLHttpRequest') {
+                return res.json({ ok: true });
+            }
+            return res.redirect('/formUser?edituserid=' + targetUser.userid);
+        }
+
         if (action === 'demote' && operator.admin) {
             await targetUser.update({ judge: false });
             await JudgeCategoryLink.destroy({ where: { userid: targetUser.userid } });
@@ -84,15 +95,21 @@ router.get('/', async (req, res, next) => {
             return res.redirect('/home?action=users');
         }
 
-        // Show edit form
-        const [addresses, categories] = await Promise.all([
+        // Redirect admin edits into home framework
+        if (operator.admin) {
+            return res.redirect('/home?action=users&edituserid=' + targetUser.userid);
+        }
+
+        // Self-service — keep standalone shell
+        const [addresses, credential] = await Promise.all([
             getAddresses(targetUser.userid),
-            operator.admin ? getCategories(program.programid, targetUser.userid) : [],
+            targetUser.credentialid ? UserCredential.findByPk(targetUser.credentialid) : null,
         ]);
 
         return res.renderInShell('formUser', {
-            user: operator, program, targetUser, addresses, categories,
-            error: null, isAdmin: !!operator.admin,
+            user: operator, program, targetUser, addresses, categories: [], passwordRules: PASSWORD_RULES,
+            targetActivated: !credential || credential.activated,
+            error: null, isAdmin: false,
         });
 
     } catch (err) { next(err); }
@@ -113,7 +130,7 @@ router.post('/', async (req, res, next) => {
         // Validate required fields — admins only need email, self-service needs full profile
         const required = operator.admin
             ? ['email']
-            : ['email','question','answer','firstname','lastname','mobile'];
+            : ['email','firstname','lastname','mobile'];
         const missing  = required.filter(f => !body[f]?.trim());
         if (missing.length || (!operator.admin && body.postaladdressid === 'a')) {
             const [addresses, categories] = await Promise.all([
@@ -121,21 +138,22 @@ router.post('/', async (req, res, next) => {
                 operator.admin ? getCategories(program.programid, targetUser.userid) : [],
             ]);
             return res.renderInShell('formUser', {
-                user: operator, program, targetUser, addresses, categories,
+                user: operator, program, targetUser, addresses, categories, passwordRules: PASSWORD_RULES,
                 error: 'All required fields must be completed.', isAdmin: !!operator.admin,
             });
         }
 
         // Password change
         if (body.password) {
-            if (body.password !== body.passwordcheck) {
+            const pwError = validatePassword(body.password) || (body.password !== body.passwordcheck ? 'Password fields do not match.' : null);
+            if (pwError) {
                 const [addresses, categories] = await Promise.all([
                     getAddresses(targetUser.userid),
                     operator.admin ? getCategories(program.programid, targetUser.userid) : [],
                 ]);
                 return res.renderInShell('formUser', {
-                    user: operator, program, targetUser, addresses, categories,
-                    error: 'Password fields do not match.', isAdmin: !!operator.admin,
+                    user: operator, program, targetUser, addresses, categories, passwordRules: PASSWORD_RULES,
+                    error: pwError, isAdmin: !!operator.admin,
                 });
             }
             const hashed = await encryptPassword(body.password);
@@ -155,7 +173,7 @@ router.post('/', async (req, res, next) => {
                     operator.admin ? getCategories(program.programid, targetUser.userid) : [],
                 ]);
                 return res.renderInShell('formUser', {
-                    user: operator, program, targetUser, addresses, categories,
+                    user: operator, program, targetUser, addresses, categories, passwordRules: PASSWORD_RULES,
                     error: 'Please complete all address fields.', isAdmin: !!operator.admin,
                 });
             }
@@ -175,9 +193,16 @@ router.post('/', async (req, res, next) => {
         // Admin-only flags
         if (operator.admin) {
             await targetUser.update({
-                judge:        bool('isjudge'),
-                admin:        bool('isadmin'),
-                paymentsopen: bool('paymentsopen'),
+                judge:               bool('isjudge'),
+                admin:               bool('isadmin'),
+                paymentsopen:        bool('paymentsopen'),
+                enabled:             bool('enabled'),
+                chairperson:         bool('chairperson'),
+                viewentries:         bool('viewentries'),
+                reviewer:            bool('reviewer'),
+                simplejudge:         bool('simplejudge'),
+                onlyjudgepostreview: bool('onlyjudgepostreview'),
+                exclude:             bool('exclude'),
             });
         }
 
@@ -248,7 +273,7 @@ router.post('/', async (req, res, next) => {
             }
         }
 
-        return res.redirect(operator.admin ? '/home?action=users' : '/home');
+        return res.redirect(operator.admin ? '/home?action=users&success=1' : '/home');
 
     } catch (err) { next(err); }
 });

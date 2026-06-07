@@ -6,20 +6,13 @@ if mode === 'closed'
     p: a(href='/home') Return Home
 else
     if error
-        center
-            | !&nbsp; You Must Agree to the Terms and Conditions to Proceed
-            br
-            | Please click the checkbox at the bottom of this form
-            br
-            br
+        div(style='background:#5a0000; color:#fff; border-left:4px solid #c44; padding:10px 14px; margin-bottom:14px;')
+            p(style='margin:2px 0') You must agree to the terms and conditions to proceed.
+            p(style='margin:2px 0') Please click the checkbox at the bottom of this form.
 
     if mode === 'approve'
-        h4(align='center')
-            | Start a New Entry
-            br
-            | Step 2, Read and Agree to the Entry Terms and Conditions
-            br
-            br
+        p(style='text-align:center; color:#c48f06; font-size:18px; margin-bottom:2px') Start a New Entry
+        p(style='text-align:center; color:#aaa; font-size:13px; margin-top:0; margin-bottom:16px') Step 2 — Read and agree to the entry terms and conditions
 
     table(width='700')
         tr: td(align='center'): b TERMS &amp; CONDITIONS

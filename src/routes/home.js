@@ -20,7 +20,13 @@ import Question from '../models/Question.js';
 import Eligibility from '../models/Eligibility.js';
 import Criteria from '../models/Criteria.js';
 import CategoryQuestionLink from '../models/CategoryQuestionLink.js';
+import InputOption          from '../models/InputOption.js';
 import CategoryEligibilityLink from '../models/CategoryEligibilityLink.js';
+import UserPage from '../models/UserPage.js';
+import Address from '../models/Address.js';
+import JudgeCategoryLink from '../models/JudgeCategoryLink.js';
+import UserCredential from '../models/UserCredential.js';
+import { PASSWORD_RULES } from '../services/helpers.js';
 
 
 import {
@@ -60,7 +66,6 @@ import {
     getJudgeCommentsForEntryByJudge,
     getWildcardNominationsByJudge,
     getEntryStats,
-    getMenuButtonsForEdit,
 } from '../queries/homeQueries.js';
 
 import {
@@ -133,10 +138,8 @@ async function loadCommonData(user) {
 
 // Equiv of $top — description text shown above the menu bar
 function getTopText(user, program, hasFinalists) {
-    if (user.judge)  return program.judgedescriptiontext  || '';
-    if (user.admin)  return program.admindescriptiontext  || '';
-    if (hasFinalists) return program.finalistdescriptiontext || '';
-    return program.standarddescriptiontext || '';
+    if (hasFinalists && !user.judge && !user.admin) return program.finalistdescriptiontext || '';
+    return '';
 }
 
 // Equiv of $defaulttext — welcome text shown when no ?action=
@@ -515,38 +518,24 @@ router.get('/', async (req, res, next) => {
                 const isEntriesOpenDefault  = !!program.entriesopendefault;
                 const isPaymentsOpenDefault = !!program.paymentsopendefault;
                 const isJudgingOpenDefault  = !!program.judgingopendefault;
-                const [[adminButtons, judgeButtons, userButtons], entryExceptions, paymentExceptions, judgingExceptions] = await Promise.all([
-                    Promise.all([
-                        getMenuButtonsForEdit({ topMenuId: program.adminmenu }),
-                        getMenuButtonsForEdit({ topMenuId: program.judgemenu }),
-                        getMenuButtonsForEdit({ topMenuId: program.usermenu }),
-                    ]),
+                const [entryExceptions, paymentExceptions, judgingExceptions] = await Promise.all([
                     Category.findAll({ where: { programid: program.programid, entriesopen: isEntriesOpenDefault ? 0 : 1 } }),
                     User.findAll({     where: { programid: program.programid, paymentsopen: isPaymentsOpenDefault ? 0 : 1 } }),
                     Category.findAll({ where: { programid: program.programid, judgingopen: isJudgingOpenDefault ? 0 : 1 } }),
                 ]);
                 content = {
                     view: 'home/program',
-                    menuButtons: { admin: adminButtons, judge: judgeButtons, user: userButtons },
                     entryExceptions, paymentExceptions, judgingExceptions,
                     error: null,
                     saved: req.query.saved === '1',
                 };
             }
             else if (action === 'discounts') {
-                const { edit: editId, delete: deleteId } = req.query;
+                const { discountid: discountidParam, delete: deleteId } = req.query;
                 if (deleteId) {
                     await ProgramDiscount.destroy({ where: { discountid: parseInt(deleteId), programid: program.programid } });
                     return res.redirect('/home?action=discounts');
                 }
-                let editing = null;
-                if (editId) {
-                    editing = await ProgramDiscount.findOne({ where: { discountid: parseInt(editId), programid: program.programid } });
-                }
-                const discounts = await ProgramDiscount.findAll({
-                    where: { programid: program.programid },
-                    order: [['type', 'ASC'], ['discountid', 'ASC']],
-                });
                 const formatDate = (val) => {
                     if (!val) return '';
                     const d = new Date(val);
@@ -554,12 +543,27 @@ router.get('/', async (req, res, next) => {
                     const pad = n => String(n).padStart(2, '0');
                     return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
                 };
+                if (discountidParam) {
+                    const discount = await ProgramDiscount.findOne({ where: { discountid: parseInt(discountidParam), programid: program.programid } });
+                    if (!discount) return res.redirect('/home?action=discounts');
+                    content = {
+                        view: 'home/discount-edit',
+                        discount,
+                        formatDate,
+                        saved: req.query.saved === '1',
+                    };
+                } else {
+                const discounts = await ProgramDiscount.findAll({
+                    where: { programid: program.programid },
+                    order: [['type', 'ASC'], ['discountid', 'ASC']],
+                });
                 content = {
                     view: 'home/discounts',
-                    discounts, editing, formatDate,
+                    discounts,
                     error:   req.query.error   || null,
                     success: req.query.success === '1',
                 };
+                }
             }
             else if (action === 'category') {
                 const categoryid = req.query.categoryid ? parseInt(req.query.categoryid) : null;
@@ -616,16 +620,75 @@ router.get('/', async (req, res, next) => {
                 content = { view: 'home/categories', cats, currency };
             }
             else if (action === 'questions') {
-                const questions = await getQuestionsByType({ programId: program.programid, questionType: type });
-                content = { view: 'home/questions', questions, type };
+                const questionid = req.query.questionid ? parseInt(req.query.questionid) : null;
+                if (questionid) {
+                    const question = await Question.findByPk(questionid);
+                    if (!question) return next(Object.assign(new Error('Question not found'), { status: 404 }));
+                    const [inputoptions, qLinks, allCategories, addressQuestions] = await Promise.all([
+                        InputOption.findAll({ where: { questionid, deleted: false }, order: [['orda', 'ASC']] }),
+                        CategoryQuestionLink.findAll({ where: { questionid } }),
+                        Category.findAll({ where: { programid: program.programid, deleted: false }, order: [['orda', 'ASC'], ['categoryid', 'ASC']] }),
+                        Question.findAll({ where: { programid: program.programid, questiontype: question.questiontype, inputtype: 'address', deleted: false }, order: [['orda', 'ASC']] }),
+                    ]);
+                    const linkedCatIds = new Set(qLinks.map(l => l.categoryid));
+                    content = {
+                        view: 'home/question-edit',
+                        question: question.toJSON(),
+                        inputoptions: inputoptions.map(o => o.toJSON()),
+                        categories: allCategories.map(c => ({ ...c.toJSON(), linked: linkedCatIds.has(c.categoryid) })),
+                        addressQuestions: addressQuestions.map(q => q.toJSON()).filter(q => q.orda < question.orda),
+                        isNew: false,
+                        saved: req.query.saved === '1',
+                        type,
+                    };
+                } else {
+                    const questions = await getQuestionsByType({ programId: program.programid, questionType: type });
+                    content = { view: 'home/questions', questions, type, success: req.query.success === '1' };
+                }
             }
             else if (action === 'eligibility') {
-                const eligibilities = await getEligibilitiesByProgram({ programId: program.programid });
-                content = { view: 'home/eligibility', eligibilities };
+                const eligibilityid = req.query.eligibilityid ? parseInt(req.query.eligibilityid) : null;
+                if (eligibilityid) {
+                    const eligibility = await Eligibility.findByPk(eligibilityid);
+                    if (!eligibility) return next(Object.assign(new Error('Eligibility rule not found'), { status: 404 }));
+                    const links = await CategoryEligibilityLink.findAll({ where: { eligibilityid } });
+                    const checkedCategoryIds = links.map(l => l.categoryid);
+                    const categories = await Category.findAll({
+                        where: { programid: program.programid, deleted: false },
+                        order: [['orda', 'ASC'], ['categoryid', 'ASC']],
+                    });
+                    content = {
+                        view: 'home/eligibility-edit',
+                        eligibility: eligibility.toJSON(),
+                        categories: categories.map(c => c.toJSON()),
+                        checkedCategoryIds,
+                        isNew: false,
+                        saved: req.query.saved === '1',
+                    };
+                } else {
+                    const eligibilities = await getEligibilitiesByProgram({ programId: program.programid });
+                    content = { view: 'home/eligibility', eligibilities, success: req.query.success === '1' };
+                }
             }
             else if (action === 'userpages') {
+                const { userpageid: userpageidParam, delete: deleteId } = req.query;
+                if (deleteId) {
+                    await UserPage.destroy({ where: { userpageid: parseInt(deleteId), programid: program.programid } });
+                    return res.redirect('/home?action=userpages');
+                }
+                if (userpageidParam) {
+                    const page = await UserPage.findOne({ where: { userpageid: parseInt(userpageidParam), programid: program.programid } });
+                    if (!page) return res.redirect('/home?action=userpages');
+                    content = {
+                        view: 'home/userpage-edit',
+                        page: page.toJSON(),
+                        saved: req.query.saved === '1',
+                        error: req.query.error || null,
+                    };
+                } else {
                 const pages = await getUserPagesByProgram({ programId: program.programid });
-                content = { view: 'home/userpages', pages };
+                content = { view: 'home/userpages', pages, success: req.query.success === '1' };
+                }
             }
             else if (action === 'judges') {
                 const judges = await getJudgesForProgram({
@@ -688,8 +751,36 @@ router.get('/', async (req, res, next) => {
                 content = { view: 'home/judgecheck', cats: catData, judgingModel };
             }
             else if (action === 'users') {
-                const users = await getAllUsersForProgram({ programId: program.programid });
-                content = { view: 'home/users', users };
+                const edituserid = req.query.edituserid ? parseInt(req.query.edituserid) : null;
+                if (edituserid) {
+                    const targetUser = await User.findByPk(edituserid);
+                    if (!targetUser) return res.redirect('/home?action=users');
+                    const [addresses, categories, credential] = await Promise.all([
+                        Address.findAll({ where: { userid: edituserid }, order: [['addressid', 'ASC']] }),
+                        (async () => {
+                            const cats  = await Category.findAll({ where: { programid: program.programid, deleted: false }, order: [['orda', 'ASC'], ['categoryid', 'ASC']] });
+                            const links = await JudgeCategoryLink.findAll({ where: { userid: edituserid } });
+                            const linked = new Set(links.map(l => l.categoryid));
+                            return cats.map(c => ({ ...c.toJSON(), judging: linked.has(c.categoryid) }));
+                        })(),
+                        targetUser.credentialid ? UserCredential.findByPk(targetUser.credentialid) : null,
+                    ]);
+                    content = {
+                        view: 'home/user-edit',
+                        targetUser: targetUser.toJSON(),
+                        operator: user,
+                        addresses: addresses.map(a => a.toJSON()),
+                        categories,
+                        passwordRules: PASSWORD_RULES,
+                        targetActivated: !credential || credential.activated,
+                        isAdmin: true,
+                        error: req.query.error || null,
+                        saved: req.query.saved === '1',
+                    };
+                } else {
+                    const users = await getAllUsersForProgram({ programId: program.programid });
+                    content = { view: 'home/users', users, success: req.query.success === '1' };
+                }
             }
             else if (action === 'tojudge') {
                 const entries = await getEntriesToBeJudgedByJudge({ userId: user.userid });

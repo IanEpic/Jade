@@ -25,15 +25,60 @@ table(width='780' id='home' style='margin-left: auto; margin-right: auto; displa
             if isEmulating
                 ul#vertnav2
                     li(style='padding:7px 0px 7px 15px; font-weight:bold; background:red;') Emulation Enabled
-            ul#vertnav2
-                li: a(href='/home') Home
-                each link in sidebarLinks
-                    li: a(href=link.href)!= link.label
-                if isEmulating
-                    li: a(href='/emulate') Cease Emulation
-            if linkedPrograms && linkedPrograms.length > 1
-                ul#vertnav2
-                    li: a(href='/home?action=switchProgram') Switch Program
+            //- Render all sidebar panels; JS shows the active one
+            - const panelKeys = Object.keys(sidebarMenus)
+            each panelKey in panelKeys
+                - const panel = sidebarMenus[panelKey]
+                ul#vertnav2.sidebar-panel(data-panel=panelKey style='display:none')
+                    if panel.back
+                        li: a(href='#' data-goto=panel.back)= panel.backLabel
+                    if panelKey === 'main'
+                        li: a(href='/home') Home
+                    each item in panel.items
+                        if item.submenu
+                            li: a(href='#' data-goto=item.submenu)= item.label + ' ›'
+                        else
+                            li: a(href=item.href)= item.label
+                    if panelKey === 'main' && linkedPrograms && linkedPrograms.length > 1
+                        li: a(href='/home?action=switchProgram') Switch Program
+                    if panelKey === 'main' && isEmulating
+                        li: a(href='/emulate') Cease Emulation
+            script.
+                (function () {
+                    var panels = document.querySelectorAll('.sidebar-panel');
+                    var validKeys = Array.from(panels).map(function (p) { return p.dataset.panel; });
+
+                    function showPanel(key) {
+                        if (validKeys.indexOf(key) === -1) key = 'main';
+                        panels.forEach(function (p) {
+                            p.style.display = p.dataset.panel === key ? '' : 'none';
+                        });
+                        try { sessionStorage.setItem('sidebarPanel', key); } catch (e) {}
+                    }
+
+                    function activatePanel(key) {
+                        if (validKeys.indexOf(key) === -1) key = 'main';
+                        try { sessionStorage.setItem('sidebarPanel', key); } catch (e) {}
+                        var targetPanel = document.querySelector('[data-panel="' + key + '"]');
+                        var firstLink = targetPanel && targetPanel.querySelector('a:not([data-goto])[href]:not([href="#"])');
+                        if (firstLink) {
+                            window.location.href = firstLink.getAttribute('href');
+                        } else {
+                            showPanel(key);
+                        }
+                    }
+
+                    var stored = null;
+                    try { stored = sessionStorage.getItem('sidebarPanel'); } catch (e) {}
+                    showPanel(stored || 'main');
+
+                    document.querySelectorAll('[data-goto]').forEach(function (el) {
+                        el.addEventListener('click', function (e) {
+                            e.preventDefault();
+                            activatePanel(el.dataset.goto);
+                        });
+                    });
+                })();
 
         //- ── Main content area ────────────────────────────────────────────────
         td(style='padding: 10px;')
@@ -135,6 +180,18 @@ table(width='780' id='home' style='margin-left: auto; margin-right: auto; displa
                 when 'home/entrylist'
                     include home/entrylist.pug
 
+                //- ── Admin: Program Settings ──────────────────────────────────
+                when 'home/program'
+                    include home/program.pug
+
+                //- ── Admin: Discounts ─────────────────────────────────────────
+                when 'home/discounts'
+                    include home/discounts.pug
+
+                //- ── Admin: Category (new / edit) ────────────────────────────
+                when 'home/category'
+                    include home/category.pug
+
                 //- ── Admin: Categories ────────────────────────────────────────
                 when 'home/categories'
                     include home/categories.pug
@@ -142,14 +199,28 @@ table(width='780' id='home' style='margin-left: auto; margin-right: auto; displa
                 //- ── Admin: Questions ─────────────────────────────────────────
                 when 'home/questions'
                     include home/questions.pug
+                when 'home/question-edit'
+                    include home/question-edit.pug
+
+                //- ── Admin: Discounts ────────────────────────────────────────
+                when 'home/discount-edit'
+                    include home/discount-edit.pug
 
                 //- ── Admin: Eligibility ───────────────────────────────────────
                 when 'home/eligibility'
                     include home/eligibility.pug
+                when 'home/eligibility-edit'
+                    include home/eligibility-edit.pug
+
+                //- ── Admin: Users ────────────────────────────────────────────
+                when 'home/user-edit'
+                    include home/user-edit.pug
 
                 //- ── Admin: User Pages ────────────────────────────────────────
                 when 'home/userpages'
                     include home/userpages.pug
+                when 'home/userpage-edit'
+                    include home/userpage-edit.pug
 
                 //- ── Admin: Judges ────────────────────────────────────────────
                 when 'home/users'

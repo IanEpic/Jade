@@ -13,9 +13,9 @@
 - let postalDefault = entrant ? String(entrant.postaladdressid) : 'a'
 
 if errors && errors.length
-    .alert
+    div(style='background:#5a0000; color:#fff; border-left:4px solid #c44; padding:10px 14px; margin-bottom:14px;')
         each err in errors
-            p= err
+            p(style='margin:2px 0')= err
 
 form(name='entrantform' method='POST' action='/formEntrant')
     if isEdit

@@ -141,6 +141,7 @@ export async function getCategoriesOpenForEntries({ programId }) {
       FROM Category
       WHERE programid   = @programId
         AND entriesopen = 1
+        AND adminonly   = 0
         AND deleted     = 0
       ORDER BY orda, categoryid
     `);
@@ -352,11 +353,12 @@ export async function getAllUsersForProgram({ programId }) {
     const result = await pool.request()
         .input('programId', sql.Int, programId)
         .query(`
-      SELECT *
-      FROM [User]
-      WHERE programid = @programId
-        AND deleted   = 0
-      ORDER BY enabled DESC, lastname ASC
+      SELECT u.*, ISNULL(uc.activated, 1) AS activated
+      FROM [User] u
+      LEFT JOIN UserCredential uc ON uc.credentialid = u.credentialid
+      WHERE u.programid = @programId
+        AND u.deleted   = 0
+      ORDER BY u.enabled DESC, u.lastname ASC
     `);
     return result.recordset;
 }
@@ -746,6 +748,18 @@ export async function getWildcardNominationsByJudge({ userId }) {
     return result.recordset;
 }
 
+// Menu buttons for editing (padded to numButtons slots, nulls for empty rows)
+export async function getMenuButtonsForEdit({ topMenuId, numButtons = 6 }) {
+    if (!topMenuId) return Array(numButtons).fill(null);
+    const pool = await getPool();
+    const result = await pool.request()
+        .input('topMenuId', sql.Int, topMenuId)
+        .query(`SELECT * FROM TopMenuButton WHERE topmenuid = @topMenuId ORDER BY topmenubuttonid`);
+    const buttons = result.recordset;
+    while (buttons.length < numButtons) buttons.push(null);
+    return buttons.slice(0, numButtons);
+}
+
 // Payments for an invoice (for invoice balance calculation)
 export async function getPaymentsForInvoice({ invoiceId }) {
     const pool = await getPool();
@@ -760,3 +774,4 @@ export async function getPaymentsForInvoice({ invoiceId }) {
     `);
     return result.recordset;
 }
+

@@ -46,12 +46,7 @@ style.
     .resp-wrap .save-status { text-align: center; font-size: 13px; margin-top: 8px; min-height: 20px; }
     .resp-wrap .btn-undo { background: transparent; color: #c48f06; border: 1px solid #c48f06; border-radius: 3px; padding: 1px 6px; font-size: 11px; cursor: pointer; margin-left: 6px; vertical-align: middle; }
     .resp-wrap .btn-undo:hover { background: #c48f06; color: #000; }
-    .resp-wrap .form-actions { display: flex; justify-content: center; gap: 12px; margin-top: 20px; padding-top: 16px; border-top: 1px solid #333; }
-    .resp-wrap .btn { display: inline-flex; align-items: center; gap: 6px; padding: 9px 20px; font-size: 14px; border-radius: 3px; cursor: pointer; text-decoration: none; border: none; transition: all 0.2s; font-family: inherit; }
-    .resp-wrap .btn-primary { background: #c48f06; color: #000; font-weight: 600; }
-    .resp-wrap .btn-primary:hover { background: #ffba01; }
-    .resp-wrap .btn-secondary { background: transparent; color: #ccc; border: 1px solid #555; }
-    .resp-wrap .btn-secondary:hover { border-color: #c48f06; color: #c48f06; }
+    .resp-wrap .form-actions { display: flex; justify-content: center; gap: 12px; margin-top: 20px; padding-top: 16px; border-top: 1px solid #333; align-items: center; }
     .resp-wrap .closed-msg { text-align: center; color: #aaa; padding: 20px; }
 
 .resp-wrap
@@ -169,6 +164,9 @@ style.
                                     button.btn-dz-remove(type='button' onclick='removeFile(event,this)') ✕ Remove
                                 .dz-bar(style='display:none'): .dz-bar-fill
                                 .dz-err(style='display:none')
+                            if q.captionlabel
+                                .question-desc(style='margin-top:10px')!= q.captionlabel
+                                textarea(name='CAP'+q.questionid rows='3' style='width:100%')= resp && resp.caption ? resp.caption : ''
                         else if q.inputtype === 'video'
                             - const vidHidden = fieldbase + 'vid'
                             input(type='hidden' name=vidHidden value=respval)
@@ -184,13 +182,19 @@ style.
                                     button.btn-dz-remove(type='button' onclick='removeFile(event,this)') ✕ Remove
                                 .dz-bar(style='display:none'): .dz-bar-fill
                                 .dz-err(style='display:none')
+                            if q.captionlabel
+                                .question-desc(style='margin-top:10px')!= q.captionlabel
+                                textarea(name='CAP'+q.questionid rows='3' style='width:100%')= resp && resp.caption ? resp.caption : ''
 
             p.save-status#save-status
 
+            #upload-progress(style='display:none; background:#1a1a1a; border:1px solid #c48f06; border-radius:4px; padding:10px 14px; margin-bottom:12px; color:#c48f06; font-size:13px; text-align:center;')
+                | ⏳ Upload in progress — please wait before navigating away…
+
             .form-actions
-                a.btn.btn-secondary(href='/home') ← Home
-                button.btn.btn-primary(type='button' id='btn-save' onclick='saveResponses()') 💾 Save
-                a.btn.btn-secondary(href='/viewEntry?entryid=' + entry.entryid) Review &amp; Finalise
+                a(href='/home' style='padding: 9px 20px;') Home
+                button(type='button' id='btn-save' onclick='saveResponses()') Save
+                a(href='/viewEntry?entryid=' + entry.entryid style='padding:4px 12px; border:1px solid #aaa; border-radius:3px; text-decoration:none; color:#ccc;') Review &amp; Finalise
 
 script.
     // ── Upload activity tracker ───────────────────────────────────────────────
@@ -207,17 +211,19 @@ script.
     }
 
     function setUploadBusy(busy) {
-        var btn     = document.getElementById('btn-save');
-        var links   = document.querySelectorAll('.form-actions a.btn');
-        var status  = document.getElementById('save-status');
+        var btn      = document.getElementById('btn-save');
+        var links    = document.querySelectorAll('.form-actions a');
+        var status   = document.getElementById('save-status');
+        var progress = document.getElementById('upload-progress');
         if (busy) {
             if (btn) { btn.disabled = true; btn.title = 'Waiting for uploads to complete…'; }
             links.forEach(function(a) { a.dataset.href = a.href; a.removeAttribute('href'); a.style.opacity = '0.5'; a.style.cursor = 'not-allowed'; });
-            if (status) status.innerHTML = '<span style="color:#c48f06">⏳ Uploading… please wait before saving</span>';
+            if (status) status.innerHTML = '';
+            if (progress) progress.style.display = '';
         } else {
             if (btn) { btn.disabled = false; btn.title = ''; }
             links.forEach(function(a) { if (a.dataset.href) { a.href = a.dataset.href; delete a.dataset.href; } a.style.opacity = ''; a.style.cursor = ''; });
-            if (status) status.innerHTML = '';
+            if (progress) progress.style.display = 'none';
         }
     }
 

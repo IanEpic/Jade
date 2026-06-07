@@ -5,6 +5,7 @@ import { Router } from 'express';
 import { requireAuth } from '../middleware/auth.js';
 import Category             from '../models/Category.js';
 import Question             from '../models/Question.js';
+import InputOption          from '../models/InputOption.js';
 import Criteria             from '../models/Criteria.js';
 import CategoryQuestionLink from '../models/CategoryQuestionLink.js';
 import CategoryEligibilityLink from '../models/CategoryEligibilityLink.js';
@@ -52,12 +53,18 @@ router.post('/', async (req, res, next) => {
         if (!categoryid) {
             const category = await Category.create({
                 programid:    program.programid,
-                name:         body.name,
-                description:  body.description,
-                costex:       parseFloat(body.costex) || 0,
-                gst:          parseFloat(body.gst)    || 0,
-                entriesopen:  bool('entriesopen'),
-                judgingopen:  bool('judgingopen'),
+                name:             body.name,
+                shortname:        body.shortname || null,
+                description:      body.description,
+                costex:           parseFloat(body.costex) || 0,
+                gst:              parseFloat(body.gst)    || 0,
+                entriesopen:      bool('entriesopen'),
+                judgingopen:      bool('judgingopen'),
+                scoreready:       bool('scoreready'),
+                finalistreview:   bool('finalistreview'),
+                wildcarddecision: bool('wildcarddecision'),
+                winnernomination: bool('winnernomination'),
+                adminonly:        bool('adminonly'),
             });
             await category.update({ orda: category.categoryid });
 
@@ -72,12 +79,18 @@ router.post('/', async (req, res, next) => {
         // ── Edit category ──
         const category = await Category.findByPk(categoryid);
         await category.update({
-            name:        body.name,
-            description: body.description,
-            costex:      parseFloat(body.costex) || 0,
-            gst:         parseFloat(body.gst)    || 0,
-            entriesopen: bool('entriesopen'),
-            judgingopen: bool('judgingopen'),
+            name:             body.name,
+            shortname:        body.shortname || null,
+            description:      body.description,
+            costex:           parseFloat(body.costex) || 0,
+            gst:              parseFloat(body.gst)    || 0,
+            entriesopen:      bool('entriesopen'),
+            judgingopen:      bool('judgingopen'),
+            scoreready:       bool('scoreready'),
+            finalistreview:   bool('finalistreview'),
+            wildcarddecision: bool('wildcarddecision'),
+            winnernomination: bool('winnernomination'),
+            adminonly:        bool('adminonly'),
         });
 
         // Eligibility links — replace all, preserving submitted order via eord~ID
@@ -165,15 +178,24 @@ router.post('/create-eligibility', async (req, res, next) => {
 router.post('/create-question', async (req, res, next) => {
     try {
         const program = req.user.program;
-        const { questiontext, questiontype } = req.body;
+        const { questiontext, questiontype, description, options } = req.body;
         if (!questiontext || !questiontext.trim()) return res.status(400).json({ error: 'Question text required' });
         const q = await Question.create({
             programid:    program.programid,
             questiontext: questiontext.trim(),
             questiontype: questiontype || 'text',
+            description:  (description || '').trim() || null,
             deleted:      false,
         });
         await q.update({ orda: q.questionid });
+        // Save options (newline-separated string from inline form)
+        if (options) {
+            const lines = options.split('\n').map(s => s.trim()).filter(Boolean);
+            for (const line of lines) {
+                const opt = await InputOption.create({ questionid: q.questionid, name: line, deleted: false });
+                await opt.update({ orda: opt.inputoptionid });
+            }
+        }
         return res.json({ questionid: q.questionid, questiontext: q.questiontext });
     } catch (err) { next(err); }
 });

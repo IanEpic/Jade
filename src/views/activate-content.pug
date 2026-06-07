@@ -1,0 +1,8 @@
+//- activate-content.pug
+
+if success
+    p= message
+    p: a(href=loginUrl) ← Go to login
+else
+    p(style='color:#c0392b;')= message
+    p: a(href='/' + program.slug + '/login') ← Go to login

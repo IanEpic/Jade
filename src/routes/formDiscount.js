@@ -13,49 +13,9 @@ router.use((req, res, next) => {
     next();
 });
 
-function formatDate(val) {
-    if (!val) return '';
-    const d = new Date(val);
-    if (isNaN(d)) return '';
-    const pad = n => String(n).padStart(2, '0');
-    return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
-}
-
 // ── GET /formDiscount ─────────────────────────────────────────────────────────
-router.get('/', async (req, res, next) => {
-    try {
-        const user    = req.user;
-        const program = user.program;
-        const { action, discountid } = req.query;
-
-        // Delete
-        if (action === 'delete' && discountid) {
-            await ProgramDiscount.destroy({ where: { discountid: parseInt(discountid), programid: program.programid } });
-            return res.redirect('/formDiscount');
-        }
-
-        // Edit form
-        let editing = null;
-        if (action === 'edit' && discountid) {
-            editing = await ProgramDiscount.findOne({
-                where: { discountid: parseInt(discountid), programid: program.programid },
-            });
-        }
-
-        const discounts = await ProgramDiscount.findAll({
-            where:   { programid: program.programid },
-            order:   [['type', 'ASC'], ['discountid', 'ASC']],
-        });
-
-        return res.renderInShell('formDiscount', {
-            user, program, discounts, editing,
-            formatDate,
-            error:   req.query.error   || null,
-            success: req.query.success || null,
-        });
-
-    } catch (err) { next(err); }
-});
+// Discounts are now served within the home framework at home?action=discounts
+router.get('/', (req, res) => res.redirect('/home?action=discounts'));
 
 // ── POST /formDiscount ────────────────────────────────────────────────────────
 router.post('/', async (req, res, next) => {
@@ -75,10 +35,10 @@ router.post('/', async (req, res, next) => {
         const active    = body.active === '1';
 
         if (!name || !type || isNaN(amount) || !amounttype) {
-            return res.redirect('/formDiscount?error=Missing+required+fields');
+            return res.redirect('/home?action=discounts&error=Missing+required+fields');
         }
         if (type === 'code' && !code) {
-            return res.redirect('/formDiscount?error=Code+discount+requires+a+code+value');
+            return res.redirect('/home?action=discounts&error=Code+discount+requires+a+code+value');
         }
 
         const discountid = body.discountid ? parseInt(body.discountid) : null;
@@ -123,7 +83,10 @@ router.post('/', async (req, res, next) => {
                 `);
         }
 
-        return res.redirect('/formDiscount?success=1');
+        if (discountid) {
+            return res.redirect(`/home?action=discounts&success=1`);
+        }
+        return res.redirect('/home?action=discounts&success=1');
 
     } catch (err) { next(err); }
 });

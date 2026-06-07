@@ -34,6 +34,8 @@ form.user-form(method='POST' action='/formUser')
                 a(href='/formUser?action=disable&edituserid=' + targetUser.userid) Disable
             else
                 a(href='/formUser?action=enable&edituserid=' + targetUser.userid) Enable
+            if !targetActivated
+                a(href='/formUser?action=activate&edituserid=' + targetUser.userid) Activate Account
             if targetUser.judge
                 a(href='/formUser?action=demote&edituserid=' + targetUser.userid onclick='return confirm("Remove all judging data?")') Demote from Judge
 
@@ -52,18 +54,11 @@ form.user-form(method='POST' action='/formUser')
                 td: input(type='password' name='passwordcheck' autocomplete='new-password' maxlength='50')
             tr
                 td
-                td.note Leave password fields blank to keep the current password.
-
-    //- ── Security question ────────────────────────────────────────────────────
-    fieldset
-        legend Security Question
-        table
-            tr
-                td Question
-                td: input(type='text' name='question' value=targetUser.question maxlength='100')
-            tr
-                td Answer
-                td: input(type='text' name='answer' value=targetUser.answer maxlength='200')
+                td.note
+                    | Leave blank to keep your current password.
+                    if passwordRules
+                        br
+                        | If changing: #{passwordRules}
 
     //- ── Personal details ─────────────────────────────────────────────────────
     fieldset

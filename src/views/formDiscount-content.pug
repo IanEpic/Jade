@@ -1,47 +1,99 @@
 //- formDiscount-content.pug — admin manage program discounts
 
 style.
-    .disc-wrap { max-width: 780px; margin: 0 auto; font-size: 14px; }
-    .disc-wrap h2 { color: #c48f06; margin-bottom: 16px; }
-    .disc-wrap h3 { color: #c48f06; margin: 20px 0 10px; font-size: 15px; }
-    .disc-wrap table { border-collapse: collapse; width: 100%; margin-bottom: 20px; }
-    .disc-wrap th { font-size: 12px; text-transform: uppercase; color: #c48f06; border-bottom: 1px solid #555; padding: 5px 8px; text-align: left; }
-    .disc-wrap td { padding: 6px 8px; border-bottom: 1px solid #2a2a2a; vertical-align: middle; }
-    .disc-wrap .badge { display: inline-block; padding: 2px 7px; border-radius: 3px; font-size: 11px; font-weight: 600; }
-    .disc-wrap .badge-eb   { background: #1a4a1a; color: #4caf50; }
-    .disc-wrap .badge-code { background: #1a2a4a; color: #64b5f6; }
-    .disc-wrap .badge-off  { background: #3a2a00; color: #888; }
-    .disc-wrap fieldset { border: 1px solid #555; border-radius: 4px; padding: 14px 18px; margin-bottom: 20px; }
-    .disc-wrap legend { font-weight: bold; padding: 0 6px; color: #c48f06; }
-    .disc-wrap .ft td:first-child { text-align: right; width: 130px; padding-right: 10px; white-space: nowrap; }
-    .disc-wrap .ft td { padding: 5px 8px; }
-    .disc-wrap input[type=text], .disc-wrap input[type=number], .disc-wrap input[type=date], .disc-wrap select { background: #111; color: #eee; border: 1px solid #555; padding: 5px 8px; border-radius: 3px; font-size: 13px; }
-    .disc-wrap input[type=date]::-webkit-calendar-picker-indicator { filter: invert(1); }
-    .disc-wrap input[type=text] { width: 220px; }
-    .disc-wrap .btn { display: inline-flex; align-items: center; padding: 7px 16px; font-size: 13px; border-radius: 3px; cursor: pointer; text-decoration: none; border: none; font-family: inherit; }
-    .disc-wrap .btn-primary   { background: #c48f06; color: #000; font-weight: 600; }
-    .disc-wrap .btn-secondary { background: transparent; color: #ccc; border: 1px solid #555; }
-    .disc-wrap .btn-danger    { background: transparent; color: #c44; border: 1px solid #c44; font-size: 12px; padding: 4px 10px; }
-    .disc-wrap .btn-edit      { background: transparent; color: #c48f06; border: 1px solid #c48f06; font-size: 12px; padding: 4px 10px; text-decoration: none; }
-    .disc-wrap .alert-ok  { background: #1a4a1a; color: #fff; padding: 8px 12px; border-left: 4px solid #4caf50; margin-bottom: 14px; }
-    .disc-wrap .alert-err { background: #7a2a00; color: #fff; padding: 8px 12px; border-left: 4px solid #c44; margin-bottom: 14px; }
-    .disc-wrap #code-row { display: none; }
+    .disc-wrap { max-width: 900px; margin: 0 auto; }
+    .disc-wrap h3 { color: #c48f06; font-size: 18px; text-align: center; margin-bottom: 16px; }
+    .disc-table { border-collapse: collapse; width: 100%; }
+    .disc-table th { font-size: 11px; text-transform: uppercase; color: #c48f06; border-bottom: 1px solid #555; padding: 4px 8px; text-align: left; white-space: nowrap; }
+    .disc-table td { padding: 5px 8px; border-bottom: 1px solid #1e1e1e; vertical-align: middle; font-size: 11px; color: #fff; }
+    .disc-table .disc-actions a { margin-right: 10px; font-size: 12px; }
+    .disc-table tr.hidden { display: none; }
+    .disc-toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+    #disc-search { flex: 1; max-width: 320px; padding: 6px 10px; background: #111; color: #fff; border: 1px solid #555; font-size: 14px; }
+    #disc-search:focus { border-color: #c48f06; outline: none; }
+    .badge { display: inline-block; padding: 2px 7px; border-radius: 3px; font-size: 10px; font-weight: 600; }
+    .badge-eb   { background: #1a4a1a; color: #4caf50; }
+    .badge-code { background: #1a2a4a; color: #64b5f6; }
+    .badge-off  { background: #3a2a00; color: #888; }
+    .disc-form-wrap { display: none; background: #111; border: 1px solid #555; border-radius: 4px; padding: 16px 18px; margin-bottom: 16px; }
+    .disc-form-wrap h4 { color: #c48f06; margin: 0 0 12px; font-size: 15px; }
+    .disc-form fieldset { border: 1px solid #555; border-radius: 4px; padding: 14px 18px; margin-bottom: 16px; }
+    .disc-form legend { font-weight: bold; padding: 0 6px; color: #c48f06; }
+    .disc-form table { border-collapse: collapse; width: 100%; }
+    .disc-form td { padding: 5px 8px; vertical-align: middle; }
+    .disc-form td:first-child { text-align: right; width: 130px; padding-right: 10px; white-space: nowrap; }
+    .disc-form input[type=text], .disc-form input[type=number], .disc-form input[type=date], .disc-form select { background: #1a1a1a; color: #eee; border: 1px solid #555; padding: 5px 8px; border-radius: 3px; font-size: 13px; }
+    .disc-form input[type=date]::-webkit-calendar-picker-indicator { filter: invert(1); }
+    .disc-form input[type=text] { width: 220px; }
+    .disc-form .form-actions { margin-top: 12px; display: flex; gap: 10px; align-items: center; }
+    .alert-ok  { background: #1a4a1a; color: #fff; padding: 8px 12px; border-left: 4px solid #4caf50; margin-bottom: 14px; }
+    .alert-err { background: #7a2a00; color: #fff; padding: 8px 12px; border-left: 4px solid #c44; margin-bottom: 14px; }
+    #code-row { display: none; }
 
 .disc-wrap
 
-    h2 Manage Discounts
-    p(style='margin-bottom:16px'): a.btn.btn-secondary(href='/home') ← Home
+    h3 Manage Discounts
 
     if success
         p.alert-ok Discount saved.
     if error
         p.alert-err= error
 
-    //- ── Current discounts list ──────────────────────────────────────────────
-    h3 Current Discounts
+    //- ── Inline add/edit form ────────────────────────────────────────────────────
+    div.disc-form-wrap#disc-form-wrap
+        h4#disc-form-title Add Discount
+        form.disc-form(method='POST' action='/formDiscount' id='discount-form')
+            input#disc-id-field(type='hidden' name='discountid' value='')
+            fieldset
+                legend Discount Details
+                table
+                    tr
+                        td Name
+                        td: input(type='text' name='name' value='' maxlength='100' placeholder='e.g. Early Starters Discount' style='width:300px')
+                    tr
+                        td Type
+                        td
+                            select(name='type' onchange='toggleCodeField(this.value)')
+                                option(value='earlybird') Early Bird
+                                option(value='code') Promo Code
+                    tr#code-row
+                        td Code
+                        td: input(type='text' name='code' value='' maxlength='50' placeholder='e.g. SAVE20')
+                    tr
+                        td Amount
+                        td
+                            input(type='number' name='amount' value='' min='0' step='0.01' style='width:100px')
+                            |  &nbsp;
+                            select(name='amounttype')
+                                option(value='dollars') $ per entry (inc GST)
+                                option(value='percent') % of total
+                    tr
+                        td Valid From
+                        td: input(type='date' name='validfrom' value='')
+                    tr
+                        td Valid To
+                        td: input(type='date' name='validto' value='')
+                    tr
+                        td Max Uses
+                        td: input(type='number' name='maxuses' value='' min='1' placeholder='Unlimited' style='width:100px')
+                    tr
+                        td Active
+                        td
+                            select(name='active')
+                                option(value='1') Yes
+                                option(value='0') No
+            .form-actions
+                button#disc-submit-btn(type='submit') Add Discount
+                a(href='#' id='disc-cancel' style='font-size:13px; color:#aaa') Cancel
 
+    //- ── Toolbar ─────────────────────────────────────────────────────────────────
+    .disc-toolbar
+        input#disc-search(type='text' placeholder='Search discounts…' oninput='filterDisc(this.value)')
+        a(href='#' id='btn-new-disc') + New Discount
+
+    //- ── List ────────────────────────────────────────────────────────────────────
     if discounts.length
-        table
+        table.disc-table
             thead
                 tr
                     th Name
@@ -57,78 +109,39 @@ style.
                 each d in discounts
                     tr
                         td= d.name || '—'
-                        td
-                            span.badge(class=d.type === 'earlybird' ? 'badge-eb' : 'badge-code')= d.type === 'earlybird' ? 'Early Bird' : 'Code'
+                        td: span.badge(class=d.type === 'earlybird' ? 'badge-eb' : 'badge-code')= d.type === 'earlybird' ? 'Early Bird' : 'Code'
                         td= d.code || '—'
                         td= d.amounttype === 'percent' ? d.amount + '%' : '$' + parseFloat(d.amount).toFixed(2) + ' per entry'
                         td= d.validfrom ? new Date(d.validfrom).toLocaleDateString('en-AU') : '—'
                         td= d.validto   ? new Date(d.validto).toLocaleDateString('en-AU')   : '—'
                         td= d.usecount + (d.maxuses ? ' / ' + d.maxuses : '')
-                        td
-                            span.badge(class=d.active ? '' : 'badge-off')= d.active ? 'Active' : 'Inactive'
-                        td(style='white-space:nowrap')
-                            a.btn-edit(href='/formDiscount?action=edit&discountid=' + d.discountid) Edit
-                            |  &nbsp;
-                            a.btn.btn-danger(href='/formDiscount?action=delete&discountid=' + d.discountid onclick='return confirm("Delete this discount?")') Delete
+                        td: span.badge(class=d.active ? '' : 'badge-off')= d.active ? 'Active' : 'Inactive'
+                        td.disc-actions(style='white-space:nowrap')
+                            a(href='/home?action=discounts&discountid=' + d.discountid) Edit
+                            a(href='/home?action=discounts&delete=' + d.discountid onclick='return confirm("Delete this discount?")' style='color:#c44') Delete
     else
-        p(style='color:#888') No discounts configured.
-
-    //- ── Add / Edit form ─────────────────────────────────────────────────────
-    h3= editing ? 'Edit Discount' : 'Add Discount'
-
-    form(method='POST' action='/formDiscount')
-        if editing
-            input(type='hidden' name='discountid' value=editing.discountid)
-
-        fieldset
-            legend Discount Details
-            table.ft
-                tr
-                    td Name
-                    td: input(type='text' name='name' value=editing ? (editing.name || '') : '' maxlength='100' placeholder='e.g. Early Starters Discount' style='width:300px')
-                tr
-                    td Type
-                    td
-                        select(name='type' onchange='toggleCodeField(this.value)')
-                            option(value='earlybird' selected=(!editing || editing.type === 'earlybird')) Early Bird
-                            option(value='code'      selected=(editing && editing.type === 'code'))       Promo Code
-                tr#code-row
-                    td Code
-                    td: input(type='text' name='code' value=editing ? (editing.code || '') : '' maxlength='50' placeholder='e.g. SAVE20')
-                tr
-                    td Amount
-                    td
-                        input(type='number' name='amount' value=editing ? editing.amount : '' min='0' step='0.01' style='width:100px')
-                        |  &nbsp;
-                        select(name='amounttype')
-                            option(value='dollars' selected=(!editing || editing.amounttype === 'dollars')) $ per entry (inc GST)
-                            option(value='percent' selected=(editing && editing.amounttype === 'percent')) % of total
-                tr
-                    td Valid From
-                    td: input(type='date' name='validfrom' value=formatDate(editing && editing.validfrom))
-                tr
-                    td Valid To
-                    td: input(type='date' name='validto' value=formatDate(editing && editing.validto))
-                tr
-                    td Max Uses
-                    td: input(type='number' name='maxuses' value=editing && editing.maxuses ? editing.maxuses : '' min='1' placeholder='Unlimited' style='width:100px')
-                tr
-                    td Active
-                    td
-                        select(name='active')
-                            option(value='1' selected=(!editing || editing.active)) Yes
-                            option(value='0' selected=(editing && !editing.active))  No
-
-        div(style='margin-top:12px; display:flex; gap:10px')
-            button.btn.btn-primary(type='submit')= editing ? 'Save Changes' : 'Add Discount'
-            a.btn.btn-secondary(href='/formDiscount') Cancel
+        p(style='color:#888; font-size:13px') No discounts configured.
 
 script.
-    function toggleCodeField(type) {
-        document.getElementById('code-row').style.display = type === 'code' ? '' : 'none';
+    function filterDisc(q) {
+        q = q.toLowerCase();
+        document.querySelectorAll('.disc-table tbody tr').forEach(function(row) {
+            row.classList.toggle('hidden', q.length > 0 && row.textContent.toLowerCase().indexOf(q) === -1);
+        });
     }
-    // Init on load
-    (function(){
-        var sel = document.querySelector('select[name=type]');
-        if (sel) toggleCodeField(sel.value);
-    })();
+
+    function toggleCodeField(type) {
+        document.getElementById('code-row').style.display = type === 'code' ? 'table-row' : 'none';
+    }
+
+    document.getElementById('btn-new-disc').addEventListener('click', function(e) {
+        e.preventDefault();
+        var wrap = document.getElementById('disc-form-wrap');
+        wrap.style.display = 'block';
+        wrap.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    });
+
+    document.getElementById('disc-cancel').addEventListener('click', function(e) {
+        e.preventDefault();
+        document.getElementById('disc-form-wrap').style.display = 'none';
+    });

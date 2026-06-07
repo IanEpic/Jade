@@ -351,6 +351,14 @@ router.post('/', upload.any(), async (req, res, next) => {
             await upsertResponse(pool, entryid, questionid, responseid, file.filename);
         }
 
+        // Process caption fields (CAP{questionid})
+        for (const [fieldname, value] of Object.entries(body)) {
+            if (!fieldname.startsWith('CAP')) continue;
+            const questionid = parseInt(fieldname.slice(3));
+            if (!questionid) continue;
+            await upsertCaption(pool, entryid, questionid, value || '');
+        }
+
         return res.json({ status: 'OK', userid: user.userid });
 
     } catch (err) {
@@ -358,6 +366,19 @@ router.post('/', upload.any(), async (req, res, next) => {
         return res.json({ status: 'E_ERROR', msg: err.message });
     }
 });
+
+async function upsertCaption(pool, entryid, questionid, caption) {
+    await pool.request()
+        .input('entryid',    sql.Int,      entryid)
+        .input('questionid', sql.Int,      questionid)
+        .input('caption',    sql.NVarChar, caption)
+        .query(`
+            IF EXISTS (SELECT 1 FROM Response WHERE entryid=@entryid AND questionid=@questionid AND deleted=0)
+                UPDATE Response SET caption=@caption WHERE entryid=@entryid AND questionid=@questionid AND deleted=0
+            ELSE
+                INSERT INTO Response (entryid, questionid, value, caption, deleted) VALUES (@entryid, @questionid, '', @caption, 0)
+        `);
+}
 
 async function upsertResponse(pool, entryid, questionid, responseid, value) {
     if (responseid) {

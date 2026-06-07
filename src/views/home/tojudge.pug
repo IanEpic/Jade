@@ -13,10 +13,10 @@ table(width='640')
     each entry in content.entries
         //- Determine completion status
         - let allScoresDone = entry.criteria.filter(c => c.weight).every(c => entry.scores.some(s => s.criteriaid === c.criteriaid))
-        - let commentsRequired = content.judgingModel.commentsrequired
-        - let excelComment  = entry.comments.find(c => c.type === 'excel'  && c.comment)
-        - let improveComment= entry.comments.find(c => c.type === 'improve' && c.comment)
-        - let allCommentsDone = !commentsRequired || (excelComment && improveComment)
+        - let commentsAllowed = content.judgingModel.commentsallowed
+        - let excelComment   = entry.comments.find(c => c.type === 'excel'   && c.comment && c.comment.trim().length > 0)
+        - let improveComment = entry.comments.find(c => c.type === 'improve' && c.comment && c.comment.trim().length > 0)
+        - let allCommentsDone = !commentsAllowed || (excelComment && improveComment)
 
         //- Check for commentreview flag (came from getEntriesToBeJudgedByJudge which includes JudgeEntryLink)
         - let inCommentReview = entry.commentreview

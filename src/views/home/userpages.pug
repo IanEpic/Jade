@@ -1,21 +1,112 @@
 //- home/userpages.pug
 
-form(method='POST' action='/formPage')
-    h3(align='center') User Page Control
+style.
+    .up-wrap { max-width: 900px; margin: 0 auto; }
+    .up-wrap h3 { color: #c48f06; font-size: 18px; text-align: center; margin-bottom: 16px; }
+    .up-table { border-collapse: collapse; width: 100%; }
+    .up-table th { font-size: 11px; text-transform: uppercase; color: #c48f06; border-bottom: 1px solid #555; padding: 4px 8px; text-align: left; white-space: nowrap; }
+    .up-table td { padding: 5px 8px; border-bottom: 1px solid #1e1e1e; vertical-align: middle; font-size: 11px; color: #fff; }
+    .up-table .up-actions a { margin-right: 10px; font-size: 12px; }
+    .up-table tr.hidden { display: none; }
+    #up-search { padding: 6px 10px; background: #111; color: #fff; border: 1px solid #555; font-size: 14px; width: 320px; }
+    #up-search:focus { border-color: #c48f06; outline: none; }
+    .up-form-wrap { display: none; margin-bottom: 16px; padding: 12px; background: #111; border: 1px solid #555; border-radius: 4px; max-width: 600px; }
+    .badge-vis { display: inline-block; padding: 2px 6px; border-radius: 3px; font-size: 10px; font-weight: 600; background: #1a2a4a; color: #64b5f6; margin-right: 3px; }
+    .alert-ok  { background: #1a4a1a; color: #fff; padding: 8px 12px; border-left: 4px solid #4caf50; margin-bottom: 14px; }
 
-    table(width='600')
-        tr(align='left' valign='top')
-            th Page No
-            th Page Name
-            th
-            th
+.up-wrap
+    h3 User Pages
 
-        each page in content.pages
-            tr
-                td= page.userpageid
-                td= page.name
-                td: a(href='/formPage?pageid=' + page.userpageid) Edit
-                td: a(href='/formPage?pageid=' + page.userpageid + '&action=delete' onclick='return confirm("Delete?")') Delete
+if content.success
+    p.alert-ok Page saved.
 
+div#up-form-wrap.up-form-wrap
+    table(style='width:100%')
         tr
-            td(colspan='4'): a(href='/formPage') New Page
+            td(style='white-space:nowrap; padding-right:8px; width:1%; vertical-align:middle') Page Name
+            td: input#up-name(type='text' maxlength='200' placeholder='Page name' style='width:100%; box-sizing:border-box; background:#1a1a1a; color:#eee; border:1px solid #555; padding:5px 8px; border-radius:3px; font-size:13px')
+    div(style='margin-top:10px; display:flex; gap:8px; align-items:center')
+        button#up-save(type='button') Create Page
+        a#up-cancel(href='#' style='font-size:12px; color:#aaa') Cancel
+        span#up-error(style='color:#c44; font-size:12px; display:none')
+
+form(method='GET' action='/home' onsubmit='return false')
+    div(style='display:table; width:100%; margin-bottom:12px')
+        div(style='display:table-cell; vertical-align:middle')
+            input#up-search(type='text' placeholder='Search pages…' oninput='filterUp(this.value)')
+        div(style='display:table-cell; text-align:right; vertical-align:middle; white-space:nowrap')
+            a#btn-new-up(href='#' style='font-size:13px') + New User Page
+
+    table.up-table
+        thead
+            tr
+                th ID
+                th(style='min-width:270px') Name
+                th Visible To
+                th
+        tbody
+            if content.pages.length
+                each p in content.pages
+                    tr
+                        td(style='color:#888; width:40px')= p.userpageid
+                        td= p.name
+                        td
+                            if p.show4user
+                                span.badge-vis Users
+                            if p.show4judge
+                                span.badge-vis Judges
+                            if p.show4admin
+                                span.badge-vis Admins
+                        td.up-actions(style='white-space:nowrap')
+                            a(href='/home?action=userpages&userpageid=' + p.userpageid) Edit
+                            a(href='/home?action=userpages&delete=' + p.userpageid onclick='return confirm("Delete this page?")' style='color:#c44') Delete
+            else
+                tr
+                    td(colspan='4' style='color:#888; font-size:13px; min-width:600px') No user pages defined.
+
+script.
+    function filterUp(q) {
+        q = q.toLowerCase();
+        document.querySelectorAll('.up-table tbody tr').forEach(function(row) {
+            row.classList.toggle('hidden', q.length > 0 && row.textContent.toLowerCase().indexOf(q) === -1);
+        });
+    }
+
+    (function () {
+        var btn    = document.getElementById('btn-new-up');
+        var wrap   = document.getElementById('up-form-wrap');
+        var name   = document.getElementById('up-name');
+        var save   = document.getElementById('up-save');
+        var cancel = document.getElementById('up-cancel');
+        var err    = document.getElementById('up-error');
+
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            wrap.style.display = 'block';
+            name.focus();
+        });
+
+        cancel.addEventListener('click', function(e) {
+            e.preventDefault();
+            wrap.style.display = 'none';
+            name.value = '';
+            err.style.display = 'none';
+        });
+
+        save.addEventListener('click', function() {
+            var val = name.value.trim();
+            if (!val) { err.textContent = 'Page name required.'; err.style.display = ''; return; }
+            save.disabled = true; save.textContent = 'Creating…'; err.style.display = 'none';
+            fetch((window.JADE_BASE || '') + '/formPage/create', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: 'name=' + encodeURIComponent(val),
+            })
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                if (data.error) { err.textContent = data.error; err.style.display = ''; save.disabled = false; save.textContent = 'Create Page'; return; }
+                window.location.href = data.editUrl;
+            })
+            .catch(function() { err.textContent = 'Failed to create page.'; err.style.display = ''; save.disabled = false; save.textContent = 'Create Page'; });
+        });
+    })();

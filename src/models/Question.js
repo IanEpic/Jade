@@ -22,6 +22,7 @@ Question.init(
     page1:               { type: DataTypes.BOOLEAN },
     orda:                { type: DataTypes.FLOAT },
     omitforjudging:      { type: DataTypes.BOOLEAN },
+    captionlabel:        { type: DataTypes.STRING(200) },
     deleted:             { type: DataTypes.BOOLEAN, defaultValue: false },
   },
   {

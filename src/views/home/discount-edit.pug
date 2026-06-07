@@ -1,0 +1,71 @@
+//- home/discount-edit.pug
+
+style.
+    .disc-edit-form { max-width: 800px; margin: 0 auto; }
+    .disc-edit-form fieldset { border: 1px solid #666; border-radius: 4px; margin-bottom: 16px; padding: 12px 18px; }
+    .disc-edit-form legend { font-weight: bold; padding: 0 6px; color: #c48f06; }
+    .disc-edit-form table { border-collapse: collapse; width: 100%; }
+    .disc-edit-form td { padding: 5px 8px; vertical-align: middle; }
+    .disc-edit-form td:first-child { text-align: right; width: 130px; padding-right: 10px; white-space: nowrap; }
+    .disc-edit-form input[type=text], .disc-edit-form input[type=number], .disc-edit-form input[type=date], .disc-edit-form select { background: #1a1a1a; color: #eee; border: 1px solid #555; padding: 5px 8px; border-radius: 3px; font-size: 13px; }
+    .disc-edit-form input[type=date]::-webkit-calendar-picker-indicator { filter: invert(1); }
+    .disc-edit-form input[type=text] { width: 280px; }
+    .disc-edit-form .form-actions { text-align: center; margin-top: 12px; }
+    .disc-edit-form .form-actions a, .disc-edit-form .form-actions button { margin: 0 6px; }
+
+if content.saved
+    p(style='color:#4caf50; text-align:center') Saved.
+
+form.disc-edit-form(method='POST' action='/formDiscount')
+    input(type='hidden' name='discountid' value=content.discount.discountid)
+
+    h2(style='text-align:center') Edit Discount
+
+    fieldset
+        legend Discount Details
+        table
+            tr
+                td Name
+                td: input(type='text' name='name' value=content.discount.name maxlength='100' style='width:300px')
+            tr
+                td Type
+                td
+                    select(name='type' onchange='toggleCodeField(this.value)')
+                        option(value='earlybird' selected=(content.discount.type === 'earlybird')) Early Bird
+                        option(value='code' selected=(content.discount.type === 'code')) Promo Code
+            tr#code-row
+                td Code
+                td: input(type='text' name='code' value=(content.discount.code || '') maxlength='50')
+            tr
+                td Amount
+                td
+                    input(type='number' name='amount' value=content.discount.amount min='0' step='0.01' style='width:100px')
+                    |  &nbsp;
+                    select(name='amounttype')
+                        option(value='dollars' selected=(content.discount.amounttype === 'dollars')) $ per entry (inc GST)
+                        option(value='percent' selected=(content.discount.amounttype === 'percent')) % of total
+            tr
+                td Valid From
+                td: input(type='date' name='validfrom' value=content.formatDate(content.discount.validfrom))
+            tr
+                td Valid To
+                td: input(type='date' name='validto' value=content.formatDate(content.discount.validto))
+            tr
+                td Max Uses
+                td: input(type='number' name='maxuses' value=(content.discount.maxuses || '') min='1' placeholder='Unlimited' style='width:100px')
+            tr
+                td Active
+                td
+                    select(name='active')
+                        option(value='1' selected=content.discount.active) Yes
+                        option(value='0' selected=!content.discount.active) No
+
+    .form-actions
+        a(href='/home?action=discounts') < Discounts
+        button(type='submit') Save Discount
+
+script.
+    function toggleCodeField(type) {
+        document.getElementById('code-row').style.display = type === 'code' ? 'table-row' : 'none';
+    }
+    toggleCodeField(document.querySelector('select[name=type]').value);

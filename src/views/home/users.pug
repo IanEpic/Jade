@@ -11,6 +11,7 @@ style.
     .users-table .badge-admin { background: #c48f06; color: #000; }
     .users-table .badge-judge { background: #4a6fa5; color: #fff; }
     .users-table .badge-disabled { background: #555; color: #ccc; }
+    .users-table .badge-unactivated { background: #8b3a00; color: #ffd; }
     .users-table .actions a { margin-right: 6px; font-size: 16px; color: #aaa; text-decoration: none; }
     .users-table .actions a:hover { color: #c48f06; }
     .users-table .actions a[title]:hover::after { content: attr(title); position: absolute; background: #333; color: #fff; font-size: 11px; padding: 2px 6px; border-radius: 2px; margin-left: 4px; white-space: nowrap; }
@@ -23,6 +24,11 @@ style.
 
 .users-wrap
     h3 Manage Users
+
+if content.success
+    p(style='background:#1a4a1a; color:#fff; padding:8px 12px; border-left:4px solid #4caf50; margin-bottom:14px') Saved.
+
+form(onsubmit='return false')
     .users-toolbar
         input#user-search(type='text' placeholder='Search by name or email…' oninput='filterUsers(this.value)')
         a(href='/register') + New User
@@ -37,26 +43,52 @@ style.
             each u in content.users
                 tr
                     td
-                        a(href='/formUser?edituserid=' + u.userid)= u.firstname + ' ' + u.lastname
+                        a(href='/home?action=users&edituserid=' + u.userid)= u.firstname + ' ' + u.lastname
                         if u.admin
                             span.badge.badge-admin Admin
                         if u.judge
                             span.badge.badge-judge Judge
                         if !u.enabled
                             span.badge.badge-disabled Disabled
+                        if !u.activated
+                            span.badge.badge-unactivated Not activated
                     td= u.email
                     td.actions
-                        a(href='/formUser?edituserid=' + u.userid title='Edit') ✏️
+                        a(href='/home?action=users&edituserid=' + u.userid title='Edit') ✏️
                         a(href='/emulate?userId=' + u.userid title='Emulate') 👤
                         if u.enabled
                             a(href='/formUser?action=disable&edituserid=' + u.userid title='Disable') 🔒
                         else
                             a(href='/formUser?action=enable&edituserid=' + u.userid title='Enable') 🔓
+                        if !u.activated
+                            button.activate-btn(type='button' data-userid=u.userid title='Activate account' style='background:none;border:none;cursor:pointer;font-size:16px;padding:0 4px;color:#aaa;') ✅
                         if u.judge
                             a(href='/formUser?action=demote&edituserid=' + u.userid title='Demote judge' onclick='return confirm("Remove all judging data for this user?")') ⬇️
                         a(href='/formUser?action=delete&edituserid=' + u.userid title='Delete' onclick='return confirm("Delete this user?")' style='color:#c44') ✕
 
 script.
+    document.querySelectorAll('.activate-btn').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            var uid = btn.dataset.userid;
+            fetch('/formUser?action=activate&edituserid=' + uid, {
+                headers: { 'X-Requested-With': 'XMLHttpRequest' },
+            })
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                if (data.ok) {
+                    btn.remove();
+                    var row = document.querySelector('.badge-unactivated[data-userid="' + uid + '"]');
+                    // Remove the badge from the name cell
+                    var badges = document.querySelectorAll('.badge-unactivated');
+                    badges.forEach(function(b) {
+                        if (b.closest('tr') === btn.closest('tr')) b.remove();
+                    });
+                }
+            })
+            .catch(function() { alert('Activation failed. Please try again.'); });
+        });
+    });
+
     function filterUsers(q) {
         q = q.toLowerCase();
         document.querySelectorAll('.users-table tbody tr').forEach(function(row) {

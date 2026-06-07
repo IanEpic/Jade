@@ -41,7 +41,10 @@ form(method='POST' action='/formCategory')
                 tr
                     td(style='color:#888; width:30px')= cat.categoryid
                     td(colspan='3')
-                        div(style='font-weight:bold')= cat.name
+                        div(style='font-weight:bold')
+                            = cat.name
+                            if cat.adminonly
+                                span(style='margin-left:8px; font-size:10px; font-weight:normal; background:#555; color:#ccc; border-radius:3px; padding:1px 6px; vertical-align:middle') admin only
                         if cat.description
                             div.cat-desc= cat.description
                     td.cat-actions

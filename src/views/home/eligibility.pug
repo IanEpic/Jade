@@ -1,27 +1,115 @@
 //- home/eligibility.pug
 
+style.
+    .el-wrap { max-width: 900px; margin: 0 auto; }
+    .el-wrap h3 { color: #c48f06; font-size: 18px; text-align: center; margin-bottom: 16px; }
+    .el-table { border-collapse: collapse; width: 100%; }
+    .el-table th { font-size: 11px; text-transform: uppercase; color: #c48f06; border-bottom: 1px solid #555; padding: 4px 8px; text-align: left; white-space: nowrap; }
+    .el-table td { padding: 5px 8px; border-bottom: 1px solid #1e1e1e; vertical-align: middle; }
+    .el-table .el-rule { font-size: 11px; color: #fff; }
+    .el-table .el-actions a { margin-right: 10px; font-size: 12px; }
+    .el-table input[type=text] { background: #111; color: #eee; border: 1px solid #555; padding: 3px 5px; border-radius: 3px; width: 45px; text-align: center; }
+    .el-toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+    .el-toolbar a { font-size: 13px; white-space: nowrap; margin-left: 12px; }
+    #el-search { flex: 1; max-width: 320px; padding: 6px 10px; background: #111; color: #fff; border: 1px solid #555; font-size: 14px; }
+    #el-search:focus { border-color: #c48f06; outline: none; }
+    .el-table tr.hidden { display: none; }
+
+.el-wrap
+    h3 Manage Eligibility Rules
+
+if content.success
+    p(style='background:#1a4a1a; color:#fff; padding:8px 12px; border-left:4px solid #4caf50; margin-bottom:14px') Saved.
+
 form(method='POST' action='/formEligibility')
     input(type='hidden' name='task' value='reorder')
-    h3(align='center') Eligibility Control
 
-    table(width='640')
-        tr(align='left' valign='top')
-            th Eligibility No
-            th Eligibility Rule
-            th
-            th
-            th
+    .el-toolbar
+        input#el-search(type='text' placeholder='Search eligibility rules…' oninput='filterEl(this.value)')
+        a#btn-new-el(href='#') + New Eligibility Rule
 
-        each el, i in content.eligibilities
+    div#new-el-form(style='display:none; margin-bottom:16px; padding:12px; background:#111; border:1px solid #555; border-radius:4px; max-width:600px')
+        table(style='width:100%')
             tr
-                td= el.eligibilityid
-                td= el.eligibilityrule
-                td: a(href='/formEligibility?eligibilityid=' + el.eligibilityid) Edit
-                td: a(href='/formEligibility?eligibilityid=' + el.eligibilityid + '&action=delete' onclick='return confirm("Delete?")') Delete
-                td: input(type='text' name='#' + el.eligibilityid value=i+1 size='5' maxlength='5')
+                td(style='white-space:nowrap; padding-right:8px; vertical-align:top; padding-top:5px; width:1%') Rule text
+                td: textarea#new-el-text(rows='3' style='width:100%; box-sizing:border-box')
+            tr
+                td(style='padding-right:8px; padding-top:6px') Applies to all categories
+                td(style='padding-top:6px')
+                    select#new-el-allcats
+                        option(value='0') No
+                        option(value='1') Yes
+        div(style='margin-top:10px; display:flex; gap:8px; align-items:center')
+            button#new-el-save(type='button' style='padding:5px 18px') Add Rule
+            a#new-el-cancel(href='#' style='font-size:12px; color:#aaa') Cancel
+            span#new-el-error(style='color:#c44; font-size:12px; display:none')
 
-        tr
-            td(colspan='5')
-                button(type='button' onclick=`document.location.href='/${slug}/formEligibility'`) New Eligibility
-                | &nbsp;
-                button(type='submit') Reorder Eligibility
+    table.el-table
+        thead
+            tr
+                th #
+                th Eligibility Rule
+                th Order
+                th
+
+        tbody
+            each el, i in content.eligibilities
+                tr
+                    td(style='color:#888; width:30px')= el.eligibilityid
+                    td.el-rule= el.eligibilityrule
+                    td: input(type='text' name='#' + el.eligibilityid value=i+1)
+                    td.el-actions
+                        a(href='/home?action=eligibility&eligibilityid=' + el.eligibilityid) Edit
+                        a(href='/formEligibility?eligibilityid=' + el.eligibilityid + '&action=delete' onclick='return confirm("Delete ' + el.eligibilityid + '?")' style='color:#c44') Delete
+
+    div(style='margin-top:12px')
+        button(type='submit') Reorder
+
+script.
+    function filterEl(q) {
+        q = q.toLowerCase();
+        document.querySelectorAll('.el-table tbody tr').forEach(function(row) {
+            row.classList.toggle('hidden', q.length > 0 && row.textContent.toLowerCase().indexOf(q) === -1);
+        });
+    }
+    document.getElementById('el-search').focus();
+
+    (function () {
+        var btn    = document.getElementById('btn-new-el');
+        var form   = document.getElementById('new-el-form');
+        var text   = document.getElementById('new-el-text');
+        var allcat = document.getElementById('new-el-allcats');
+        var save   = document.getElementById('new-el-save');
+        var cancel = document.getElementById('new-el-cancel');
+        var err    = document.getElementById('new-el-error');
+
+        btn.addEventListener('click', function (e) {
+            e.preventDefault();
+            form.style.display = 'block';
+            text.focus();
+        });
+
+        cancel.addEventListener('click', function (e) {
+            e.preventDefault();
+            form.style.display = 'none';
+            text.value = ''; allcat.value = '0';
+            err.style.display = 'none';
+        });
+
+        save.addEventListener('click', function () {
+            var val = text.value.trim();
+            if (!val) { err.textContent = 'Rule text required.'; err.style.display = ''; return; }
+            save.disabled = true; save.textContent = 'Saving…'; err.style.display = 'none';
+            fetch((window.JADE_BASE || '') + '/formEligibility/create', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: 'eligibilityrule=' + encodeURIComponent(val) + '&allcats=' + encodeURIComponent(allcat.value),
+            })
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+                if (data.error) { err.textContent = data.error; err.style.display = ''; save.disabled = false; save.textContent = 'Add Rule'; return; }
+                window.location.href = data.editUrl || '/home?action=eligibility&eligibilityid=' + data.eligibilityid;
+            })
+            .catch(function () { err.textContent = 'Failed to create rule.'; err.style.display = ''; save.disabled = false; save.textContent = 'Add Rule'; });
+        });
+    })();

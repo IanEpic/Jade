@@ -51,7 +51,7 @@ style.
                     td.actions
                         a(href='/viewEntry?entryid=' + entry.entryid title='View') 👁
                         if canEdit
-                            a(href='/entry/' + entry.entryid + '/edit' title='Edit') ✏️
+                            a(href='/formEntry?entryid=' + entry.entryid title='Edit') ✏️
                             a(href='/entry/' + entry.entryid + '/delete' title='Delete' onclick='return confirm("Delete this entry?")' style='color:#c44') ✕
 
     if content.catsOpenForEntries.length

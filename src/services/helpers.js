@@ -224,6 +224,18 @@ export function randomFilename(length = 10) {
     return Array.from({ length }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
 }
 
+// Human-readable summary of password requirements — shown in all password-change views.
+export const PASSWORD_RULES = 'Password must be at least 10 characters and include an uppercase letter, a number, and a special character.';
+
+// Returns an error string if the password fails complexity rules, or null if it passes.
+export function validatePassword(password) {
+    if (!password || password.length < 10)   return 'Password must be at least 10 characters.';
+    if (!/[A-Z]/.test(password))             return 'Password must contain at least one uppercase letter.';
+    if (!/[0-9]/.test(password))             return 'Password must contain at least one number.';
+    if (!/[^A-Za-z0-9]/.test(password))      return 'Password must contain at least one special character.';
+    return null;
+}
+
 // Replaces: randomPassword($length) — excludes ambiguous chars like 0/O/1/l
 export function randomPassword(length = 10) {
     const chars = 'abcdefghjkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789';

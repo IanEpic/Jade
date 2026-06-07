@@ -4,7 +4,8 @@ import { Router }                          from 'express';
 import { login, recordLogon, getLinkedPrograms } from '../services/auth.js';
 import User                                from '../models/User.js';
 import UserCredential                      from '../models/UserCredential.js';
-import { encryptPassword, randomPassword } from '../services/helpers.js';
+import { encryptPassword, randomPassword, validatePassword, PASSWORD_RULES } from '../services/helpers.js';
+import crypto from 'crypto';
 import { mail, parseSmtp }                 from '../services/mailer.js';
 
 const router = Router();
@@ -36,7 +37,7 @@ router.get('/', async (req, res, next) => {
       }, { useLoginShell: true });
     }
 
-    res.renderInShell('login', { program, message: null, form: true }, { useLoginShell: true });
+    res.renderInShell('login', { program, message: null, form: true, passwordRules: PASSWORD_RULES }, { useLoginShell: true });
 
   } catch (err) { next(err); }
 });
@@ -86,11 +87,15 @@ router.post('/check-email', async (req, res, next) => {
 router.post('/signup', async (req, res, next) => {
   try {
     const { program } = req;
-    const { email, firstname, lastname, mobile } = req.body;
+    const { email, firstname, lastname, mobile, password, password2 } = req.body;
 
     if (!email || !firstname || !lastname) {
       return res.json({ ok: false, error: 'Please fill in all required fields.' });
     }
+
+    const pwError = validatePassword(password);
+    if (pwError) return res.json({ ok: false, error: pwError });
+    if (password !== password2) return res.json({ ok: false, error: 'Passwords do not match.' });
 
     // Check again — someone else may have registered between steps
     const existingCredential = await UserCredential.findOne({ where: { email } });
@@ -101,12 +106,14 @@ router.post('/signup', async (req, res, next) => {
       return res.json({ ok: false, error: 'An account with this email address already exists. Please use the login form or reset your password.' });
     }
 
-    const password          = randomPassword();
     const encryptedPassword = await encryptPassword(password);
+    const activationtoken   = crypto.randomBytes(32).toString('hex');
 
-    const [credential] = await UserCredential.findOrCreate({
-      where:    { email },
-      defaults: { email, password: encryptedPassword },
+    const credential = await UserCredential.create({
+      email,
+      password:        encryptedPassword,
+      activated:       0,
+      activationtoken,
     });
 
     const newUser = await User.create({
@@ -129,15 +136,36 @@ router.post('/signup', async (req, res, next) => {
       admin:        0,
     });
 
-    mail({
-      to:       email,
-      subject:  program.name + ' — Your Login Details',
-      text:     'Dear ' + newUser.firstname + ',\n\nThank you for registering with the ' + program.name + ' portal.\n\nYour login details are:\n\nEmail:    ' + email + '\nPassword: ' + password + '\n\nPlease log in and change your password via My Profile.\n',
-      from:     program.emailfromaddress,
-      ...parseSmtp(program.smtpserver),
-    }).catch(err => console.warn('Welcome email failed:', err.message));
+    const activateUrl = req.protocol + '://' + req.get('host') + '/' + program.slug + '/activate?token=' + activationtoken;
 
-    return res.json({ ok: true });
+    mail({
+      to:      email,
+      subject: program.name + ' — Please activate your account',
+      text:    'Dear ' + newUser.firstname + ',\n\n'
+             + 'Thank you for registering with the ' + program.name + ' portal.\n\n'
+             + 'Please click the link below to activate your account:\n\n'
+             + activateUrl + '\n\n'
+             + 'This link will remain valid until you use it.\n\n'
+             + 'If you did not register for this account, please ignore this email.\n',
+      from:    program.emailfromaddress,
+      ...parseSmtp(program.smtpserver),
+    }).catch(err => console.warn('Activation email failed:', err.message));
+
+    // Log them straight in — no need to go through POST /login
+    const { recordLogon, getLinkedPrograms } = await import('../services/auth.js');
+    await recordLogon(newUser.userid);
+
+    req.session.userId       = newUser.userid;
+    req.session.programId    = program.programid;
+    req.session.programSlug  = program.slug;
+    req.session.credentialId = credential.credentialid;
+    req.session.linkedPrograms = await getLinkedPrograms(credential.credentialid);
+
+    await new Promise((resolve, reject) =>
+      req.session.save(err => err ? reject(err) : resolve())
+    );
+
+    return res.json({ ok: true, redirect: '/' + program.slug + '/home' });
 
   } catch (err) { next(err); }
 });
@@ -159,13 +187,21 @@ router.post('/', async (req, res, next) => {
 
     if (!result) {
       return res.renderInShell('login', {
-        program, message: null, form: true,
+        program, message: null, form: true, passwordRules: PASSWORD_RULES,
         loginEmail: email,
         errors: ['The password you entered is incorrect. Please try again.'],
       }, { useLoginShell: true });
     }
 
     const { user, credential } = result;
+
+    if (credential && !credential.activated) {
+      return res.renderInShell('login', {
+        program, message: null, form: true, passwordRules: PASSWORD_RULES,
+        loginEmail: email,
+        errors: ['Please activate your account by clicking the link in the email we sent you when you registered.'],
+      }, { useLoginShell: true });
+    }
 
     await recordLogon(user.userid);
 
@@ -182,9 +218,11 @@ router.post('/', async (req, res, next) => {
       req.session.emulateUserId = req.body.emulateuser;
     }
 
+    const mustChange = credential?.mustchangepassword;
+
     req.session.save((err) => {
       if (err) return next(err);
-      res.redirect('/home');
+      res.redirect(mustChange ? '/change-password' : '/home');
     });
 
   } catch (err) { next(err); }

@@ -1,17 +1,125 @@
 extends layout
 
 block content
-    div(style='max-width:400px; margin:80px auto; font-family:sans-serif;')
+    div(style='max-width:420px; margin:80px auto; font-family:sans-serif;')
         h2(style='text-align:center;') JADE Awards — Login
-        if error
-            p(style='color:red; text-align:center;')= error
-        form(method='POST' action='/login' style='display:flex; flex-direction:column; gap:12px;')
-            div
-                label(for='email') Email
+
+        div#login-config(style='display:none'
+            data-check-url=checkUrl
+            data-login-url=loginUrl
+            data-reset-url=resetUrl)
+
+        //- ── Step 1: Email ───────────────────────────────────────────────────
+        div#step-email
+            form#form-email(autocomplete='on')
+                table
+                    tr: td(colspan='2'): label(for='login-email') Email address
+                    tr
+                        td: input#login-email(type='email' name='email' size='35' maxlength='300' autocomplete='email' value=loginEmail||'')
+                        td: button#btn-continue(type='submit') Continue →
+                    tr: td(colspan='2')
+                        div#email-error(style='color:#c0392b; margin-top:6px; display:none;')
+
+        //- ── Step 2: Password ────────────────────────────────────────────────
+        div#step-password(style='display:none;')
+            form#form-password(method='POST' action=loginUrl autocomplete='on')
+                input#pw-email(type='hidden' name='email' value=loginEmail||'')
+                table
+                    tr: td(colspan='2')
+                        span#password-greeting
+                    tr: td(colspan='2'): label(for='login-password') Password
+                    tr
+                        td: input#login-password(type='password' name='password' size='35' maxlength='50' autocomplete='current-password')
+                        td: button(type='submit') Log In
+                    tr: td(colspan='2')
+                        if errors && errors.length
+                            each e in errors
+                                p(style='color:#c0392b; margin:4px 0;')= e
                 br
-                input#email(type='email' name='email' required style='width:100%; padding:6px; box-sizing:border-box;')
-            div
-                label(for='password') Password
-                br
-                input#password(type='password' name='password' required style='width:100%; padding:6px; box-sizing:border-box;')
-            button(type='submit' style='padding:8px; cursor:pointer;') Log In
+                a#reset-link(href=resetUrl) Forgot your password?
+                |  ·
+                a(href='#' id='btn-back-from-pw') Use a different email
+
+        //- ── Step: Not found ─────────────────────────────────────────────────
+        div#step-notfound(style='display:none;')
+            p No account was found for that email address. Please check the address or contact the program administrator.
+            a(href='#' id='btn-back-from-notfound') ← Try a different email
+
+    script.
+        (function () {
+            var cfg       = document.getElementById('login-config');
+            var CHECK_URL = cfg.dataset.checkUrl;
+            var RESET_URL = cfg.dataset.resetUrl;
+
+            var steps = ['email','password','notfound'];
+            function show(name) {
+                steps.forEach(function(s) {
+                    var el = document.getElementById('step-' + s);
+                    if (el) el.style.display = (s === name) ? '' : 'none';
+                });
+            }
+
+            function setError(id, msg) {
+                var el = document.getElementById(id);
+                if (!el) return;
+                el.textContent = msg;
+                el.style.display = msg ? '' : 'none';
+            }
+
+            var formEmail = document.getElementById('form-email');
+            formEmail.addEventListener('submit', function(e) {
+                e.preventDefault();
+                var email = document.getElementById('login-email').value.trim();
+                if (!email) { setError('email-error', 'Please enter your email address.'); return; }
+                setError('email-error', '');
+
+                var btn = document.getElementById('btn-continue');
+                btn.disabled = true;
+                btn.textContent = 'Checking…';
+
+                fetch(CHECK_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-Requested-With': 'XMLHttpRequest' },
+                    body: 'email=' + encodeURIComponent(email),
+                })
+                .then(function(r) { return r.json(); })
+                .then(function(data) {
+                    btn.disabled = false;
+                    btn.textContent = 'Continue →';
+                    if (data.status === 'password') {
+                        document.getElementById('pw-email').value = email;
+                        document.getElementById('password-greeting').textContent =
+                            'Welcome back' + (data.name ? ', ' + data.name : '') + '! Please enter your password.';
+                        document.getElementById('reset-link').href = RESET_URL + '?email=' + encodeURIComponent(email);
+                        show('password');
+                        document.getElementById('login-password').focus();
+                    } else if (data.status === 'notfound') {
+                        show('notfound');
+                    } else {
+                        setError('email-error', data.message || 'Something went wrong. Please try again.');
+                    }
+                })
+                .catch(function() {
+                    btn.disabled = false;
+                    btn.textContent = 'Continue →';
+                    setError('email-error', 'Could not connect. Please try again.');
+                });
+            });
+
+            ['btn-back-from-pw','btn-back-from-notfound'].forEach(function(id) {
+                var el = document.getElementById(id);
+                if (el) el.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    show('email');
+                    document.getElementById('login-email').focus();
+                });
+            });
+
+            // If returning after a failed password POST, skip straight to step 2
+            var pwEmail = document.getElementById('pw-email').value;
+            if (pwEmail) {
+                document.getElementById('password-greeting').textContent =
+                    'Please enter your password for ' + pwEmail + '.';
+                show('password');
+            }
+        })();

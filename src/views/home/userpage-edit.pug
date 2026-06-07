@@ -1,0 +1,65 @@
+//- home/userpage-edit.pug
+
+style.
+    .up-edit-form { max-width: 860px; margin: 0 auto; }
+    .up-edit-form fieldset { border: 1px solid #666; border-radius: 4px; margin-bottom: 16px; padding: 12px 18px; }
+    .up-edit-form legend { font-weight: bold; padding: 0 6px; color: #c48f06; }
+    .up-edit-form table { border-collapse: collapse; width: 100%; }
+    .up-edit-form td { padding: 5px 8px; vertical-align: middle; }
+    .up-edit-form td:first-child { text-align: right; width: 130px; padding-right: 10px; white-space: nowrap; }
+    .up-edit-form input[type=text] { background: #1a1a1a; color: #eee; border: 1px solid #555; padding: 5px 8px; border-radius: 3px; font-size: 13px; width: 320px; }
+    .up-edit-form textarea { background: #1a1a1a; color: #eee; border: 1px solid #555; padding: 6px 8px; border-radius: 3px; font-size: 13px; width: 100%; box-sizing: border-box; font-family: monospace; }
+    .up-edit-form .form-actions { text-align: center; margin-top: 12px; }
+    .up-edit-form .form-actions a, .up-edit-form .form-actions button { margin: 0 6px; }
+    .alert-err { background: #7a2a00; color: #fff; padding: 8px 12px; border-left: 4px solid #c44; margin-bottom: 14px; }
+
+if content.saved
+    p(style='color:#4caf50; text-align:center') Saved.
+if content.error === 'duplicate'
+    p.alert-err A page with this name already exists.
+
+form.up-edit-form(method='POST' action='/formPage')
+    input(type='hidden' name='pageid' value=content.page.userpageid)
+
+    h2(style='text-align:center') Edit User Page
+
+    fieldset
+        legend Details
+        table
+            tr
+                td Page Name
+                td: input(type='text' name='name' value=content.page.name maxlength='200')
+
+    fieldset
+        legend Visibility
+        table
+            tr
+                td Show to Users
+                td: input(type='checkbox' name='show4user' value='1' checked=content.page.show4user)
+            tr
+                td Show to Judges
+                td: input(type='checkbox' name='show4judge' value='1' checked=content.page.show4judge)
+            tr
+                td Show to Admins
+                td: input(type='checkbox' name='show4admin' value='1' checked=content.page.show4admin)
+
+    fieldset
+        legend Page Content (HTML)
+        textarea#page-html(name='html' rows='20')= content.page.html || ''
+
+    .form-actions
+        a(href='/home?action=userpages') < User Pages
+        button(type='submit') Save Page
+
+script(src='https://cdn.tiny.cloud/1/t5u2zqqe9s1ltcgp3yrcdormdh3wb2qaquf31suupv3rupdw/tinymce/7/tinymce.min.js' referrerpolicy='origin')
+script.
+    tinymce.init({
+        selector: '#page-html',
+        plugins: 'anchor autolink lists link image table code fullscreen',
+        toolbar: 'undo redo | blocks | bold italic underline | forecolor backcolor | alignleft aligncenter alignright | bullist numlist | link image table | code fullscreen',
+        menubar: false,
+        height: 400,
+        skin: 'oxide-dark',
+        content_css: 'dark',
+        promotion: false,
+    });

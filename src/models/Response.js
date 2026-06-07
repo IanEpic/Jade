@@ -9,6 +9,7 @@ Response.init(
     entryid:     { type: DataTypes.INTEGER },
     questionid:  { type: DataTypes.INTEGER },
     value:       { type: DataTypes.TEXT },
+    caption:     { type: DataTypes.TEXT },
     deleted:     { type: DataTypes.BOOLEAN, defaultValue: false },
   },
   { sequelize, modelName: 'Response', tableName: 'Response', timestamps: false }

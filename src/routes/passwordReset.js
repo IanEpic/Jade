@@ -17,6 +17,7 @@ router.get('/', (req, res, next) => {
         res.renderInShell('passwordReset', {
             program: req.program,
             state:   'blank',
+            email:   (req.query.email || '').trim(),
             errors:  [],
         }, { useLoginShell: true });
     } catch (err) { next(err); }
@@ -36,7 +37,7 @@ router.post('/', async (req, res, next) => {
         }
 
         const user = await User.findOne({
-            where: { programid: program.programid, email, deleted: false },
+            where: { programid: program.programid, email, deleted: 0 },
         });
 
         if (!user || !user.enabled) {
@@ -51,7 +52,10 @@ router.post('/', async (req, res, next) => {
         const hashed       = await encryptPassword(tempPassword);
 
         if (user.credentialid) {
-            await UserCredential.update({ password: hashed }, { where: { credentialid: user.credentialid } });
+            await UserCredential.update(
+                { password: hashed, mustchangepassword: 1 },
+                { where: { credentialid: user.credentialid } },
+            );
         } else {
             await User.update({ password: hashed }, { where: { userid: user.userid } });
         }

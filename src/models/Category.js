@@ -21,6 +21,7 @@ Category.init(
     gst:              { type: DataTypes.DECIMAL(19, 4) },
     orda:             { type: DataTypes.FLOAT },
     omitfrommobile:   { type: DataTypes.BOOLEAN },
+    adminonly:        { type: DataTypes.BOOLEAN, defaultValue: false },
     deleted:          { type: DataTypes.BOOLEAN, defaultValue: false },
   },
   {

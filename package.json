@@ -11,6 +11,7 @@
     "build": "npm run build:css"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.100.1",
     "apache-crypt": "^1.2.6",
     "bcryptjs": "^3.0.3",
     "connect-mssql-v2": "^6.0.0",

@@ -111,9 +111,29 @@ router.post('/', async (req, res, next) => {
             for (const catId of catIds) {
                 await CategoryEligibilityLink.create({ categoryid: catId, eligibilityid });
             }
+            return res.redirect(`/home?action=eligibility&success=1`);
         }
 
         return res.redirect('/home?action=eligibility');
+    } catch (err) { next(err); }
+});
+
+// ── POST /formEligibility/create — AJAX inline create ─────────────────────────
+
+router.post('/create', async (req, res, next) => {
+    try {
+        const program = req.user.program;
+        const { eligibilityrule, allcats } = req.body;
+        if (!eligibilityrule || !eligibilityrule.trim()) return res.status(400).json({ error: 'Rule text required' });
+        const created = await Eligibility.create({
+            programid:      program.programid,
+            eligibilityrule: eligibilityrule.trim(),
+            allcats:         allcats === '1' ? 1 : 0,
+            deleted:         0,
+        });
+        await Eligibility.update({ orda: created.eligibilityid }, { where: { eligibilityid: created.eligibilityid } });
+        const slug = req.program?.slug || req.user?.program?.slug;
+        return res.json({ eligibilityid: created.eligibilityid, eligibilityrule: created.eligibilityrule, editUrl: `/${slug}/home?action=eligibility&eligibilityid=${created.eligibilityid}` });
     } catch (err) { next(err); }
 });
 

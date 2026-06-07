@@ -71,6 +71,10 @@ const WWWREF_ROOT = process.env.WWWREF_ROOT
     || 'C:/Users/SystemAdmin/OneDrive - The Epic Team Pty Limited/WebProjects/Apache/htdocs/jade/htdocs/wwwref';
 app.use('/wwwref', express.static(WWWREF_ROOT));
 
+const TINYMCE_ROOT = process.env.TINYMCE_ROOT
+    || 'C:/Users/SystemAdmin/OneDrive - The Epic Team Pty Limited/WebProjects/Apache/htdocs/jade/htdocs/tinymce';
+app.use('/tinymce', express.static(TINYMCE_ROOT));
+
 // Files/images/videos are served via /formResponses/image|video|download routes,
 // which handle the convertedImageStore → originalImages fallback for legacy Perl files.
 
@@ -139,6 +143,7 @@ window.JADE_BASE='/${slug}';
     [].forEach.call(document.querySelectorAll('form[action]'),function(f){fix(f,'action');});
     [].forEach.call(document.querySelectorAll('img[src]'),function(i){fix(i,'src');});
     [].forEach.call(document.querySelectorAll('source[src]'),function(s){fix(s,'src');});
+    [].forEach.call(document.querySelectorAll('video[src]'),function(v){fix(v,'src');});
   }
   if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',rewrite);}
   else{rewrite();}
@@ -158,7 +163,7 @@ window.JADE_BASE='/${slug}';
 // ── Routes ────────────────────────────────────────────────────────────────────
 // Known static path prefixes that must NOT be treated as program slugs.
 // Add to this list if any other static assets conflict with the slug route.
-const NON_SLUG_PREFIXES = ['/tinymce', '/favicon.ico'];
+const NON_SLUG_PREFIXES = ['/favicon.ico'];
 app.use((req, res, next) => {
   if (NON_SLUG_PREFIXES.some(p => req.path.startsWith(p))) {
     return res.status(404).end();

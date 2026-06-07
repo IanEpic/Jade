@@ -73,6 +73,8 @@ else if q.inputtype === 'image'
         else
             div(style='border:2px solid #c48f06; padding:14px 18px; margin:8px 0; background:rgba(196,143,6,0.08); text-align:center;')
                 img(src='/' + slug + '/formResponses/image?responseid=' + resp.responseid width='600')
+                if resp.caption
+                    p(style='margin:10px 0 0; font-size:13px; text-align:left;')= resp.caption
 
 else if q.inputtype === 'video'
     tr: td(colspan='2' align='left')!= num + '. ' + q.questiontext + desc
@@ -85,6 +87,8 @@ else if q.inputtype === 'video'
                 video(width='425' height='350' controls)
                     source(src=videoSrc type='video/mp4')
                     | Your browser does not support the video tag.
+                if resp.caption
+                    p(style='margin:10px 0 0; font-size:13px; text-align:left;')= resp.caption
 
 else if q.inputtype === 'noinput'
     tr: td(colspan='2' align='left')!= q.questiontext + desc

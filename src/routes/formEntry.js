@@ -63,7 +63,9 @@ async function resolveAddresses(body, userId) {
     let streetAddressId = body.streetaddressid;
     let postalAddressId = body.postaladdressid;
 
-    if (body.streetaddressid === 'b') {
+    if (streetAddressId === 'a') return { error: 'address' };
+
+    if (!streetAddressId || streetAddressId === 'b') {
         const { streetaddress, streetcity, streetstate, streetcode, streetcountry } = body;
         if (!streetaddress || !streetcity || !streetstate || !streetcode || !streetcountry) {
             return { error: 'address' };
@@ -75,9 +77,11 @@ async function resolveAddresses(body, userId) {
         streetAddressId = addr.addressid;
     }
 
-    if (body.postaladdressid === 'c') {
+    if (postalAddressId === 'a') return { error: 'address' };
+
+    if (postalAddressId === 'c') {
         postalAddressId = streetAddressId;
-    } else if (body.postaladdressid === 'b') {
+    } else if (!postalAddressId || postalAddressId === 'b') {
         const { postaladdress, postalcity, postalstate, postalcode, postalcountry } = body;
         if (!postaladdress || !postalcity || !postalstate || !postalcode || !postalcountry) {
             return { error: 'address' };
@@ -87,10 +91,6 @@ async function resolveAddresses(body, userId) {
             state: postalstate, code: postalcode, country: postalcountry,
         });
         postalAddressId = addr.addressid;
-    }
-
-    if (streetAddressId === 'a' || postalAddressId === 'a') {
-        return { error: 'address' };
     }
 
     return { streetAddressId, postalAddressId };

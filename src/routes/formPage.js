@@ -1,10 +1,4 @@
 // routes/formPage.js
-// Equivalent of formPage.cgi.
-//
-//   GET  /formPage                       → blank new form
-//   GET  /formPage?pageid=X              → edit form
-//   GET  /formPage?pageid=X&action=delete → hard-delete, redirect home
-//   POST /formPage                       → save new or edit, redirect home
 
 import { Router } from 'express';
 import { requireAuth } from '../middleware/auth.js';
@@ -14,71 +8,63 @@ const router = Router();
 router.use(requireAuth);
 
 router.use((req, res, next) => {
-    if (!req.user.admin) {
-        return res.renderInShell('formPage', {
-            user: req.user, program: req.user.program, error: 'noaccess',
-        });
+    if (!req.user?.admin) {
+        if (req.xhr || req.headers.accept?.includes('application/json')) {
+            return res.status(403).json({ error: 'Access denied.' });
+        }
+        return res.redirect('/home');
     }
     next();
 });
 
-// ── GET ───────────────────────────────────────────────────────────────────────
-
-router.get('/', async (req, res, next) => {
+// ── POST /formPage/create — inline AJAX create, returns JSON ─────────────────
+router.post('/create', async (req, res) => {
     try {
-        const { pageid, action } = req.query;
-        const program = req.user.program;
-
-        if (pageid && action === 'delete') {
-            await UserPage.destroy({ where: { userpageid: pageid } });
-            return res.redirect('/home');
-        }
-
-        let page = null;
-        if (pageid) {
-            page = await UserPage.findByPk(pageid);
-        }
-
-        return res.renderInShell('formPage', {
-            user: req.user,
-            program,
-            page: page ? page.toJSON() : null,
-        });
-    } catch (err) { next(err); }
+        const program = req.user?.program;
+        if (!program) return res.json({ error: 'No program context.' });
+        const name = (req.body.name || '').trim();
+        if (!name) return res.json({ error: 'Page name required.' });
+        const existing = await UserPage.findOne({ where: { programid: program.programid, name } });
+        if (existing) return res.json({ error: 'A page with this name already exists.' });
+        const page = await UserPage.create({ programid: program.programid, name, html: '', show4user: true, show4judge: true, show4admin: true });
+        const slug = req.program?.slug || req.user?.program?.slug;
+        return res.json({ userpageid: page.userpageid, editUrl: `/${slug}/home?action=userpages&userpageid=${page.userpageid}` });
+    } catch (err) {
+        return res.json({ error: err.message || 'Failed to create page.' });
+    }
 });
 
-// ── POST ──────────────────────────────────────────────────────────────────────
+// ── GET /formPage — redirect into home framework ─────────────────────────────
+router.get('/', (req, res) => res.redirect('/home?action=userpages'));
 
+// ── POST /formPage — save edit ────────────────────────────────────────────────
 router.post('/', async (req, res, next) => {
     try {
-        const { pageid, name, html } = req.body;
+        const { pageid, name, html, show4user, show4judge, show4admin } = req.body;
         const program = req.user.program;
 
-        if (!pageid) {
-            // New — check uniqueness
-            const existing = await UserPage.findOne({ where: { programid: program.programid, name } });
-            if (existing) {
-                return res.renderInShell('formPage', {
-                    user: req.user, program, page: null,
-                    error: 'duplicate', prefill: { name, html },
-                });
-            }
-            await UserPage.create({ programid: program.programid, name, html });
-        } else {
-            // Edit — allow keeping own name, reject if taken by another page
-            const existing = await UserPage.findOne({ where: { programid: program.programid, name } });
-            if (existing && existing.userpageid !== parseInt(pageid)) {
-                const page = await UserPage.findByPk(pageid);
-                return res.renderInShell('formPage', {
-                    user: req.user, program,
-                    page: page ? page.toJSON() : null,
-                    error: 'duplicate',
-                });
-            }
-            await UserPage.update({ name, html }, { where: { userpageid: pageid } });
+        if (!pageid) return res.redirect('/home?action=userpages');
+
+        const trimmedName = (name || '').trim();
+        if (!trimmedName) return res.redirect(`/home?action=userpages&userpageid=${pageid}&error=name`);
+
+        const existing = await UserPage.findOne({ where: { programid: program.programid, name: trimmedName } });
+        if (existing && existing.userpageid !== parseInt(pageid)) {
+            return res.redirect(`/home?action=userpages&userpageid=${pageid}&error=duplicate`);
         }
 
-        return res.redirect('/home');
+        await UserPage.update(
+            {
+                name: trimmedName,
+                html: html || '',
+                show4user:  show4user  === '1',
+                show4judge: show4judge === '1',
+                show4admin: show4admin === '1',
+            },
+            { where: { userpageid: parseInt(pageid), programid: program.programid } }
+        );
+
+        return res.redirect(`/home?action=userpages&success=1`);
     } catch (err) { next(err); }
 });
 

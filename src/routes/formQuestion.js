@@ -131,6 +131,7 @@ router.post('/', async (req, res, next) => {
             addressaboveoption: body.addressaboveoption ? parseInt(body.addressaboveoption) : 0,
             allcats:            body.allcats            ? 1 : 0,
             omitforjudging:     body.omitforjudging     ? 1 : 0,
+            captionlabel:       ['image','video'].includes(body.inputtype) ? (body.captionlabel || '') : '',
             required:           0,
             page1:              0,
         };
@@ -183,7 +184,7 @@ router.post('/', async (req, res, next) => {
             await saveNewOptions(questionid, body);
         }
 
-        return res.redirect('/home?action=questions&type=entry');
+        return res.redirect(`/home?action=questions&type=entry&success=1`);
 
     } catch (err) { next(err); }
 });

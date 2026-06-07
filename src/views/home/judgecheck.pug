@@ -1,61 +1,79 @@
 //- home/judgecheck.pug
 //- Equiv of $judgecheck in home.cgi.
 
+- const commentsAllowed  = content.judgingModel.commentsallowed
+- const commentsRequired = content.judgingModel.commentsrequired
+- const colCount = commentsAllowed ? 4 : 3
+
 h3(align='center') Judge Progress by Category
 
-table(width='640')
-    tr(align='left' valign='top')
-        td
-            table(width='580')
-                tr
-                    td &nbsp;
-                    td(width='25') Sc
-                    td(width='25')= content.judgingModel.commentsallowed ? 'Cm' : ' '
+each cat in content.cats
+    - let catComplete = true
 
-    each cat in content.cats
-        - let catComplete = true
-
-        tr
-            td
-                - let catLabel = cat.name
-                if !cat.judges || !cat.judges.length
+    //- Pre-calculate completeness
+    if !cat.judges || !cat.judges.length
+        - catComplete = false
+    each judge in (cat.judges || [])
+        if !judge.entries || !judge.entries.length
+            - catComplete = false
+        each entry in (judge.entries || [])
+            - const scoresOk = cat.criteria.filter(c => c.weight).every(c => entry.scores.some(s => s.criteriaid === c.criteriaid))
+            if !scoresOk
+                - catComplete = false
+            if commentsAllowed && commentsRequired
+                - const excelOk   = entry.comments.some(c => c.type === 'excel'   && c.comment)
+                - const improveOk = entry.comments.some(c => c.type === 'improve' && c.comment)
+                if !excelOk || !improveOk
                     - catComplete = false
 
-                each judge in (cat.judges || [])
-                    if !judge.entries || !judge.entries.length
-                        - catComplete = false
+    table(width='640' cellpadding='3' cellspacing='0' style='margin-bottom:16px; border-collapse:collapse')
 
-                    each entry in (judge.entries || [])
-                        - let scoresOk = cat.criteria.filter(c => c.weight).every(c => entry.scores.some(s => s.criteriaid === c.criteriaid))
-                        if !scoresOk
-                            - catComplete = false
-                        if content.judgingModel.commentsallowed
-                            - let excelOk   = entry.comments.some(c => c.type === 'excel'   && c.comment)
-                            - let improveOk = entry.comments.some(c => c.type === 'improve' && c.comment)
-                            if !excelOk || !improveOk
-                                - catComplete = false // only fail if required
-                                if content.judgingModel.commentsrequired
-                                    - catComplete = false
-
-                b= cat.name + ' - '
+        //- ── Category header row ──────────────────────────────────────────────
+        tr(style='background:#333')
+            td(colspan=colCount style='font-weight:bold; padding:5px 8px')
+                = cat.name + ' — '
                 if catComplete
-                    b(style='color:green;') Complete
+                    span(style='color:#4caf50') Complete
                 else
-                    b(style='color:red;') Incomplete
+                    span(style='color:#e55') Incomplete
 
-            td
-                table(width='600')
-                    each judge in (cat.judges || [])
-                        tr: td= judge.firstname + ' ' + judge.lastname
-                        tr
-                            td
-                                table(width='580')
-                                    each entry in (judge.entries || [])
-                                        - let scoresOk   = cat.criteria.filter(c => c.weight).every(c => entry.scores.some(s => s.criteriaid === c.criteriaid))
-                                        - let commentsOk = !content.judgingModel.commentsallowed || (entry.comments.some(c => c.type==='excel' && c.comment) && entry.comments.some(c => c.type==='improve' && c.comment))
-                                        - let displayName = entry.finalisttext || entry.entrantname
-                                        tr
-                                            td(width='55')= entry.entryid
-                                            td= displayName
-                                            td(width='25')= scoresOk   ? 'Yes' : 'No'
-                                            td(width='25')= content.judgingModel.commentsallowed ? (commentsOk ? 'Yes' : 'No') : ''
+        //- ── Column headers ───────────────────────────────────────────────────
+        tr(style='border-bottom:1px solid #555; color:#c48f06; font-size:11px; text-transform:uppercase')
+            th(style='padding:3px 8px; text-align:left') Judge / Entry
+            th(style='padding:3px 8px; width:40px; text-align:center') Scores
+            if commentsAllowed
+                th(style='padding:3px 8px; width:60px; text-align:center') Comments
+            th(style='padding:3px 8px; width:60px; text-align:center') Status
+
+        //- ── Per-judge rows ───────────────────────────────────────────────────
+        if !cat.judges || !cat.judges.length
+            tr
+                td(colspan=colCount style='padding:4px 8px; color:#888; font-style:italic') No judges assigned
+
+        each judge in (cat.judges || [])
+            //- Judge name row
+            tr(style='background:#1a1a1a')
+                td(colspan=colCount style='padding:4px 8px; font-weight:bold')
+                    = judge.firstname + ' ' + judge.lastname
+                    if !judge.entries || !judge.entries.length
+                        span(style='color:#888; font-weight:normal; margin-left:8px') (no entries assigned)
+
+            //- Entry rows
+            each entry in (judge.entries || [])
+                - const scoresOk   = cat.criteria.filter(c => c.weight).every(c => entry.scores.some(s => s.criteriaid === c.criteriaid))
+                - const excelOk    = entry.comments.some(c => c.type === 'excel'   && c.comment)
+                - const improveOk  = entry.comments.some(c => c.type === 'improve' && c.comment)
+                - const commentsOk = !commentsAllowed || (excelOk && improveOk)
+                - const entryOk    = scoresOk && commentsOk
+                - const displayName = entry.finalisttext || entry.entrantname
+                tr(style='border-bottom:1px solid #222')
+                    td(style='padding:3px 8px 3px 20px; color:#ccc')
+                        span(style='color:#888; margin-right:8px')= entry.entryid
+                        = displayName
+                    td(style='padding:3px 8px; text-align:center')
+                        span(style='color:' + (scoresOk ? '#4caf50' : '#e55'))= scoresOk ? 'Yes' : 'No'
+                    if commentsAllowed
+                        td(style='padding:3px 8px; text-align:center')
+                            span(style='color:' + (commentsOk ? '#4caf50' : '#e55'))= commentsOk ? 'Yes' : 'No'
+                    td(style='padding:3px 8px; text-align:center')
+                        span(style='color:' + (entryOk ? '#4caf50' : '#e55'))= entryOk ? '✓' : '✗'

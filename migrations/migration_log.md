@@ -395,4 +395,392 @@ INNER JOIN (
 
 ---
 
+## 016 — Clean up loginpagetext on all Program rows
+
+**Date tested:** 2026-06-07
+**Purpose:** Modernise login page content for Node app — the new login form handles
+password reset and new user signup inline, so legacy links/text in loginpagetext are
+redundant. Also removes "Please Log In..." intro sentence which is obvious from the form.
+
+Three sequential updates — run all three in order:
+
+### Step 1 — Strip everything after &lt;~form~&gt; except "Still having issues..." line
+
+```sql
+-- Preview what will change
+SELECT programid, name, loginpagetext
+FROM Program
+WHERE loginpagetext LIKE '%~form~%'
+  AND loginpagetext LIKE '%Still having issues%';
+```
+
+This is a data transformation — run via the Node script below (too complex for raw SQL
+due to per-row regex substitution needed). Alternatively do it by hand in the admin UI
+for each program.
+
+**What it removes (after the form marker):**
+- "Note: If you have not used this portal before..." paragraph
+- "Click here to reset your password" link
+- Any `<br><br>` / `<p>` spacers between form and "Still having issues"
+
+**What it keeps:**
+- The `&lt;~form~&gt;` marker itself
+- `<h6><a href="mailto:support@shadedsolutions.com.au">Still having issues logging in...</a></h6>`
+
+### Step 2 — Remove "Please Log In..." sentence (preceded by newline or `<p>` tag)
+
+Removes the sentence starting with `Please Log In below or set up a new user...`
+that appears on its own line/paragraph immediately before the marker.
+
+### Step 3 — Remove "Please Log In..." sentence (preceded by `<br><br>` within a `<p>`)
+
+Same as step 2 but for programs where the Please sentence was inside a `<p>` tag
+along with the welcome heading, separated by `<br /><br />`.
+
+**Node script to run all three steps against prod DB:**
+
+```javascript
+// Run with: node -e "..." from the Jade project root
+// Make sure DATABASE env vars point to the PRODUCTION DB before running
+
+import('./src/models/Program.js').then(async ({default: Program}) => {
+  const programs = await Program.findAll();
+  const marker = '&lt;~form~&gt;';
+
+  for (const p of programs) {
+    let text = p.loginpagetext;
+    if (!text || !text.includes(marker)) continue;
+    const original = text;
+
+    // Step 1: keep only 'Still having issues' after the marker
+    const markerIdx = text.indexOf(marker);
+    const before = text.substring(0, markerIdx + marker.length);
+    const after  = text.substring(markerIdx + marker.length);
+    const stillIdx = after.indexOf('Still having issues');
+    if (stillIdx !== -1) {
+      const tagStart  = after.lastIndexOf('<h', stillIdx);
+      const closing   = tagStart !== -1 ? after.slice(tagStart).match(/<(h[0-9])[^>]*>[\s\S]*?<\/\1>/i) : null;
+      const stillLine = closing ? closing[0] : '';
+      text = before + (stillLine ? '\n' + stillLine : '');
+    }
+
+    // Step 2: remove 'Please Log In...' preceded by newline or <p> tag
+    text = text.replace(/(?:<p[^>]*>|[\r\n]+)\s*Please\b[\s\S]*?(?=&lt;~form~&gt;)/i, '');
+
+    // Step 3: remove 'Please Log In...' preceded by <br><br> within a <p>
+    text = text.replace(/\s*(?:<br\s*\/?>[\s\r\n]*){1,2}\s*Please\b[\s\S]*?(?=&lt;~form~&gt;)/i, '\n');
+
+    // Step 4: shorten support link text
+    text = text.replace(
+      'Still having issues logging in, click here to contact the support team.',
+      'Click here to contact the support team.'
+    );
+
+    if (text !== original) {
+      await p.update({ loginpagetext: text });
+      console.log('Updated', p.programid, p.name);
+    }
+  }
+  process.exit(0);
+});
+```
+
+---
+
+## 017 — Remove #decoration div from login shell templates
+
+**Date tested:** 2026-06-07
+**Purpose:** The `#decoration` div in login HTML templates references a `login-header.jpg`
+image that no longer exists, leaving an empty 206px gap between the header and content.
+
+Remove this block from each affected login template file in `cgi-bin/design/`:
+
+```
+<div id='decoration'>
+</div>
+```
+
+**Affected files:**
+- `login_eventawards2026.html`
+- `login_eventawards2025.html`
+- `login_eventawards2022.html`
+- `login_eventawards2021.html`
+- `login_eventawards2020.html`
+- `login_eventawards2019.html`
+- `login_eventawards2018.html`
+
+_(These files live in Apache htdocs, not the Node project — edit directly on the server.)_
+
+---
+
+## Migration 019 — Category.adminonly flag (2026-06-07)
+
+Add an `adminonly` bit column to `Category`. Categories flagged admin-only are hidden from the public "Start a New Entry" list but still exist in the DB and can be entered via admin override.
+
+```sql
+ALTER TABLE Category ADD adminonly BIT NOT NULL DEFAULT 0
+```
+
+## Migration 020 — Program default flags for new category fields (2026-06-07)
+
+Add default columns to `Program` for the four new category phase flags.
+
+```sql
+ALTER TABLE Program
+  ADD scorereadydefault       BIT NOT NULL DEFAULT 0,
+      finalistreviewdefault   BIT NOT NULL DEFAULT 0,
+      wildcarddecisiondefault BIT NOT NULL DEFAULT 0,
+      winnernominationdefault BIT NOT NULL DEFAULT 0
+```
+
+## 021 — Add captionlabel to Question, caption to Response
+
+**Date tested:**
+**Purpose:** Image and video questions can now have an admin-specified caption prompt. The entrant's caption text is stored alongside the file response for use in reporting/download.
+
+```sql
+ALTER TABLE Question ADD captionlabel NVARCHAR(200) NULL;
+ALTER TABLE Response ADD caption NVARCHAR(MAX) NULL;
+```
+
+## 022 — Migrate existing photo caption data into Response.caption
+
+**Date tested:** 2026-06-07
+**Purpose:** Caption questions (matching questiontext LIKE '%Provide a caption (including names
+of people%') are paired with the nearest preceding image/video question within each shared
+category. "Nearest preceding image/video" skips non-image/video questions (captions from other
+categories, NOTE blocks, etc.) that may have been interleaved in older programs where per-category
+orda was not applied. The caption response data is migrated into `Response.caption` on the image
+response row, `captionlabel` is set on the image questions, and the caption questions/responses
+are soft-deleted.
+
+Run after migration 021 (which adds the `captionlabel` and `caption` columns).
+
+**How the pairs CTE works:**
+For each (caption question, category) combination, it finds the image/video question in the same
+category with the highest orda that is still less than the caption's orda. This means other
+question types (captions from other categories, noinput NOTE blocks) between an image and its
+caption are skipped automatically. A caption question appearing in multiple categories may
+produce multiple (caption_qid → image_qid) pairs; that is intentional and correct because
+different categories have different image questions.
+
+```sql
+-- ── Shared pairs CTE (used in every step) ─────────────────────────────────────
+-- all_links: every non-deleted question with its per-category sort position
+-- nearest_image: for each (caption, category), the nearest preceding image/video by orda
+-- pairs: deduplicated (caption_qid, image_qid) — multiple rows per caption_qid are OK
+--        because each entrant is in only one category and has responses for only that
+--        category's questions, so the UPDATE/DELETE joins resolve correctly.
+
+-- ── Inspection: run first — all rows should be OK ─────────────────────────────
+WITH all_links AS (
+    SELECT cql.categoryid,
+           q.questionid, q.inputtype, q.questiontext,
+           COALESCE(cql.orda, q.orda, q.questionid) AS sort_orda
+    FROM CategoryQuestionLink cql
+    INNER JOIN Question q ON q.questionid = cql.questionid AND q.deleted = 0
+),
+caption_links AS (
+    SELECT categoryid, questionid AS caption_qid,
+           sort_orda AS caption_orda, questiontext
+    FROM all_links
+    WHERE questiontext LIKE '%Provide a caption (including names of people%'
+),
+nearest_image AS (
+    SELECT cl.caption_qid, cl.categoryid,
+           al.questionid AS image_qid, al.inputtype, al.questiontext AS image_question,
+           ROW_NUMBER() OVER (
+               PARTITION BY cl.caption_qid, cl.categoryid
+               ORDER BY al.sort_orda DESC, al.questionid DESC
+           ) AS rn
+    FROM caption_links cl
+    INNER JOIN all_links al
+        ON al.categoryid = cl.categoryid
+       AND al.inputtype IN ('image','video')
+       AND al.sort_orda < cl.caption_orda
+),
+pairs AS (
+    SELECT DISTINCT caption_qid, image_qid, inputtype AS image_inputtype, image_question
+    FROM nearest_image WHERE rn = 1
+)
+SELECT p.caption_qid, p.image_qid, p.image_inputtype, p.image_question, 'OK' AS check_result
+FROM pairs p
+UNION ALL
+-- Caption questions that have no preceding image/video in any of their categories
+SELECT q.questionid, NULL, NULL, NULL, 'ERROR: no preceding image/video in any category'
+FROM Question q
+WHERE q.deleted = 0
+  AND q.questiontext LIKE '%Provide a caption (including names of people%'
+  AND q.questionid NOT IN (SELECT caption_qid FROM pairs)
+ORDER BY caption_qid;
+
+-- Do not proceed if any ERROR row appears.
+
+-- ── Step 1: Copy caption value → Response.caption on the matching image response ──
+WITH all_links AS (
+    SELECT cql.categoryid, q.questionid, q.inputtype, q.questiontext,
+           COALESCE(cql.orda, q.orda, q.questionid) AS sort_orda
+    FROM CategoryQuestionLink cql
+    INNER JOIN Question q ON q.questionid = cql.questionid AND q.deleted = 0
+),
+caption_links AS (
+    SELECT categoryid, questionid AS caption_qid, sort_orda AS caption_orda
+    FROM all_links
+    WHERE questiontext LIKE '%Provide a caption (including names of people%'
+),
+nearest_image AS (
+    SELECT cl.caption_qid, al.questionid AS image_qid,
+           ROW_NUMBER() OVER (PARTITION BY cl.caption_qid, cl.categoryid ORDER BY al.sort_orda DESC, al.questionid DESC) AS rn
+    FROM caption_links cl
+    INNER JOIN all_links al ON al.categoryid = cl.categoryid AND al.inputtype IN ('image','video') AND al.sort_orda < cl.caption_orda
+),
+pairs AS (
+    SELECT DISTINCT caption_qid, image_qid FROM nearest_image WHERE rn = 1
+)
+UPDATE r_img
+SET r_img.caption = r_cap.value
+FROM Response r_img
+INNER JOIN Response r_cap ON r_cap.entryid = r_img.entryid AND r_cap.deleted = 0
+INNER JOIN pairs p ON p.caption_qid = r_cap.questionid AND p.image_qid = r_img.questionid
+WHERE r_img.deleted = 0;
+
+-- ── Step 2: For entries with a caption but no image response, insert the image response ──
+WITH all_links AS (
+    SELECT cql.categoryid, q.questionid, q.inputtype, q.questiontext,
+           COALESCE(cql.orda, q.orda, q.questionid) AS sort_orda
+    FROM CategoryQuestionLink cql
+    INNER JOIN Question q ON q.questionid = cql.questionid AND q.deleted = 0
+),
+caption_links AS (
+    SELECT categoryid, questionid AS caption_qid, sort_orda AS caption_orda
+    FROM all_links
+    WHERE questiontext LIKE '%Provide a caption (including names of people%'
+),
+nearest_image AS (
+    SELECT cl.caption_qid, al.questionid AS image_qid,
+           ROW_NUMBER() OVER (PARTITION BY cl.caption_qid, cl.categoryid ORDER BY al.sort_orda DESC, al.questionid DESC) AS rn
+    FROM caption_links cl
+    INNER JOIN all_links al ON al.categoryid = cl.categoryid AND al.inputtype IN ('image','video') AND al.sort_orda < cl.caption_orda
+),
+pairs AS (
+    SELECT DISTINCT caption_qid, image_qid FROM nearest_image WHERE rn = 1
+)
+INSERT INTO Response (entryid, questionid, value, caption, deleted)
+SELECT r_cap.entryid, p.image_qid, '', r_cap.value, 0
+FROM Response r_cap
+INNER JOIN pairs p ON p.caption_qid = r_cap.questionid
+WHERE r_cap.deleted = 0
+  AND NOT EXISTS (
+      SELECT 1 FROM Response r_img
+      WHERE r_img.entryid = r_cap.entryid
+        AND r_img.questionid = p.image_qid
+        AND r_img.deleted = 0
+  );
+
+-- ── Step 3: Set captionlabel on all matched image questions ──
+WITH all_links AS (
+    SELECT cql.categoryid, q.questionid, q.inputtype, q.questiontext,
+           COALESCE(cql.orda, q.orda, q.questionid) AS sort_orda
+    FROM CategoryQuestionLink cql
+    INNER JOIN Question q ON q.questionid = cql.questionid AND q.deleted = 0
+),
+caption_links AS (
+    SELECT categoryid, questionid AS caption_qid, sort_orda AS caption_orda
+    FROM all_links
+    WHERE questiontext LIKE '%Provide a caption (including names of people%'
+),
+nearest_image AS (
+    SELECT cl.caption_qid, al.questionid AS image_qid,
+           ROW_NUMBER() OVER (PARTITION BY cl.caption_qid, cl.categoryid ORDER BY al.sort_orda DESC, al.questionid DESC) AS rn
+    FROM caption_links cl
+    INNER JOIN all_links al ON al.categoryid = cl.categoryid AND al.inputtype IN ('image','video') AND al.sort_orda < cl.caption_orda
+),
+pairs AS (
+    SELECT DISTINCT image_qid FROM nearest_image WHERE rn = 1
+)
+UPDATE Question
+SET captionlabel = 'Please provide a caption for the photograph above (include names of people pictured).'
+WHERE questionid IN (SELECT image_qid FROM pairs);
+
+-- ── Step 4: Soft-delete the caption Response rows ──
+WITH all_links AS (
+    SELECT cql.categoryid, q.questionid, q.inputtype, q.questiontext,
+           COALESCE(cql.orda, q.orda, q.questionid) AS sort_orda
+    FROM CategoryQuestionLink cql
+    INNER JOIN Question q ON q.questionid = cql.questionid AND q.deleted = 0
+),
+caption_links AS (
+    SELECT categoryid, questionid AS caption_qid, sort_orda AS caption_orda
+    FROM all_links
+    WHERE questiontext LIKE '%Provide a caption (including names of people%'
+),
+nearest_image AS (
+    SELECT cl.caption_qid,
+           ROW_NUMBER() OVER (PARTITION BY cl.caption_qid, cl.categoryid ORDER BY al.sort_orda DESC, al.questionid DESC) AS rn
+    FROM caption_links cl
+    INNER JOIN all_links al ON al.categoryid = cl.categoryid AND al.inputtype IN ('image','video') AND al.sort_orda < cl.caption_orda
+),
+pairs AS (
+    SELECT DISTINCT caption_qid FROM nearest_image WHERE rn = 1
+)
+UPDATE Response SET deleted = 1
+WHERE questionid IN (SELECT caption_qid FROM pairs);
+
+-- ── Step 5: Soft-delete the caption Question rows ──
+WITH all_links AS (
+    SELECT cql.categoryid, q.questionid, q.inputtype, q.questiontext,
+           COALESCE(cql.orda, q.orda, q.questionid) AS sort_orda
+    FROM CategoryQuestionLink cql
+    INNER JOIN Question q ON q.questionid = cql.questionid AND q.deleted = 0
+),
+caption_links AS (
+    SELECT categoryid, questionid AS caption_qid, sort_orda AS caption_orda
+    FROM all_links
+    WHERE questiontext LIKE '%Provide a caption (including names of people%'
+),
+nearest_image AS (
+    SELECT cl.caption_qid,
+           ROW_NUMBER() OVER (PARTITION BY cl.caption_qid, cl.categoryid ORDER BY al.sort_orda DESC, al.questionid DESC) AS rn
+    FROM caption_links cl
+    INNER JOIN all_links al ON al.categoryid = cl.categoryid AND al.inputtype IN ('image','video') AND al.sort_orda < cl.caption_orda
+),
+pairs AS (
+    SELECT DISTINCT caption_qid FROM nearest_image WHERE rn = 1
+)
+UPDATE Question SET deleted = 1
+WHERE questionid IN (SELECT caption_qid FROM pairs);
+```
+
+**Verification query (run after step 1, before steps 4/5):**
+```sql
+WITH all_links AS (
+    SELECT cql.categoryid, q.questionid, q.inputtype, q.questiontext,
+           COALESCE(cql.orda, q.orda, q.questionid) AS sort_orda
+    FROM CategoryQuestionLink cql
+    INNER JOIN Question q ON q.questionid = cql.questionid AND q.deleted = 0
+),
+caption_links AS (
+    SELECT categoryid, questionid AS caption_qid, sort_orda AS caption_orda
+    FROM all_links
+    WHERE questiontext LIKE '%Provide a caption (including names of people%'
+),
+nearest_image AS (
+    SELECT cl.caption_qid, al.questionid AS image_qid,
+           ROW_NUMBER() OVER (PARTITION BY cl.caption_qid, cl.categoryid ORDER BY al.sort_orda DESC, al.questionid DESC) AS rn
+    FROM caption_links cl
+    INNER JOIN all_links al ON al.categoryid = cl.categoryid AND al.inputtype IN ('image','video') AND al.sort_orda < cl.caption_orda
+),
+pairs AS (
+    SELECT DISTINCT caption_qid, image_qid FROM nearest_image WHERE rn = 1
+)
+SELECT r_img.entryid, r_img.questionid AS img_qid, r_img.value AS filename,
+       r_img.caption, r_cap.value AS original_caption,
+       CASE WHEN r_img.caption = r_cap.value THEN 'OK' ELSE 'MISMATCH' END AS check_result
+FROM Response r_img
+INNER JOIN Response r_cap ON r_cap.entryid = r_img.entryid AND r_cap.deleted = 0
+INNER JOIN pairs p ON p.image_qid = r_img.questionid AND p.caption_qid = r_cap.questionid
+WHERE r_img.deleted = 0
+ORDER BY r_img.entryid, r_img.questionid;
+```
+
 _(further migrations will be added as we go)_
