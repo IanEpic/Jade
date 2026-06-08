@@ -41,7 +41,7 @@ else
 
         //- ── Portal Flags ─────────────────────────────────────────────────────
         fieldset
-            legend.accordion-legend.collapsed(onclick='toggleAccordion(this)') Portal Flags
+            legend.accordion-legend.collapsed(data-action='toggle-accordion') Portal Flags
             div.accordion-body
                 table.checkbox-table
                     tr
@@ -65,7 +65,7 @@ else
 
         //- ── Default Category Settings ────────────────────────────────────────
         fieldset
-            legend.accordion-legend.collapsed(onclick='toggleAccordion(this)') Default Category Settings
+            legend.accordion-legend.collapsed(data-action='toggle-accordion') Default Category Settings
             div.accordion-body
                 table.checkbox-table
                     tr
@@ -101,7 +101,7 @@ else
 
         //- ── Technical ────────────────────────────────────────────────────────
         fieldset
-            legend.accordion-legend.collapsed(onclick='toggleAccordion(this)') Technical
+            legend.accordion-legend.collapsed(data-action='toggle-accordion') Technical
             div.accordion-body
                 table.tech-table
                     tr
@@ -137,7 +137,7 @@ else
         - var richGroups = [{label:'Login & Download',fields:[{label:'Login Page Text',name:'loginpagetext'},{label:'Download Page Content',name:'downloadpagehtml'}]},{label:'Invoicing & Payments',fields:[{label:'Invoice From Text',name:'invoicefromtext'},{label:'Payment Instructions Text',name:'paymentinstructionstext'},{label:'Remittance Advice Text',name:'remittanceadvicetext'},{label:'Receipt Text',name:'receipttext'}]},{label:'Home Page Text',fields:[{label:'Admin Welcome Text',name:'adminwelcometext'},{label:'Judge Welcome Text',name:'judgewelcometext'},{label:'Finalist Welcome Text',name:'finalistwelcometext'},{label:'Non Finalist Welcome Text',name:'nonfinalistwelcometext'},{label:'Standard Welcome Text',name:'standardwelcometext'}]},{label:"T's and C's",fields:[{label:'Entry Terms & Conditions',name:'entrytctext'},{label:'Judge Terms & Conditions',name:'judgetctext'}]},{label:'Help',fields:[{label:'User Help',name:'userhelptext'},{label:'Judge Help',name:'judgehelptext'},{label:'Judge Contacts',name:'judgecontacttext'}]},{label:'Explanations',fields:[{label:'Text Explaining Scores',name:'scoresexplained'},{label:'Text Explaining Entry Costs',name:'costexplanationtext'}]}]
         each group in richGroups
             fieldset
-                legend.accordion-legend.collapsed(onclick='toggleAccordion(this)')!= group.label
+                legend.accordion-legend.collapsed(data-action='toggle-accordion')!= group.label
                 div.accordion-body
                     each field in group.fields
                         p.rich-label= field.label
