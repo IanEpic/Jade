@@ -808,6 +808,17 @@ DROP TABLE TopMenu;
 
 ---
 
+## 025 — Update standardwelcometext for AEA 2026
+
+**Date applied:** 2026-06-09
+**Purpose:** Rewrites legacy TinyMCE-generated HTML (inline styles, fixed-width
+table, legacy colour spans, `&nbsp;` padding) to clean semantic HTML matching
+the dark theme. Key dates table uses class `entries-intro-table`. Commented-out
+early-bird pricing removed (kept in git history). Applies to programid 1056
+(Australian Event Awards 2026) only.
+
+---
+
 ## 024 — Update downloadpagehtml for AEA 2026
 
 **Date applied:** 2026-06-08
