@@ -6,7 +6,7 @@ style.
     .payments-wrap h2 { text-align: center; color: #c48f06; margin-bottom: 20px; }
     .payments-wrap fieldset { border: 1px solid #555; border-radius: 4px; margin-bottom: 14px; padding: 14px 18px; }
     .payments-wrap legend { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: #c48f06; padding: 0 8px; }
-    .payments-table { width: 100%; min-width: 600px; border-collapse: collapse; }
+    .payments-table { width: 100%; border-collapse: collapse; }
     .payments-table th { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1px solid #555; padding: 6px 10px; text-align: left; color: #c48f06; }
     .payments-table th.r, .payments-table td.r { text-align: right; }
     .payments-table td { padding: 7px 10px; border-bottom: 1px solid #2a2a2a; vertical-align: middle; font-size: 14px; }
@@ -22,11 +22,11 @@ style.
             table.payments-table
                 thead
                     tr
-                        th Receipt No
-                        th Date
-                        th Method
-                        th.r Amount
-                        th Status
+                        th(style='min-width:100px') Receipt No
+                        th(style='min-width:100px') Date
+                        th(style='min-width:120px') Method
+                        th.r(style='min-width:90px') Amount
+                        th(style='min-width:80px') Status
                 tbody
                     each pmt in content.payments
                         if !pmt.ewayCardNumber || (pmt.ewayCardNumber && pmt.ewayTrxnStatus)
