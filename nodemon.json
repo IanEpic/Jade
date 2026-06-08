@@ -1,0 +1,5 @@
+{
+  "watch": ["src"],
+  "ext": "js,mjs,json,pug,styl",
+  "ignore": ["src/styles/**", "public/**"]
+}
