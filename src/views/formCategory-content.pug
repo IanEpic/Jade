@@ -13,8 +13,7 @@ style.
     .cat-form .criteria-row td { padding: 4px; vertical-align: top; }
     .cat-form .link-table td { padding: 3px 8px; }
     .cat-form .note { color: #aaa; font-size: 12px; }
-    .cat-form .form-actions { text-align: center; margin-top: 10px; }
-    .cat-form .form-actions a, .cat-form .form-actions button { margin: 0 6px; }
+    .cat-form .form-actions { display: flex; gap: 10px; justify-content: space-between; align-items: center; border-top: 1px solid #333; margin-top: 18px; padding-top: 14px; }
     .cat-form .accordion-legend { cursor: pointer; user-select: none; display: flex; align-items: center; gap: 6px; }
     .cat-form .accordion-legend::after { content: ' ▾'; font-size: 11px; color: #aaa; }
     .cat-form .accordion-legend.collapsed::after { content: ' ▸'; }
@@ -489,8 +488,8 @@ form.cat-form(method='POST' action='/formCategory')
 
     //- ── Actions ──────────────────────────────────────────────────────────────
     .form-actions
-        a(href='/home?action=categories') < Categories
-        button(type='submit' name='submit' value='Save Category') Save Category
-        if !isNew
-            |
-            button(type='submit' name='submit' value='Preview Form') Preview Form
+        a.btn-secondary(href='/home?action=categories') ‹ Categories
+        .form-actions-right(style='display:flex; gap:8px')
+            if !isNew
+                button.btn-secondary(type='submit' name='submit' value='Preview Form') Preview Form
+            button.btn(type='submit' name='submit' value='Save Category') Save Category
