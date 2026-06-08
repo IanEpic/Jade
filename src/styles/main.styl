@@ -242,11 +242,65 @@ select
 
 // ── Home content area ────────────────────────────────────────────────────────
 .home-content
-  h3
+  max-width 860px
+  margin 0 auto
+
+  h2, h3
     color color-gold
-    font-size 18px
-    margin-bottom 16px
-    text-align center
+    font-size 16px
+    font-weight 600
+    text-transform uppercase
+    letter-spacing 0.05em
+    margin 24px 0 10px
+    padding-bottom 6px
+    border-bottom 1px solid #333
+
+  h2:first-child, h3:first-child
+    margin-top 0
+
+  p
+    color #ccc
+    font-size 14px
+    line-height 1.6
+    margin 0 0 10px
+
+  ul, ol
+    color #ccc
+    font-size 14px
+    line-height 1.7
+    margin 0 0 10px
+    padding-left 22px
+
+  a
+    color color-gold
+    text-decoration none
+    &:hover
+      color color-gold-nav
+      text-decoration underline
+
+  strong
+    color #fff
+
+  table
+    width 100%
+    border-collapse collapse
+    margin-bottom 14px
+    font-size 14px
+
+    td
+      padding 6px 10px
+      border-bottom 1px solid #2a2a2a
+      color #ccc
+      vertical-align top
+
+    td:first-child
+      color #fff
+      font-weight 600
+      white-space nowrap
+      width 180px
+
+    tr:last-child td
+      border-bottom none
 
 // ── Category picker table (New Entry) ────────────────────────────────────────
 .cat-table
