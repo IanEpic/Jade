@@ -245,18 +245,23 @@ select
   max-width 860px
   margin 0 auto
 
+  // Section cards — used by welcome text and other DB-rendered rich text
+  .welcome-section
+    border 1px solid #555
+    border-radius 4px
+    padding 16px 20px 10px
+    margin-bottom 14px
+    box-shadow 0 1px 3px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.07)
+
   h2, h3
     color color-gold
-    font-size 16px
+    font-size 12px
     font-weight 600
     text-transform uppercase
     letter-spacing 0.05em
-    margin 24px 0 10px
-    padding-bottom 6px
+    margin 0 0 12px
+    padding-bottom 8px
     border-bottom 1px solid #333
-
-  h2:first-child, h3:first-child
-    margin-top 0
 
   p
     color #ccc
@@ -264,12 +269,18 @@ select
     line-height 1.6
     margin 0 0 10px
 
+  p:last-child
+    margin-bottom 0
+
   ul, ol
     color #ccc
     font-size 14px
     line-height 1.7
     margin 0 0 10px
     padding-left 22px
+
+  li:last-child
+    margin-bottom 0
 
   a
     color color-gold
@@ -284,11 +295,11 @@ select
   table
     width 100%
     border-collapse collapse
-    margin-bottom 14px
+    margin-bottom 4px
     font-size 14px
 
     td
-      padding 6px 10px
+      padding 5px 10px
       border-bottom 1px solid #2a2a2a
       color #ccc
       vertical-align top
@@ -297,7 +308,7 @@ select
       color #fff
       font-weight 600
       white-space nowrap
-      width 180px
+      width 190px
 
     tr:last-child td
       border-bottom none
