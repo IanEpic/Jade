@@ -104,6 +104,9 @@ app.use('/tinymce', express.static(TINYMCE_ROOT));
 // ── View engine ───────────────────────────────────────────────────────────────
 app.set('view engine', 'pug');
 app.set('views', path.join(__dirname, 'views'));
+// Cache compiled Pug functions — enabled automatically in production but not
+// in development. Enable it always: templates only change on server restart anyway.
+app.enable('view cache');
 
 // ── Template globals ──────────────────────────────────────────────────────────
 // Makes these available in every Pug template without passing them explicitly.
@@ -120,6 +123,17 @@ app.use((req, res, next) => {
 const TEMPLATE_ROOT = process.env.TEMPLATE_ROOT;
 if (!TEMPLATE_ROOT) throw new Error('TEMPLATE_ROOT env var is required');
 
+// Cache shell HTML in memory — these files sit in the OneDrive-backed Apache
+// htdocs folder and never change at runtime; reading them from disk (or OneDrive
+// sync) on every request adds significant latency.
+const shellCache = new Map();
+async function getShell(shellPath) {
+  if (shellCache.has(shellPath)) return shellCache.get(shellPath);
+  const html = await fs.readFile(shellPath, 'utf8');
+  shellCache.set(shellPath, html);
+  return html;
+}
+
 app.use((req, res, next) => {
   res.renderInShell = async (viewName, locals = {}, options = {}) => {
     try {
@@ -131,7 +145,7 @@ app.use((req, res, next) => {
 
       let shell;
       try {
-        shell = await fs.readFile(shellPath, 'utf8');
+        shell = await getShell(shellPath);
       } catch {
         throw new Error(`Template shell not found: ${shellPath}`);
       }

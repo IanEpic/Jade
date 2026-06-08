@@ -4,6 +4,7 @@
 
 import { Router } from 'express';
 import { requireAuth, requireAdmin } from '../middleware/auth.js';
+import { bustProgramCache } from '../services/auth.js';
 import Program  from '../models/Program.js';
 import { getPool, sql } from '../config/database.js';
 
@@ -104,6 +105,7 @@ router.post('/', async (req, res, next) => {
                   WHERE programid = @programid`);
         }
 
+        bustProgramCache(program.slug, program.fqdn);
         res.redirect('/home?action=program&saved=1');
     } catch (err) {
         next(err);

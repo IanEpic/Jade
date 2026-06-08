@@ -5,12 +5,44 @@ import User from '../models/User.js';
 import UserCredential from '../models/UserCredential.js';
 import { checkPassword } from './helpers.js';
 
+// ── Program cache ─────────────────────────────────────────────────────────────
+// Programs are looked up on every request but almost never change at runtime.
+// Cache them in-process for 60 seconds to avoid a DB round-trip per request.
+
+const programCache = new Map(); // slug/host → { program, expiresAt }
+const PROGRAM_CACHE_TTL = 60_000;
+
+function getCached(key) {
+    const entry = programCache.get(key);
+    if (!entry) return null;
+    if (Date.now() > entry.expiresAt) { programCache.delete(key); return null; }
+    return entry.program;
+}
+
+function setCache(key, program) {
+    programCache.set(key, { program, expiresAt: Date.now() + PROGRAM_CACHE_TTL });
+}
+
+// Call this when a program is updated (e.g. from formAdmin) to bust the cache.
+export function bustProgramCache(slug, fqdn) {
+    if (slug) programCache.delete(slug);
+    if (fqdn) programCache.delete(fqdn);
+}
+
 export async function getProgramByHost(hostname) {
-  return Program.findOne({ where: { fqdn: hostname } });
+    const cached = getCached(hostname);
+    if (cached) return cached;
+    const program = await Program.findOne({ where: { fqdn: hostname } });
+    if (program) setCache(hostname, program);
+    return program;
 }
 
 export async function getProgramBySlug(slug) {
-  return Program.findOne({ where: { slug } });
+    const cached = getCached(slug);
+    if (cached) return cached;
+    const program = await Program.findOne({ where: { slug } });
+    if (program) setCache(slug, program);
+    return program;
 }
 
 // Returns { user, credential } on success, null on failure.

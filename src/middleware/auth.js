@@ -40,19 +40,20 @@ export async function requireAuth(req, res, next) {
     }
 
     try {
-        const user = await User.findByPk(req.session.userId, {
-            include: ['program'],
-        });
+        const user = await User.findByPk(req.session.userId);
         if (!user) {
             req.session.destroy();
             return res.redirect('/login');
         }
+        // Attach the already-resolved program from resolveProgram middleware
+        // rather than re-loading it via the association (saves a JOIN per request).
+        if (req.program) user.program = req.program;
 
         if (req.session.emulateUserId) {
             req.realUser = user;
-            req.user = await User.findByPk(req.session.emulateUserId, {
-                include: ['program'],
-            });
+            const emulated = await User.findByPk(req.session.emulateUserId);
+            if (emulated && req.program) emulated.program = req.program;
+            req.user = emulated;
         } else {
             req.user = user;
         }
