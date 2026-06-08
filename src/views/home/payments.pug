@@ -22,11 +22,11 @@ style.
             table.payments-table
                 thead
                     tr
-                        th(style='min-width:100px') Receipt No
-                        th(style='min-width:100px') Date
-                        th(style='min-width:120px') Method
-                        th.r(style='min-width:90px') Amount
-                        th(style='min-width:80px') Status
+                        th Receipt No
+                        th Date
+                        th Method
+                        th.r Amount
+                        th Status
                 tbody
                     each pmt in content.payments
                         if !pmt.ewayCardNumber || (pmt.ewayCardNumber && pmt.ewayTrxnStatus)

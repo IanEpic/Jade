@@ -24,11 +24,11 @@ style.
         table.invoices-table
             thead
                 tr
-                    th(style='min-width:100px') Invoice No
-                    th.r(style='min-width:90px') Owing
-                    th.r(style='min-width:90px') Paid
-                    th.r(style='min-width:90px') Balance
-                    th(style='min-width:120px')
+                    th Invoice No
+                    th.r Owing
+                    th.r Paid
+                    th.r Balance
+                    th
             tbody
                 each inv in content.invoices
                     - let canDelete = content.catsOpenForEntries.length || content.overrideOpen.length
