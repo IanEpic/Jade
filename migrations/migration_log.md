@@ -784,3 +784,35 @@ ORDER BY r_img.entryid, r_img.questionid;
 ```
 
 _(further migrations will be added as we go)_
+
+---
+
+## 023 — Drop TopMenu and TopMenuButton tables
+
+**Date tested:**
+**Purpose:** Top menu buttons are now hardcoded per role in `src/routes/home.js`
+(`buildMenuButtons`). The `TopMenu` and `TopMenuButton` tables are no longer read
+by the Node app and can be removed. No foreign keys reference either table.
+
+```sql
+-- Inspection: confirm rows before dropping (should match the 3 menus / ~18 buttons
+-- you reviewed when hardcoding the values)
+SELECT 'TopMenu' AS tbl, COUNT(*) AS rows FROM TopMenu
+UNION ALL
+SELECT 'TopMenuButton', COUNT(*) FROM TopMenuButton;
+
+-- Drop child table first (buttons reference menus by topmenulistid)
+DROP TABLE TopMenuButton;
+DROP TABLE TopMenu;
+```
+
+---
+
+## 024 — Update downloadpagehtml for AEA 2026
+
+**Date applied:** 2026-06-08
+**Purpose:** Rewrites legacy TinyMCE-generated HTML (inline height styles, align
+attrs, `../wwwref/` paths) to clean semantic HTML matching the new dark theme.
+Sections grouped into styled `.dl-section` divs with `.dl-table` tables.
+All file paths updated from `../wwwref/aeadocs/` to `/wwwref/aeadocs/`.
+Applies to programid 1056 (Australian Event Awards 2026) only.

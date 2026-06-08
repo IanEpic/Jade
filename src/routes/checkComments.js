@@ -12,7 +12,7 @@ router.use(requireAuth);
 
 router.post('/', async (req, res, next) => {
     try {
-        const program = req.user.program;
+        const program = req.program;
         if (!program?.judgingmodelid) return res.json({ ok: true });
 
         const jm = await JudgingModel.findByPk(program.judgingmodelid);

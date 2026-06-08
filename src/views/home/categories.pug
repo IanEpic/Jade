@@ -23,7 +23,7 @@ form(method='POST' action='/formCategory')
     input(type='hidden' name='task' value='reorder')
 
     .cat-toolbar
-        input#cat-search(type='text' placeholder='Search categories…' oninput='filterCats(this.value)')
+        input#cat-search(type='text' placeholder='Search categories…' data-filter='.cat-table tbody tr')
         a(href='/home?action=category') + New Category
 
     table.cat-table
@@ -49,7 +49,7 @@ form(method='POST' action='/formCategory')
                             div.cat-desc= cat.description
                     td.cat-actions
                         a(href='/home?action=category&categoryid=' + cat.categoryid) Edit
-                        a(href='/formCategory?categoryid=' + cat.categoryid + '&action=delete' onclick='return confirm("Delete ' + cat.name + '?")' style='color:#c44') Delete
+                        a(href='/formCategory?categoryid=' + cat.categoryid + '&action=delete' data-confirm='Delete ' + cat.name + '?' style='color:#c44') Delete
                 tr(style='border-bottom:1px solid #333')
                     td(colspan='2')
                     td(style='white-space:nowrap; font-size:12px; color:#aaa; text-align:right')= content.currency((parseFloat(cat.costex)||0) + (parseFloat(cat.gst)||0))
@@ -60,12 +60,6 @@ form(method='POST' action='/formCategory')
     div(style='margin-top:12px')
         button(type='submit') Reorder
 
-script.
-    function filterCats(q) {
-        q = q.toLowerCase();
-        document.querySelectorAll('.cat-table tbody tr').forEach(function(row) {
-            var text = row.textContent.toLowerCase();
-            row.classList.toggle('hidden', q.length > 0 && text.indexOf(q) === -1);
-        });
-    }
+script(src='/js/jade.js')
+script(nonce=nonce).
     document.getElementById('cat-search').focus();

@@ -96,20 +96,5 @@ table
         td Email
         td: input(type='text' name='email' size='50' maxlength='100' value=user.email || '')
 
-script.
-    function checkAddress(form) {
-        const streetVal = form.streetaddressid?.value;
-        const postalVal = form.postaladdressid?.value;
-        document.querySelectorAll('#street-address-fields input')
-            .forEach(f => f.disabled = streetVal !== 'b');
-        document.querySelectorAll('#postal-address-fields input')
-            .forEach(f => f.disabled = postalVal !== 'b');
-    }
-
-    function checkEntrant(form) {
-        const val = form.entrantid?.value;
-        const entrantFields = document.querySelector('#entrant-new-fields');
-        if (entrantFields) entrantFields.style.display = val === 'b' ? '' : 'none';
-    }
-
-    document.addEventListener('DOMContentLoaded', () => checkAddress(document.entryform));
+script(src='/js/jade.js')
+script(src='/js/form-entry.js')

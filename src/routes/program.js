@@ -41,6 +41,7 @@ import viewPageRouter         from './viewPage.js';
 import formDiscountRouter     from './formDiscount.js';
 import switchProgramRouter    from './switchProgram.js';
 import checkCommentsRouter    from './checkComments.js';
+import formEntryFlagsRouter   from './formEntryFlags.js';
 
 const router = Router({ mergeParams: true });
 
@@ -87,6 +88,7 @@ router.use('/formPage',            formPageRouter);
 router.use('/explainscores',       explainscoresRouter);
 router.use('/viewPage',            viewPageRouter);
 router.use('/formDiscount',        formDiscountRouter);
+router.use('/formEntryFlags',      formEntryFlagsRouter);
 router.use('/switch-confirm',      switchProgramRouter);
 
 // ── Compatibility shims ───────────────────────────────────────────────────────

@@ -16,6 +16,7 @@ import Entrant  from '../models/Entrant.js';
 import Address  from '../models/Address.js';
 import { getEntrycost } from '../services/pricing.js';
 import { getPool, sql } from '../config/database.js';
+import { getCriteria, getEligibilityLinks } from '../queries/categoryQueries.js';
 
 const router = Router();
 router.use(requireAuth);
@@ -37,27 +38,6 @@ async function loadFormData(user, category) {
     };
 }
 
-async function getCriteria(categoryId) {
-    const pool = await getPool();
-    const result = await pool.request()
-        .input('categoryId', sql.Int, categoryId)
-        .query(`SELECT * FROM Criteria WHERE categoryid = @categoryId ORDER BY orda, criteriaid`);
-    return result.recordset;
-}
-
-async function getEligibilityLinks(categoryId) {
-    const pool = await getPool();
-    const result = await pool.request()
-        .input('categoryId', sql.Int, categoryId)
-        .query(`
-            SELECT el.eligibilityrule
-            FROM CategoryEligibilityLink cel
-            INNER JOIN Eligibility el ON cel.eligibilityid = el.eligibilityid
-            WHERE cel.categoryid = @categoryId
-              AND el.deleted = 0
-        `);
-    return result.recordset;
-}
 
 async function resolveAddresses(body, userId) {
     let streetAddressId = body.streetaddressid;
@@ -101,7 +81,7 @@ async function resolveAddresses(body, userId) {
 router.get('/', async (req, res, next) => {
     try {
         const user    = req.user;
-        const program = user.program;
+        const program = req.program;
         const entryId = req.query.entryid;
         const action  = req.query.action;
 
@@ -149,7 +129,7 @@ router.get('/', async (req, res, next) => {
 router.post('/', async (req, res, next) => {
     try {
         const user    = req.user;
-        const program = user.program;
+        const program = req.program;
         const body    = req.body;
         const submit  = body.submit || '';
 

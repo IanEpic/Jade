@@ -4,6 +4,7 @@
 //       → show invoice form → POST Create Invoice → show completed invoice
 
 import { Router }           from 'express';
+import { renderInHome }     from './home/homeHelpers.js';
 import { requireAuth }      from '../middleware/auth.js';
 import Invoice              from '../models/Invoice.js';
 import Entry                from '../models/Entry.js';
@@ -120,7 +121,7 @@ function substituteInvoiceNo(text, invoiceNo) {
 router.get('/', async (req, res, next) => {
     try {
         const user    = req.user;
-        const program = user.program;
+        const program = req.program;
         const { invoiceid, action } = req.query;
 
         if (!invoiceid) return res.redirect('/home');
@@ -152,7 +153,7 @@ router.get('/', async (req, res, next) => {
         const totals    = await calcTotals(program, entries, { invoice });
         const invoiceNo = invoiceNumber(program, invoice.invoiceid);
 
-        return res.renderInShell('formInvoice', {
+        return await renderInHome(req, res, 'home/invoice', {
             user, program, invoice, entries, address, totals, invoiceNo,
             pmtInstructions: substituteInvoiceNo(program.paymentinstructionstext, invoiceNo),
             remittance:      substituteInvoiceNo(program.remittanceadvicetext, invoiceNo),
@@ -169,7 +170,7 @@ router.get('/', async (req, res, next) => {
 router.post('/', async (req, res, next) => {
     try {
         const user    = req.user;
-        const program = user.program;
+        const program = req.program;
         const body    = req.body;
 
         // ── Email action ──────────────────────────────────────────────────────
@@ -235,7 +236,7 @@ router.post('/', async (req, res, next) => {
                 ProgramDiscount.count({ where: { programid: program.programid, type: 'code', active: true } }),
             ]);
 
-            return res.renderInShell('formInvoice', {
+            return await renderInHome(req, res, 'home/invoice', {
                 user, program, entries, addresses, totals,
                 invoicee: user.organisation || '',
                 email:    user.email,
@@ -253,7 +254,7 @@ router.post('/', async (req, res, next) => {
                     calcTotals(program, entries, { status: body.status, promoCode: body.promocode }),
                     ProgramDiscount.count({ where: { programid: program.programid, type: 'code', active: true } }),
                 ]);
-                return res.renderInShell('formInvoice', {
+                return await renderInHome(req, res, 'home/invoice', {
                     user, program, entries, addresses, totals,
                     invoicee: body.invoicee, email: body.email,
                     isNew: true, error: 'Please select or enter a postal address.',
@@ -336,7 +337,7 @@ router.post('/', async (req, res, next) => {
                 }
             });
 
-            return res.renderInShell('formInvoice', {
+            return await renderInHome(req, res, 'home/invoice', {
                 user, program, invoice, entries, address, totals, invoiceNo,
                 pmtInstructions: substituteInvoiceNo(program.paymentinstructionstext, invoiceNo),
                 remittance:      substituteInvoiceNo(program.remittanceadvicetext, invoiceNo),

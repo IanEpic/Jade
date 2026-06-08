@@ -28,9 +28,9 @@ style.
 if content.success
     p(style='background:#1a4a1a; color:#fff; padding:8px 12px; border-left:4px solid #4caf50; margin-bottom:14px') Saved.
 
-form(onsubmit='return false')
+form(data-nosubmit)
     .users-toolbar
-        input#user-search(type='text' placeholder='Search by name or email…' oninput='filterUsers(this.value)')
+        input#user-search(type='text' placeholder='Search by name or email…' data-filter='.users-table tbody tr')
         a(href='/register') + New User
 
     table.users-table
@@ -63,37 +63,8 @@ form(onsubmit='return false')
                         if !u.activated
                             button.activate-btn(type='button' data-userid=u.userid title='Activate account' style='background:none;border:none;cursor:pointer;font-size:16px;padding:0 4px;color:#aaa;') ✅
                         if u.judge
-                            a(href='/formUser?action=demote&edituserid=' + u.userid title='Demote judge' onclick='return confirm("Remove all judging data for this user?")') ⬇️
-                        a(href='/formUser?action=delete&edituserid=' + u.userid title='Delete' onclick='return confirm("Delete this user?")' style='color:#c44') ✕
+                            a(href='/formUser?action=demote&edituserid=' + u.userid title='Demote judge' data-confirm='Remove all judging data for this user?') ⬇️
+                        a(href='/formUser?action=delete&edituserid=' + u.userid title='Delete' data-confirm='Delete this user?' style='color:#c44') ✕
 
-script.
-    document.querySelectorAll('.activate-btn').forEach(function(btn) {
-        btn.addEventListener('click', function() {
-            var uid = btn.dataset.userid;
-            fetch('/formUser?action=activate&edituserid=' + uid, {
-                headers: { 'X-Requested-With': 'XMLHttpRequest' },
-            })
-            .then(function(r) { return r.json(); })
-            .then(function(data) {
-                if (data.ok) {
-                    btn.remove();
-                    var row = document.querySelector('.badge-unactivated[data-userid="' + uid + '"]');
-                    // Remove the badge from the name cell
-                    var badges = document.querySelectorAll('.badge-unactivated');
-                    badges.forEach(function(b) {
-                        if (b.closest('tr') === btn.closest('tr')) b.remove();
-                    });
-                }
-            })
-            .catch(function() { alert('Activation failed. Please try again.'); });
-        });
-    });
-
-    function filterUsers(q) {
-        q = q.toLowerCase();
-        document.querySelectorAll('.users-table tbody tr').forEach(function(row) {
-            var text = row.textContent.toLowerCase();
-            row.classList.toggle('hidden', q.length > 0 && text.indexOf(q) === -1);
-        });
-    }
-    document.getElementById('user-search').focus();
+script(src='/js/jade.js')
+script(src='/js/home-users.js')

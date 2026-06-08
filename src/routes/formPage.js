@@ -41,7 +41,7 @@ router.get('/', (req, res) => res.redirect('/home?action=userpages'));
 router.post('/', async (req, res, next) => {
     try {
         const { pageid, name, html, show4user, show4judge, show4admin } = req.body;
-        const program = req.user.program;
+        const program = req.program;
 
         if (!pageid) return res.redirect('/home?action=userpages');
 

@@ -18,8 +18,8 @@ table(width='640')
             td= judge.lastname + ', ' + judge.firstname
             td= judge.email
             td: a(href='/formJudge?judgeid=' + judge.userid) Edit
-            td: a(href='/formUser?edituserid=' + judge.userid + '&action=demote' onclick='return confirm("Demote this judge?")') Demote
-            td: a(href='/formUser?edituserid=' + judge.userid + '&action=delete' onclick='return confirm("Delete?")') Delete
+            td: a(href='/formUser?edituserid=' + judge.userid + '&action=demote' data-confirm='Demote this judge?') Demote
+            td: a(href='/formUser?edituserid=' + judge.userid + '&action=delete' data-confirm='Delete this judge?') Delete
             td: a(href='/formUser?edituserid=' + judge.userid + '&action=disable') Disable
 
     tr

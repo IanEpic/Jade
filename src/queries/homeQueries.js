@@ -438,23 +438,6 @@ export async function getUserPageById({ pageId }) {
     return result.recordset[0] || null;
 }
 
-// ── Top menu queries ──────────────────────────────────────────────────────────
-
-// Loads a top menu and its buttons (equiv of $program->adminmenu->topmenubuttons)
-export async function getTopMenuWithButtons({ topMenuId }) {
-    if (!topMenuId) return [];
-    const pool = await getPool();
-    const result = await pool.request()
-        .input('topMenuId', sql.Int, topMenuId)
-        .query(`
-      SELECT TopMenuButton.*
-      FROM TopMenuButton
-      WHERE topmenuid = @topMenuId
-      ORDER BY topmenubuttonid
-    `);
-    return result.recordset;
-}
-
 // ── Judge allocation queries ──────────────────────────────────────────────────
 
 // Judges assigned to a category (equiv of $category->judges)

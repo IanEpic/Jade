@@ -8,22 +8,13 @@
 //   POST /formEligibility                          → save new or edit, redirect
 
 import { Router } from 'express';
-import { requireAuth } from '../middleware/auth.js';
+import { requireAuth, requireAdmin } from '../middleware/auth.js';
 import Eligibility            from '../models/Eligibility.js';
 import CategoryEligibilityLink from '../models/CategoryEligibilityLink.js';
 import Category               from '../models/Category.js';
 
 const router = Router();
-router.use(requireAuth);
-
-router.use((req, res, next) => {
-    if (!req.user.admin) {
-        return res.renderInShell('formEligibility', {
-            user: req.user, program: req.user.program, error: 'noaccess',
-        });
-    }
-    next();
-});
+router.use(requireAuth, requireAdmin);
 
 async function loadCategories(programId) {
     const cats = await Category.findAll({
@@ -38,7 +29,7 @@ async function loadCategories(programId) {
 router.get('/', async (req, res, next) => {
     try {
         const { eligibilityid, action } = req.query;
-        const program = req.user.program;
+        const program = req.program;
 
         if (eligibilityid && action === 'delete') {
             await Eligibility.update({ deleted: 1 }, { where: { eligibilityid } });
@@ -71,7 +62,7 @@ router.get('/', async (req, res, next) => {
 router.post('/', async (req, res, next) => {
     try {
         const { task, eligibilityid, eligibilityrule, allcats, categories } = req.body;
-        const program = req.user.program;
+        const program = req.program;
 
         // Reorder — fields named like "#<id>" with orda value
         if (task === 'reorder') {
@@ -122,7 +113,7 @@ router.post('/', async (req, res, next) => {
 
 router.post('/create', async (req, res, next) => {
     try {
-        const program = req.user.program;
+        const program = req.program;
         const { eligibilityrule, allcats } = req.body;
         if (!eligibilityrule || !eligibilityrule.trim()) return res.status(400).json({ error: 'Rule text required' });
         const created = await Eligibility.create({

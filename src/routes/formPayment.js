@@ -6,6 +6,7 @@
 
 import { Router }       from 'express';
 import { requireAuth }  from '../middleware/auth.js';
+import { renderInHome } from './home/homeHelpers.js';
 import Invoice          from '../models/Invoice.js';
 import Entry            from '../models/Entry.js';
 import Address          from '../models/Address.js';
@@ -161,7 +162,7 @@ router.get('/', (req, res) => res.redirect('/home'));
 router.post('/', async (req, res, next) => {
     try {
         const user    = req.user;
-        const program = user.program;
+        const program = req.program;
         const body    = req.body;
 
         const entryIds   = Object.keys(body).filter(k => k.startsWith('#ENT#') && body[k] === 'ON').map(k => parseInt(k.replace('#ENT#','')));
@@ -186,7 +187,7 @@ router.post('/', async (req, res, next) => {
                 return res.redirect(`/formPaymentOptions?pmtoption=${body.pmtoption||1}&action=nodata`);
             }
 
-            return res.renderInShell('formPayment', {
+            return renderInHome(req, res, 'home/payment', {
                 user, program, entries, invoices, totals, chargeAmt,
                 pmtoption: body.pmtoption, status: body.status || '',
                 entryIds, invoiceIds, ccYears: CC_YEARS(),
@@ -244,7 +245,7 @@ router.post('/', async (req, res, next) => {
                 let totals   = entryIds.length
                     ? await calcEntryTotals(program, entries, { status: body.status })
                     : calcInvoiceTotals(invoices);
-                return res.renderInShell('formPayment', {
+                return renderInHome(req, res, 'home/payment', {
                     user, program, entries, invoices, totals, chargeAmt,
                     pmtoption: body.pmtoption, status: body.status || '',
                     entryIds, invoiceIds, ccYears: CC_YEARS(),
@@ -298,7 +299,7 @@ router.post('/', async (req, res, next) => {
                 const invoice = await Invoice.findByPk(invoiceId);
                 const address = await Address.findByPk(invoice.postaladdressid);
 
-                return res.renderInShell('formPayment', {
+                return renderInHome(req, res, 'home/payment', {
                     user, program, invoice, invoiceNo, entries, address, totals, paymentid,
                     ewayData, chargeAmt, isForm: false, error: null,
                     receipt: substituteReceiptTokens(program.receipttext, { chargeAmt, ewayData, program }),
@@ -334,7 +335,7 @@ router.post('/', async (req, res, next) => {
                     }
                 }
 
-                return res.renderInShell('formPayment', {
+                return renderInHome(req, res, 'home/payment', {
                     user, program, invoices, allEntries, paymentid,
                     ewayData, chargeAmt, isForm: false, error: null,
                     receipt: substituteReceiptTokens(program.receipttext, { chargeAmt, ewayData, program }),

@@ -128,20 +128,4 @@ form.q-edit-form(method='POST' action='/formQuestion')
         a(href='/home?action=questions&type=entry') < Questions
         button(type='submit') Save Question
 
-script.
-    (function () {
-        var optionTypes  = ['drop down list', 'checkbox', 'radio'];
-        var captionTypes = ['image', 'video'];
-        var typeSelect   = document.querySelector('select[name="inputtype"]');
-        var optFieldset  = typeSelect.closest('form').querySelectorAll('fieldset')[2];
-        var captionRow   = document.getElementById('caption-row');
-
-        function syncOptions() {
-            var val = typeSelect.value;
-            optFieldset.style.display = optionTypes.indexOf(val) !== -1 ? '' : 'none';
-            if (captionRow) captionRow.style.display = captionTypes.indexOf(val) !== -1 ? '' : 'none';
-        }
-
-        typeSelect.addEventListener('change', syncOptions);
-        syncOptions();
-    })();
+script(src='/js/question-edit.js')

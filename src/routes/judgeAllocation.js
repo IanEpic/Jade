@@ -5,7 +5,7 @@
 // then soft-deletes orphaned scores/comments for judges no longer assigned to an entry.
 
 import { Router } from 'express';
-import { requireAuth } from '../middleware/auth.js';
+import { requireAuth, requireAdmin } from '../middleware/auth.js';
 import User             from '../models/User.js';
 import Category         from '../models/Category.js';
 import JudgeEntryLink   from '../models/JudgeEntryLink.js';
@@ -14,16 +14,12 @@ import JudgeComment     from '../models/JudgeComment.js';
 import { getPool, sql } from '../config/database.js';
 
 const router = Router();
-router.use(requireAuth);
-router.use((req, res, next) => {
-    if (!req.user.admin) return res.redirect('/home');
-    next();
-});
+router.use(requireAuth, requireAdmin);
 
 router.post('/', async (req, res, next) => {
     try {
         const user    = req.user;
-        const program = user.program;
+        const program = req.program;
         const body    = req.body;
 
         // ── 1. Delete all existing JudgeEntryLinks for this program ──────────

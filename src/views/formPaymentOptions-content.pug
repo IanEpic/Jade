@@ -1,125 +1,135 @@
 //- formPaymentOptions-content.pug
 
 style.
-    .eb-note { font-size: 12px; color: #c48f06; padding: 6px 10px; border-left: 3px solid #c48f06; margin: 8px 0; display: inline-block; }
+    .invoice-wrap { max-width: 700px; margin: 0 auto; font-size: 14px; }
+    .invoice-wrap h2 { text-align: center; color: #c48f06; margin-bottom: 20px; }
+    .invoice-wrap fieldset { border: 1px solid #555; border-radius: 4px; margin-bottom: 14px; padding: 14px 18px; }
+    .invoice-wrap legend { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: #c48f06; padding: 0 8px; }
+    .invoice-wrap table { border-collapse: collapse; width: 100%; }
+    .invoice-wrap .entry-table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+    .invoice-wrap .entry-table th { font-size: 12px; font-weight: 600; text-transform: uppercase; color: #c48f06; border-bottom: 1px solid #555; padding: 5px 8px; }
+    .invoice-wrap .entry-table th.r, .invoice-wrap .entry-table td.r { text-align: right; }
+    .invoice-wrap .entry-table th.c, .invoice-wrap .entry-table td.c { text-align: center; width: 60px; }
+    .invoice-wrap .entry-table td { padding: 6px 8px; border-bottom: 1px solid #2a2a2a; }
+    .invoice-wrap .eb-note { font-size: 12px; color: #c48f06; margin-top: 8px; padding: 6px 10px; border-left: 3px solid #c48f06; }
+    .invoice-wrap .alert-error { background: #7a2a00; color: #fff; padding: 8px 12px; margin-bottom: 12px; border-left: 4px solid #c44; }
+    .invoice-wrap .form-actions { text-align: center; margin-top: 20px; padding-top: 16px; border-top: 1px solid #333; display: flex; justify-content: center; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .invoice-wrap .radio-list p { margin: 10px 0; line-height: 1.5; }
+    .invoice-wrap .radio-list input[type=radio] { margin-right: 8px; vertical-align: middle; }
 
-if mode === 'closed'
-    p Payments are currently closed.
-    p: a(href='/home') Return Home
+.invoice-wrap
 
-else if mode === 'step1'
-    if alert
-        p!= alert
+    h2 Make Payment
 
-    - let hasInvoices   = unpaidInvoices && unpaidInvoices.length
-    - let hasUninvoiced = uninvoicedEntries && uninvoicedEntries.length
+    if mode === 'closed'
+        p Payments are currently closed.
+        .form-actions
+            a.btn-secondary(href='/home') Return Home
 
-    if !hasInvoices && !hasUninvoiced
-        p You have nothing for which to pay.
-        p: a(href='/home?action=newentry') Click here to create an entry
-    else
-        form(method='POST' action='/formPaymentOptions')
-            b What would you like to do?
-            br
-            table(width='770')
-                if hasInvoices
-                    tr
-                        td
-                            label
-                                input(type='radio' name='pmtoption' value='1')
-                                |  Pay invoices using your credit card
-                if hasUninvoiced
-                    tr
-                        td
-                            label
-                                input(type='radio' name='pmtoption' value='2')
-                                |  Create an invoice for payment by EFT
-                    tr
-                        td
-                            label
-                                input(type='radio' name='pmtoption' value='3')
-                                |  Pay for entries now using your credit card (you will receive an invoice at the conclusion of the payment process)
-                tr
-                    td(colspan='2' align='center')
-                        a(href='/home') Cancel
-                        | &nbsp;
-                        button(type='submit' name='submit' value='Continue') Continue
+    else if mode === 'step1'
+        if alert
+            p.alert-error!= alert
 
-else if mode === 'step2'
-    if alert
-        p!= alert
+        - let hasInvoices   = unpaidInvoices && unpaidInvoices.length
+        - let hasUninvoiced = uninvoicedEntries && uninvoicedEntries.length
 
-    form(method='POST' action=nextAction)
-        input(type='hidden' name='pmtoption' value=pmtoption)
-        input(type='hidden' name='form' value='3')
-
-        p= caption
-        if earlyBird
-            p.eb-note
-                | ★ #{earlyBird.name || 'Early Bird Discount'}: your discount will be applied on the next page.
-        br
-        br
-
-        if pmtoption === 1
-            //- Invoice selection table
-            h3 Invoices requiring payment
-            table(width='640')
-                tr(align='left' valign='top')
-                    td: b Invoice No
-                    td: b Owing
-                    td: b Paid
-                    td: b Balance
-                    td(align='center'): b Pay Now
-                    td: b Delete
-
-                each inv in unpaidInvoices
-                    - let total = (parseFloat(inv.totalex)||0) + (parseFloat(inv.gst)||0) - (parseFloat(inv.partnerdiscount)||0)
-                    - let paid  = parseFloat(inv.paid) || 0
-                    - let balance = total - paid
-                    - let isPaid = balance <= 0
-                    tr
-                        td= inv.invoiceid
-                        td= currency(total)
-                        td= currency(paid)
-                        td= currency(balance)
-                        td(align='center')
-                            input(type='checkbox' name='#INV#' + inv.invoiceid value='ON' checked=!isPaid disabled=isPaid)
-                        td: a(href='/formInvoice?invoiceid=' + inv.invoiceid + '&action=delete' onclick='return confirm("Delete?")') Delete
-
-                tr
-                    td(colspan='6' align='center')
-                        a(href='/home') Cancel
-                        | &nbsp;
-                        button(type='submit' name='submit' value='Continue') Continue
+        if !hasInvoices && !hasUninvoiced
+            p You have nothing for which to pay.
+            .form-actions
+                a.btn-secondary(href='/home?action=newentry') Create an Entry
 
         else
-            //- Entry selection table (options 2 and 3)
-            h3 Unpaid Entries
-            table(width='770')
-                tr(align='left' valign='top')
-                    th Entry No
-                    th Your Reference
-                    th Entrant
-                    th Category
-                    th(align='right') Cost
-                    th(align='right') Add
+            form(method='POST' action='/formPaymentOptions')
+                fieldset
+                    legend Payment Method
+                    .radio-list
+                        if hasInvoices
+                            p
+                                label
+                                    input(type='radio' name='pmtoption' value='1')
+                                    |  Pay invoices using your credit card
+                        if hasUninvoiced
+                            p
+                                label
+                                    input(type='radio' name='pmtoption' value='2')
+                                    |  Create an invoice for payment by EFT
+                            p
+                                label
+                                    input(type='radio' name='pmtoption' value='3')
+                                    |  Pay for entries now using your credit card (you will receive an invoice at the conclusion of the payment process)
+                .form-actions
+                    a.btn-secondary(href='/home') Cancel
+                    button(type='submit' name='submit' value='Continue') Continue
 
-                each entry in allEntries
-                    - let cost = (parseFloat(entry.costex)||0) + (parseFloat(entry.gst)||0)
-                    - let hasInvoice = !!entry.invoiceid
-                    - let disabled = hasInvoice || !cost
-                    if !disabled
-                        tr
-                            td= entry.entryid
-                            td= entry.userref
-                            td= entry.entrantname
-                            td= entry.categoryname
-                            td(align='right')= currency(cost)
-                            td(align='right')
-                                input(type='checkbox' name='#ENT#' + entry.entryid value='ON' checked=!disabled disabled=disabled)
+    else if mode === 'step2'
+        if alert
+            p.alert-error!= alert
 
-                tr
-                    td(colspan='6' align='center')
-                        a(href='/home') Cancel
-                        | &nbsp;
-                        button(type='submit' name='submit' value='Continue') Continue
+        form(method='POST' action=nextAction)
+            input(type='hidden' name='pmtoption' value=pmtoption)
+            input(type='hidden' name='form' value='3')
+
+            if caption
+                p= caption
+            if earlyBird
+                p.eb-note
+                    | ★ #{earlyBird.name || 'Early Bird Discount'}: your discount will be applied on the next page.
+
+            if pmtoption === 1
+                fieldset
+                    legend Invoices Requiring Payment
+                    table.entry-table
+                        thead
+                            tr
+                                th Invoice No
+                                th Owing
+                                th Paid
+                                th Balance
+                                th.c Pay Now
+                                th.c Delete
+                        tbody
+                            each inv in unpaidInvoices
+                                - let total = (parseFloat(inv.totalex)||0) + (parseFloat(inv.gst)||0) - (parseFloat(inv.partnerdiscount)||0)
+                                - let paid  = parseFloat(inv.paid) || 0
+                                - let balance = total - paid
+                                - let isPaid = balance <= 0
+                                tr
+                                    td= inv.invoiceid
+                                    td= currency(total)
+                                    td= currency(paid)
+                                    td= currency(balance)
+                                    td.c
+                                        input(type='checkbox' name='#INV#' + inv.invoiceid value='ON' checked=!isPaid disabled=isPaid)
+                                    td.c
+                                        a(href='/formInvoice?invoiceid=' + inv.invoiceid + '&action=delete' data-confirm='Delete this invoice?') Delete
+
+            else
+                fieldset
+                    legend Unpaid Entries
+                    table.entry-table
+                        thead
+                            tr
+                                th Entry No
+                                th Your Reference
+                                th Entrant
+                                th Category
+                                th.r Cost
+                                th.c Add
+                        tbody
+                            each entry in allEntries
+                                - let cost = (parseFloat(entry.costex)||0) + (parseFloat(entry.gst)||0)
+                                - let hasInvoice = !!entry.invoiceid
+                                - let disabled = hasInvoice || !cost
+                                if !disabled
+                                    tr
+                                        td= entry.entryid
+                                        td= entry.userref
+                                        td= entry.entrantname
+                                        td= entry.categoryname
+                                        td.r= currency(cost)
+                                        td.c
+                                            input(type='checkbox' name='#ENT#' + entry.entryid value='ON' checked=!disabled disabled=disabled)
+
+            .form-actions
+                a.btn-secondary(href='/home') Cancel
+                button(type='submit' name='submit' value='Continue') Continue

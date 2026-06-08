@@ -41,8 +41,8 @@ mixin entryTable(entries, totals)
 style.
     .invoice-wrap { max-width: 700px; margin: 0 auto; font-size: 14px; }
     .invoice-wrap h2 { text-align: center; color: #c48f06; margin-bottom: 16px; }
-    .invoice-wrap fieldset { border: 1px solid #666; border-radius: 4px; margin-bottom: 14px; padding: 12px 18px; }
-    .invoice-wrap legend { font-weight: bold; padding: 0 6px; }
+    .invoice-wrap fieldset { border: 1px solid #555; border-radius: 4px; margin-bottom: 14px; padding: 14px 18px; }
+    .invoice-wrap legend { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: #c48f06; padding: 0 8px; }
     .invoice-wrap table { border-collapse: collapse; width: 100%; }
     .invoice-wrap .form-table td { padding: 5px 8px; vertical-align: middle; }
     .invoice-wrap .form-table td:first-child { text-align: right; white-space: nowrap; width: 1%; padding-right: 12px; }
@@ -56,13 +56,6 @@ style.
     .invoice-wrap .eb-note { font-size: 12px; color: #c48f06; margin-top: 8px; padding: 6px 10px; border-left: 3px solid #c48f06; }
     .invoice-wrap .alert-error { background: #7a2a00; color: #fff; padding: 8px 12px; margin-bottom: 12px; border-left: 4px solid #c44; }
     .invoice-wrap .form-actions { text-align: center; margin-top: 20px; padding-top: 16px; border-top: 1px solid #333; display: flex; justify-content: center; align-items: center; gap: 10px; flex-wrap: wrap; }
-    .invoice-wrap .btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 18px; font-size: 14px; border-radius: 3px; cursor: pointer; text-decoration: none; border: none; transition: all 0.2s; font-family: inherit; }
-    .invoice-wrap .btn-primary { background: #c48f06; color: #000; font-weight: 600; }
-    .invoice-wrap .btn-primary:hover { background: #ffba01; color: #000; }
-    .invoice-wrap .btn-secondary { background: transparent; color: #ccc; border: 1px solid #555; }
-    .invoice-wrap .btn-secondary:hover { border-color: #c48f06; color: #c48f06; }
-    .invoice-wrap .btn-danger { background: transparent; color: #c44; border: 1px solid #c44; }
-    .invoice-wrap .btn-danger:hover { background: #c44; color: #fff; }
     .invoice-wrap .invoice-header { display: flex; justify-content: space-between; margin-bottom: 16px; }
     .invoice-wrap .invoice-header .from { text-align: right; font-size: 13px; }
     .invoice-wrap .invoice-meta { font-size: 13px; color: #aaa; margin-bottom: 12px; }
@@ -104,7 +97,7 @@ style.
                     tr
                         td Postal Address
                         td
-                            select(name='postaladdressid' onchange='toggleNewAddr(this.value)')
+                            select(name='postaladdressid')
                                 option(value='a') — Please Select —
                                 each addr in addresses
                                     option(value=addr.addressid selected=(addr.addressid == user.postaladdressid))
@@ -135,8 +128,8 @@ style.
                 +entryTable(entries, totals)
 
             .form-actions
-                a.btn.btn-secondary(href='/home') Cancel
-                button.btn.btn-primary(type='submit') Create Invoice
+                a.btn-secondary(href='/home') Cancel
+                button(type='submit') Create Invoice
 
     else
         //- ── Completed invoice view ───────────────────────────────────────────
@@ -167,10 +160,10 @@ style.
 
         if !forEmail
             .form-actions
-                a.btn.btn-secondary(href='/home') ← Home
-                button.btn.btn-primary(type='button' onclick='showEmailModal()') 📧 Email Invoice
-                button.btn.btn-secondary(onclick='window.print()' type='button') 🖨 Print
-                a.btn.btn-danger(href='/formInvoice?invoiceid=' + invoice.invoiceid + '&action=delete' onclick='return confirm("Delete this invoice?")') 🗑 Delete
+                a.btn-secondary(href='/home') Home
+                button(type='button' data-action='show-email-modal') 📧 Email Invoice
+                button(type='button' data-action='print') 🖨 Print
+                a.btn-danger(href='/formInvoice?invoiceid=' + invoice.invoiceid + '&action=delete' data-confirm='Delete this invoice?') 🗑 Delete
 
             //- Email modal
             #email-modal(style='display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:1000; align-items:center; justify-content:center;')
@@ -181,21 +174,7 @@ style.
                         p(style='font-size:13px; margin-bottom:8px') Send to:
                         input#email-input(type='email' name='emailto' value=invoice.email style='width:100%; box-sizing:border-box; background:#111; color:#fff; border:1px solid #555; padding:8px; font-size:14px; margin-bottom:14px;')
                         div(style='display:flex; gap:10px; justify-content:flex-end;')
-                            button.btn.btn-secondary(type='button' onclick='hideEmailModal()') Cancel
+                            button.btn-secondary(type='button' data-action='hide-email-modal') Cancel
                             button.btn.btn-primary(type='submit') Send
 
-script.
-    function toggleNewAddr(val) {
-        document.getElementById('new-addr-row').style.display = val === 'b' ? '' : 'none';
-    }
-    function showEmailModal() {
-        var m = document.getElementById('email-modal');
-        m.style.display = 'flex';
-        document.getElementById('email-input').focus();
-    }
-    function hideEmailModal() {
-        document.getElementById('email-modal').style.display = 'none';
-    }
-    document.getElementById('email-modal').addEventListener('click', function(e) {
-        if (e.target === this) hideEmailModal();
-    });
+script(src='/js/form-invoice.js')

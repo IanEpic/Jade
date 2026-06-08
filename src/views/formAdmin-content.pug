@@ -148,22 +148,5 @@ else
             a(href='/home') Cancel
             button(type='submit' name='submit' value='Save Program') Save Program
 
-    script.
-        function toggleAccordion(legend) {
-            var body = legend.nextElementSibling;
-            var collapsed = body.style.display === 'none' || body.style.display === '';
-            body.style.display = collapsed ? 'block' : 'none';
-            legend.classList.toggle('collapsed', !collapsed);
-        }
     script(src='https://cdn.tiny.cloud/1/t5u2zqqe9s1ltcgp3yrcdormdh3wb2qaquf31suupv3rupdw/tinymce/7/tinymce.min.js' referrerpolicy='origin')
-    script.
-        tinymce.init({
-            selector: 'textarea.mceEditor',
-            plugins: 'anchor autolink lists link image table code fullscreen',
-            toolbar: 'undo redo | blocks | bold italic underline | forecolor backcolor | alignleft aligncenter alignright | bullist numlist | link image table | code fullscreen',
-            menubar: false,
-            height: 250,
-            skin: 'oxide-dark',
-            content_css: 'dark',
-            promotion: false,
-        });
+    script(src='/js/form-admin.js')

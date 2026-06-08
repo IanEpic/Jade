@@ -25,7 +25,7 @@ form(method='POST' action='/formEligibility')
     input(type='hidden' name='task' value='reorder')
 
     .el-toolbar
-        input#el-search(type='text' placeholder='Search eligibility rules…' oninput='filterEl(this.value)')
+        input#el-search(type='text' placeholder='Search eligibility rules…' data-filter='.el-table tbody tr')
         a#btn-new-el(href='#') + New Eligibility Rule
 
     div#new-el-form(style='display:none; margin-bottom:16px; padding:12px; background:#111; border:1px solid #555; border-radius:4px; max-width:600px')
@@ -60,56 +60,10 @@ form(method='POST' action='/formEligibility')
                     td: input(type='text' name='#' + el.eligibilityid value=i+1)
                     td.el-actions
                         a(href='/home?action=eligibility&eligibilityid=' + el.eligibilityid) Edit
-                        a(href='/formEligibility?eligibilityid=' + el.eligibilityid + '&action=delete' onclick='return confirm("Delete ' + el.eligibilityid + '?")' style='color:#c44') Delete
+                        a(href='/formEligibility?eligibilityid=' + el.eligibilityid + '&action=delete' data-confirm='Delete eligibility rule ' + el.eligibilityid + '?' style='color:#c44') Delete
 
     div(style='margin-top:12px')
         button(type='submit') Reorder
 
-script.
-    function filterEl(q) {
-        q = q.toLowerCase();
-        document.querySelectorAll('.el-table tbody tr').forEach(function(row) {
-            row.classList.toggle('hidden', q.length > 0 && row.textContent.toLowerCase().indexOf(q) === -1);
-        });
-    }
-    document.getElementById('el-search').focus();
-
-    (function () {
-        var btn    = document.getElementById('btn-new-el');
-        var form   = document.getElementById('new-el-form');
-        var text   = document.getElementById('new-el-text');
-        var allcat = document.getElementById('new-el-allcats');
-        var save   = document.getElementById('new-el-save');
-        var cancel = document.getElementById('new-el-cancel');
-        var err    = document.getElementById('new-el-error');
-
-        btn.addEventListener('click', function (e) {
-            e.preventDefault();
-            form.style.display = 'block';
-            text.focus();
-        });
-
-        cancel.addEventListener('click', function (e) {
-            e.preventDefault();
-            form.style.display = 'none';
-            text.value = ''; allcat.value = '0';
-            err.style.display = 'none';
-        });
-
-        save.addEventListener('click', function () {
-            var val = text.value.trim();
-            if (!val) { err.textContent = 'Rule text required.'; err.style.display = ''; return; }
-            save.disabled = true; save.textContent = 'Saving…'; err.style.display = 'none';
-            fetch((window.JADE_BASE || '') + '/formEligibility/create', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: 'eligibilityrule=' + encodeURIComponent(val) + '&allcats=' + encodeURIComponent(allcat.value),
-            })
-            .then(function (r) { return r.json(); })
-            .then(function (data) {
-                if (data.error) { err.textContent = data.error; err.style.display = ''; save.disabled = false; save.textContent = 'Add Rule'; return; }
-                window.location.href = data.editUrl || '/home?action=eligibility&eligibilityid=' + data.eligibilityid;
-            })
-            .catch(function () { err.textContent = 'Failed to create rule.'; err.style.display = ''; save.disabled = false; save.textContent = 'Add Rule'; });
-        });
-    })();
+script(src='/js/jade.js')
+script(src='/js/home-eligibility.js')

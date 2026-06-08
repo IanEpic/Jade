@@ -3,7 +3,7 @@
 // Admin-only program settings page — controls phase flags, menus, and all rich-text fields.
 
 import { Router } from 'express';
-import { requireAuth } from '../middleware/auth.js';
+import { requireAuth, requireAdmin } from '../middleware/auth.js';
 import Program  from '../models/Program.js';
 import { getPool, sql } from '../config/database.js';
 
@@ -18,12 +18,7 @@ function buildSmtpJson(body, program) {
     if (port) obj.port = port;
     return JSON.stringify(obj);
 }
-router.use(requireAuth);
-
-router.use((req, res, next) => {
-    if (!req.user.admin) return res.redirect('/home');
-    next();
-});
+router.use(requireAuth, requireAdmin);
 
 // ── GET /formAdmin ─────────────────────────────────────────────────────────────
 // Program settings are now served within the home framework at home?action=program

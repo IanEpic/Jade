@@ -2,7 +2,7 @@
 // Equivalent of formCategory.cgi
 
 import { Router } from 'express';
-import { requireAuth } from '../middleware/auth.js';
+import { requireAuth, requireAdmin } from '../middleware/auth.js';
 import Category             from '../models/Category.js';
 import Question             from '../models/Question.js';
 import InputOption          from '../models/InputOption.js';
@@ -13,12 +13,7 @@ import Eligibility             from '../models/Eligibility.js';
 import { getPool, sql }     from '../config/database.js';
 
 const router = Router();
-router.use(requireAuth);
-
-router.use((req, res, next) => {
-    if (!req.user.admin) return res.redirect('/home');
-    next();
-});
+router.use(requireAuth, requireAdmin);
 
 // ── GET /formCategory ─────────────────────────────────────────────────────────
 // Category form is now served within the home framework at home?action=category.
@@ -40,7 +35,7 @@ router.get('/', async (req, res, next) => {
 router.post('/', async (req, res, next) => {
     try {
         const user    = req.user;
-        const program = user.program;
+        const program = req.program;
         const body    = req.body;
         const bool    = (k) => body[k] ? 1 : 0;
         let categoryid = body.categoryid ? parseInt(body.categoryid) : null;
@@ -159,7 +154,7 @@ router.post('/', async (req, res, next) => {
 
 router.post('/create-eligibility', async (req, res, next) => {
     try {
-        const program = req.user.program;
+        const program = req.program;
         const { eligibilityrule } = req.body;
         if (!eligibilityrule || !eligibilityrule.trim()) return res.status(400).json({ error: 'Rule text required' });
         const e = await Eligibility.create({
@@ -177,7 +172,7 @@ router.post('/create-eligibility', async (req, res, next) => {
 
 router.post('/create-question', async (req, res, next) => {
     try {
-        const program = req.user.program;
+        const program = req.program;
         const { questiontext, questiontype, description, options } = req.body;
         if (!questiontext || !questiontext.trim()) return res.status(400).json({ error: 'Question text required' });
         const q = await Question.create({

@@ -141,16 +141,4 @@ form.user-form(method='POST' action='/formUser')
         a(href='/home') Cancel
         button(type='submit' name='submit' value='Update User') Save Changes
 
-script.
-    function toggleNewAddress(val) {
-        document.getElementById('new-address-row').style.display = val === 'b' ? '' : 'none';
-    }
-    // Show/hide judge categories when judge checkbox toggled
-    var judgecb = document.getElementById('isjudge-cb');
-    var judgeFs = document.getElementById('judge-cats-fieldset');
-    if (judgecb && judgeFs) {
-        judgeFs.style.display = judgecb.checked ? '' : 'none';
-        judgecb.addEventListener('change', function() {
-            judgeFs.style.display = this.checked ? '' : 'none';
-        });
-    }
+script(src='/js/user-edit.js')

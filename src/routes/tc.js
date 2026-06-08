@@ -15,7 +15,7 @@ router.use(requireAuth);
 router.get('/', async (req, res, next) => {
     try {
         const user    = req.user;
-        const program = user.program;
+        const program = req.program;
         const type    = req.query.type || '';
         const cat     = req.query.cat  || '';
 

@@ -24,6 +24,8 @@ style.
     .resp-wrap .file-current a { color: #c48f06; }
     .resp-wrap .btn-dz-remove { margin-left: 10px; background: transparent; color: #c44; border: 1px solid #c44; border-radius: 3px; padding: 2px 8px; font-size: 11px; cursor: pointer; margin-top: 6px; display: inline-block; }
     .resp-wrap .btn-dz-remove:hover { background: #c44; color: #fff; }
+    .resp-wrap .dz-stop-btn { display: none; margin-top: 6px; background: transparent; color: #888; border: 1px solid #555; border-radius: 3px; padding: 2px 10px; font-size: 11px; cursor: pointer; }
+    .resp-wrap .dz-stop-btn:hover { border-color: #c44; color: #c44; }
     .resp-wrap .dropzone { border: 2px dashed #555; border-radius: 6px; padding: 20px; text-align: center; cursor: pointer; transition: all 0.2s; position: relative; margin-top: 6px; }
     .resp-wrap .dropzone:hover, .resp-wrap .dropzone.drag-over { border-color: #c48f06; background: rgba(196,143,6,0.06); }
     .resp-wrap .dropzone.uploaded { border-color: #4caf50; border-style: solid; }
@@ -47,6 +49,7 @@ style.
     .resp-wrap .btn-undo { background: transparent; color: #c48f06; border: 1px solid #c48f06; border-radius: 3px; padding: 1px 6px; font-size: 11px; cursor: pointer; margin-left: 6px; vertical-align: middle; }
     .resp-wrap .btn-undo:hover { background: #c48f06; color: #000; }
     .resp-wrap .form-actions { display: flex; justify-content: center; gap: 12px; margin-top: 20px; padding-top: 16px; border-top: 1px solid #333; align-items: center; }
+    .resp-wrap .form-actions .btn { text-decoration: none; }
     .resp-wrap .closed-msg { text-align: center; color: #aaa; padding: 20px; }
 
 .resp-wrap
@@ -97,18 +100,18 @@ style.
                         if q.inputtype === 'textfield'
                             - const tfWidth = q.inputwidth ? q.inputwidth + 'ch' : '600px'
                             input(type='text' name=fieldbase+'tf' value=respval style=('width:' + tfWidth))
-                            button.btn-undo(type='button' style='display:none' onclick='undoField(this)') ↩ Undo
+                            button.btn-undo(type='button' style='display:none' data-action='undo') ↩ Undo
                         else if q.inputtype === 'textarea'
                             if q.maxsize
                                 .word-limit Word limit: #{q.maxsize} words
                             - const taname = fieldbase + 'ta'
-                            textarea(name=taname rows=q.inputheight||6 style='width:100%' onkeyup='countWords(this,' + q.maxsize + ');trackChange(this)')= respval
+                            textarea(name=taname rows=q.inputheight||6 style='width:100%' data-wordlimit=(q.maxsize || 0))= respval
                             .word-count
                                 if q.maxsize
                                     | Word count:&nbsp;
                                     input(type='text' name=taname+'c' value=respval ? respval.trim().split(/\s+/).filter(Boolean).length : 0 readonly)
                                     | &nbsp;
-                                button.btn-undo(type='button' style='display:none' onclick='undoField(this)') ↩ Undo
+                                button.btn-undo(type='button' style='display:none' data-action='undo') ↩ Undo
                         else if q.inputtype === 'checkbox'
                             - const cbopts = q.options || []
                             - const cbvals = respval ? respval.split('~') : []
@@ -143,8 +146,9 @@ style.
                                             = respval
                                     else
                                         span.dz-filename
-                                    button.btn-dz-remove(type='button' onclick='removeFile(event,this)') ✕ Remove
+                                    button.btn-dz-remove(type='button' data-action='remove-file') ✕ Remove
                                 .dz-bar(style='display:none'): .dz-bar-fill
+                                button.dz-stop-btn(type='button' data-action='stop-upload') ✕ Stop upload
                                 .dz-err(style='display:none')
                         else if q.inputtype === 'image'
                             - const imHidden = fieldbase + 'im'
@@ -161,8 +165,9 @@ style.
                                         img.dz-thumb(src='/formResponses/image?responseid='+resp.responseid)
                                     else
                                         img.dz-thumb
-                                    button.btn-dz-remove(type='button' onclick='removeFile(event,this)') ✕ Remove
+                                    button.btn-dz-remove(type='button' data-action='remove-file') ✕ Remove
                                 .dz-bar(style='display:none'): .dz-bar-fill
+                                button.dz-stop-btn(type='button' data-action='stop-upload') ✕ Stop upload
                                 .dz-err(style='display:none')
                             if q.captionlabel
                                 .question-desc(style='margin-top:10px')!= q.captionlabel
@@ -179,8 +184,9 @@ style.
                                         video.dz-video-player(src='/formResponses/video?responseid='+resp.responseid controls preload='metadata' style='max-width:100%;max-height:200px;display:block;margin-bottom:4px;')
                                     else
                                         video.dz-video-player(controls preload='metadata' style='max-width:100%;max-height:200px;display:none;margin-bottom:4px;')
-                                    button.btn-dz-remove(type='button' onclick='removeFile(event,this)') ✕ Remove
+                                    button.btn-dz-remove(type='button' data-action='remove-file') ✕ Remove
                                 .dz-bar(style='display:none'): .dz-bar-fill
+                                button.dz-stop-btn(type='button' data-action='stop-upload') ✕ Stop upload
                                 .dz-err(style='display:none')
                             if q.captionlabel
                                 .question-desc(style='margin-top:10px')!= q.captionlabel
@@ -188,395 +194,15 @@ style.
 
             p.save-status#save-status
 
-            #upload-progress(style='display:none; background:#1a1a1a; border:1px solid #c48f06; border-radius:4px; padding:10px 14px; margin-bottom:12px; color:#c48f06; font-size:13px; text-align:center;')
-                | ⏳ Upload in progress — please wait before navigating away…
+            #upload-progress(style='display:none; background:#1a1a1a; border:1px solid #c48f06; border-radius:4px; padding:10px 14px; margin-bottom:12px;')
+                p(style='color:#c48f06; font-size:13px; text-align:center; margin:0 0 7px;') ⏳ Upload in progress — please wait before navigating away…
+                div(style='height:8px; background:#333; border-radius:4px; overflow:hidden;')
+                    #upload-progress-fill(style='height:100%; background:#c48f06; width:0; transition:width 0.25s ease;')
+                p#upload-progress-label(style='text-align:center; font-size:11px; color:#aaa; margin:5px 0 0;') 0%
 
             .form-actions
-                a(href='/home' style='padding: 9px 20px;') Home
-                button(type='button' id='btn-save' onclick='saveResponses()') Save
-                a(href='/viewEntry?entryid=' + entry.entryid style='padding:4px 12px; border:1px solid #aaa; border-radius:3px; text-decoration:none; color:#ccc;') Review &amp; Finalise
+                a(href='/home') Home
+                button(type='button' id='btn-save' data-action='save') Save
+                a.btn(href='/viewEntry?entryid=' + entry.entryid) Review &amp; Finalise
 
-script.
-    // ── Upload activity tracker ───────────────────────────────────────────────
-    var _uploadsInFlight = 0;
-
-    function uploadStarted() {
-        _uploadsInFlight++;
-        setUploadBusy(true);
-    }
-
-    function uploadFinished() {
-        _uploadsInFlight = Math.max(0, _uploadsInFlight - 1);
-        if (_uploadsInFlight === 0) setUploadBusy(false);
-    }
-
-    function setUploadBusy(busy) {
-        var btn      = document.getElementById('btn-save');
-        var links    = document.querySelectorAll('.form-actions a');
-        var status   = document.getElementById('save-status');
-        var progress = document.getElementById('upload-progress');
-        if (busy) {
-            if (btn) { btn.disabled = true; btn.title = 'Waiting for uploads to complete…'; }
-            links.forEach(function(a) { a.dataset.href = a.href; a.removeAttribute('href'); a.style.opacity = '0.5'; a.style.cursor = 'not-allowed'; });
-            if (status) status.innerHTML = '';
-            if (progress) progress.style.display = '';
-        } else {
-            if (btn) { btn.disabled = false; btn.title = ''; }
-            links.forEach(function(a) { if (a.dataset.href) { a.href = a.dataset.href; delete a.dataset.href; } a.style.opacity = ''; a.style.cursor = ''; });
-            if (progress) progress.style.display = 'none';
-        }
-    }
-
-    // Warn if user tries to leave the page while uploads are in progress
-    window.addEventListener('beforeunload', function(e) {
-        if (_uploadsInFlight > 0) {
-            e.preventDefault();
-            e.returnValue = 'Uploads are still in progress. If you leave now your files may not be saved.';
-        }
-    });
-
-    // ── Word count ────────────────────────────────────────────────────────────
-    function countWords(ta, limit) {
-        var words = ta.value.trim().split(/\s+/).filter(Boolean);
-        var cnt = words.length;
-        var cntField = document.querySelector('[name="' + ta.name + 'c"]');
-        if (cntField) cntField.value = cnt;
-        if (limit && cnt > limit) ta.style.borderColor = '#c44';
-        else ta.style.borderColor = '';
-    }
-
-    // ── File type icon ────────────────────────────────────────────────────────
-    var _iconColors = {pdf:'#e74c3c',doc:'#2980b9',docx:'#2980b9',xls:'#27ae60',xlsx:'#27ae60',ppt:'#e67e22',pptx:'#e67e22',zip:'#8e44ad',rar:'#8e44ad','7z':'#8e44ad',csv:'#16a085',txt:'#7f8c8d'};
-    function fileIconHtml(filename) {
-        var ext = (filename || '').split('.').pop().toLowerCase();
-        var color = _iconColors[ext] || '#555';
-        var label = ext ? ext.toUpperCase() : 'FILE';
-        return '<span class="dz-file-icon" style="background:' + color + '">' + label + '</span>' + filename;
-    }
-
-    // ── Dropzone wiring ───────────────────────────────────────────────────────
-    document.querySelectorAll('.dropzone').forEach(function(dz) {
-        var input       = dz.querySelector('.dz-input');
-        var preview     = dz.querySelector('.dz-preview');
-        var bar         = dz.querySelector('.dz-bar');
-        var barFill     = dz.querySelector('.dz-bar-fill');
-        var errEl       = dz.querySelector('.dz-err');
-        var dzText      = dz.querySelector('.dz-text');
-        var type        = dz.dataset.type;           // 'file', 'image', 'video'
-        var hiddenName  = dz.dataset.field;
-        var hiddenInput = document.querySelector('input[name="' + hiddenName + '"]');
-
-        // Drag visual feedback
-        dz.addEventListener('dragover', function(e) {
-            e.preventDefault();
-            dz.classList.add('drag-over');
-        });
-        dz.addEventListener('dragleave', function(e) {
-            if (!dz.contains(e.relatedTarget)) dz.classList.remove('drag-over');
-        });
-        dz.addEventListener('drop', function(e) {
-            e.preventDefault();
-            dz.classList.remove('drag-over');
-            var files = e.dataTransfer.files;
-            if (files.length) handleFile(files[0]);
-        });
-
-        // Click on dropzone opens file picker, unless clicking a video player or remove button
-        dz.addEventListener('click', function(e) {
-            if (!e.target.closest('.dz-video-player') && !e.target.closest('.btn-dz-remove')) input.click();
-        });
-
-
-        input.addEventListener('change', function() {
-            if (input.files.length) handleFile(input.files[0]);
-        });
-
-
-        function handleFile(file) {
-            // If a pending file is already on disk, delete it before uploading the replacement
-            if (dz.dataset.pendingFile) {
-                fetch(window.JADE_BASE+'/formResponses/delete-pending', {
-                    method:  'POST',
-                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                    body:    'filename=' + encodeURIComponent(dz.dataset.pendingFile) + '&type=' + encodeURIComponent(type),
-                }).catch(function(e) { console.warn('delete-pending (replace) failed:', e); });
-                dz.dataset.pendingFile = '';
-            }
-
-            errEl.style.display  = 'none';
-            errEl.textContent    = '';
-            bar.style.display    = 'block';
-            barFill.style.width  = '0';
-
-            // Show uploading placeholder for images
-            var uploadingEl = preview.querySelector('.dz-uploading');
-            var thumb       = preview.querySelector('.dz-thumb');
-            if (uploadingEl && type === 'image') {
-                if (thumb) thumb.style.display = 'none';
-                uploadingEl.classList.add('active');
-                preview.style.display = 'block';
-            } else {
-                preview.style.display = 'none';
-            }
-
-            var fd = new FormData();
-            fd.append('file', file);
-
-            var xhr = new XMLHttpRequest();
-            uploadStarted();
-
-            xhr.upload.addEventListener('progress', function(e) {
-                if (e.lengthComputable) {
-                    barFill.style.width = Math.round(e.loaded / e.total * 100) + '%';
-                }
-            });
-
-            xhr.addEventListener('load', function() {
-                bar.style.display = 'none';
-                if (uploadingEl) uploadingEl.classList.remove('active');
-                if (thumb) thumb.style.display = '';
-                try {
-                    var r = JSON.parse(xhr.responseText);
-                    if (r.status === 'OK') {
-                        hiddenInput.value      = r.filename;
-                        dz.dataset.pendingFile = r.filename;
-                        dz.classList.add('uploaded');
-                        showPreview(r, file);
-                        // Auto-save the response to DB — keep busy until this completes too
-                        fetch(window.JADE_BASE+'/formResponses/save-file', {
-                            method:  'POST',
-                            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                            body:    'entryid='     + encodeURIComponent(dz.dataset.entryid) +
-                                     '&questionid=' + encodeURIComponent(dz.dataset.qid) +
-                                     '&filename='   + encodeURIComponent(r.filename),
-                        })
-                        .then(function(res) { return res.json(); })
-                        .then(function(saved) {
-                            if (saved.status === 'OK') {
-                                dz.dataset.responseid  = saved.responseid;
-                                dz.dataset.pendingFile = '';
-                            } else {
-                                console.warn('save-file error:', saved.status);
-                            }
-                        })
-                        .catch(function(e) { console.warn('save-file failed:', e); })
-                        .finally(function() { uploadFinished(); });
-                    } else {
-                        uploadFinished();
-                        showErr(r.msg || r.status);
-                    }
-                } catch(ex) {
-                    uploadFinished();
-                    showErr('Unexpected server error');
-                }
-            });
-
-            xhr.addEventListener('error', function() {
-                bar.style.display = 'none';
-                if (uploadingEl) uploadingEl.classList.remove('active');
-                if (thumb) thumb.style.display = '';
-                uploadFinished();
-                showErr('Upload failed — check your connection and try again');
-            });
-
-            xhr.open('POST', window.JADE_BASE+'/formResponses/upload?type=' + encodeURIComponent(type));
-            xhr.send(fd);
-        }
-
-        function showPreview(r, file) {
-            preview.style.display = 'block';
-            if (type === 'image') {
-                var img = preview.querySelector('.dz-thumb');
-                if (img) img.src = URL.createObjectURL(file);
-            } else if (type === 'video') {
-                var vid = preview.querySelector('.dz-video-player');
-                if (vid) { vid.src = URL.createObjectURL(file); vid.style.display = 'block'; }
-            } else {
-                var fnEl = preview.querySelector('.dz-filename');
-                if (fnEl) fnEl.innerHTML = fileIconHtml(r.originalname || r.filename);
-            }
-            if (dzText) dzText.textContent = 'Click or drop to replace';
-        }
-
-        function showErr(msg) {
-            errEl.textContent    = '✗ ' + msg;
-            errEl.style.display  = 'block';
-            dz.classList.remove('uploaded');
-        }
-    });
-
-    // ── Remove file — handles both saved (DB) and pending (just dropped) ─────
-    function removeFile(e, btn) {
-        e.stopPropagation();
-        e.preventDefault();
-        var dz          = btn.closest('.dropzone');
-        var responseid  = dz.dataset.responseid;
-        var hiddenName  = dz.dataset.field;
-        var hiddenInput = document.querySelector('input[name="' + hiddenName + '"]');
-
-        function resetDropzone() {
-            var preview = dz.querySelector('.dz-preview');
-            var dzText  = dz.querySelector('.dz-text');
-            var img     = preview.querySelector('.dz-thumb');
-            var fn      = preview.querySelector('.dz-filename');
-            if (img) { img.src = ''; img.style.display = ''; }
-            var vid = preview.querySelector('.dz-video-player');
-            if (vid) { vid.src = ''; vid.style.display = 'none'; }
-            var uploadingEl = preview.querySelector('.dz-uploading');
-            if (uploadingEl) uploadingEl.classList.remove('active');
-            if (fn)  { fn.textContent = ''; if (fn.tagName === 'A') { fn.removeAttribute('href'); fn.textContent = ''; } }
-            var removeBtn = preview.querySelector('.btn-dz-remove');
-            if (removeBtn) { removeBtn.disabled = false; removeBtn.textContent = '✕ Remove'; }
-            preview.style.display = 'none';
-            dz.classList.remove('uploaded');
-            dz.dataset.responseid  = '';
-            dz.dataset.pendingFile = '';
-            if (hiddenInput) hiddenInput.value = '';
-            if (dzText) dzText.textContent = dz.dataset.type === 'image'
-                ? 'Drop an image here or click to browse'
-                : dz.dataset.type === 'video'
-                ? 'Drop a video here or click to browse'
-                : 'Drop a file here or click to browse';
-        }
-
-        if (responseid) {
-            // Saved in DB — soft-delete on server first
-            btn.disabled    = true;
-            btn.textContent = '…';
-            fetch(window.JADE_BASE+'/formResponses/delete-file', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: 'responseid=' + encodeURIComponent(responseid)
-            })
-                .then(function(r) { return r.json(); })
-                .then(function(r) {
-                    if (r.status === 'OK') {
-                        resetDropzone();
-                    } else {
-                        btn.disabled    = false;
-                        btn.textContent = '✕ Remove';
-                        alert('Could not delete file: ' + (r.msg || r.status));
-                    }
-                })
-                .catch(function() {
-                    btn.disabled    = false;
-                    btn.textContent = '✕ Remove';
-                    alert('Network error — please try again');
-                });
-        } else if (dz.dataset.pendingFile) {
-            // Uploaded this session but not yet saved — delete the file from disk
-            var pendingFile = dz.dataset.pendingFile;
-            var type        = dz.dataset.type;
-            resetDropzone();  // reset UI immediately, don't wait for server
-            fetch(window.JADE_BASE+'/formResponses/delete-pending', {
-                method:  'POST',
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body:    'filename=' + encodeURIComponent(pendingFile) + '&type=' + encodeURIComponent(type),
-            }).catch(function(e) { console.warn('delete-pending failed:', e); });
-        } else {
-            // Nothing uploaded yet — just reset UI
-            resetDropzone();
-        }
-    }
-
-    // ── Save (text fields only — files already uploaded) ─────────────────────
-    function saveResponses() {
-        var form    = document.getElementById('response-form');
-        var status  = document.getElementById('save-status');
-        var btn     = document.getElementById('btn-save');
-
-        status.textContent = 'Saving…';
-        btn.disabled       = true;
-
-        var xhr  = new XMLHttpRequest();
-        var data = new FormData(form);
-
-        xhr.addEventListener('load', function() {
-            btn.disabled = false;
-            try {
-                var resp = JSON.parse(xhr.responseText);
-                if (resp.status === 'OK') {
-                    status.innerHTML = '<span style="color:#4caf50">✓ Saved successfully</span>';
-                    updateUndoBaselines();
-                } else if (resp.status === 'E_CLOSED') {
-                    status.innerHTML = '<span style="color:#c44">✗ ' + (resp.msg || 'Entries are closed') + '</span>';
-                } else {
-                    status.innerHTML = '<span style="color:#c44">✗ Error: ' + (resp.msg || resp.status) + '</span>';
-                }
-            } catch(e) {
-                status.innerHTML = '<span style="color:#c44">✗ Unexpected error</span>';
-            }
-        });
-
-        xhr.addEventListener('error', function() {
-            btn.disabled     = false;
-            status.innerHTML = '<span style="color:#c44">✗ Network error — please try again</span>';
-        });
-
-        xhr.open('POST', window.JADE_BASE+'/formResponses');
-        xhr.send(data);
-    }
-
-    // ── Undo support ──────────────────────────────────────────────────────────
-    var _savedValues = {};
-
-    function initUndoBaselines() {
-        var form = document.getElementById('response-form');
-        form.querySelectorAll('input[type="text"]:not([readonly]), textarea').forEach(function(el) {
-            if (el.name) _savedValues[el.name] = el.value;
-            el.addEventListener('input', function() { trackChange(el); });
-            el.addEventListener('change', function() { trackChange(el); });
-        });
-    }
-
-    function trackChange(el) {
-        var btn = undoBtnFor(el);
-        if (!btn) return;
-        btn.style.display = (_savedValues[el.name] !== undefined && el.value !== _savedValues[el.name]) ? '' : 'none';
-    }
-
-    function undoBtnFor(el) {
-        // undo button is the next .btn-undo sibling, or inside the nearest .word-count
-        var next = el.nextElementSibling;
-        if (next && next.classList.contains('btn-undo')) return next;
-        var wc = el.parentElement && el.parentElement.querySelector('.word-count .btn-undo');
-        return wc || null;
-    }
-
-    function undoField(btn) {
-        var el;
-        // btn is either sibling of input, or inside .word-count after a textarea
-        var wc = btn.closest('.word-count');
-        if (wc) {
-            el = wc.previousElementSibling;
-            // previousElementSibling might be .word-limit, skip it
-            while (el && el.tagName !== 'TEXTAREA') el = el.previousElementSibling;
-        } else {
-            el = btn.previousElementSibling;
-        }
-        if (!el || _savedValues[el.name] === undefined) return;
-        el.value = _savedValues[el.name];
-        btn.style.display = 'none';
-        if (el.tagName === 'TEXTAREA') countWords(el, null);
-    }
-
-    function updateUndoBaselines() {
-        var form = document.getElementById('response-form');
-        form.querySelectorAll('input[type="text"]:not([readonly]), textarea').forEach(function(el) {
-            if (el.name) _savedValues[el.name] = el.value;
-            var btn = undoBtnFor(el);
-            if (btn) btn.style.display = 'none';
-        });
-    }
-
-    initUndoBaselines();
-
-    // ── Auto-save on exit via sendBeacon ─────────────────────────────────────
-    // Fires on tab close, browser close, or navigation away.
-    // sendBeacon is fire-and-forget so the browser delivers it even during unload.
-    window.addEventListener('beforeunload', function() {
-        if (_uploadsInFlight > 0) return; // don't beacon mid-upload — incomplete data
-        var form = document.getElementById('response-form');
-        var data = new FormData(form);
-        navigator.sendBeacon(window.JADE_BASE + '/formResponses', data);
-    });
+script(src='/js/form-responses.js')

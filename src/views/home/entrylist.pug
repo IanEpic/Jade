@@ -16,18 +16,83 @@ style.
     .el-toolbar a { font-size: 13px; white-space: nowrap; margin-left: 12px; }
     #entry-search { flex: 1; max-width: 320px; padding: 6px 10px; background: #111; color: #fff; border: 1px solid #555; font-size: 14px; }
     #entry-search:focus { border-color: #c48f06; outline: none; }
+    /* flags edit form */
+    .flags-form-wrap { display: none; background: #111; border: 1px solid #555; border-radius: 4px; padding: 18px 20px; margin-bottom: 18px; }
+    .flags-form-wrap legend { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: #c48f06; }
+    .flags-form-wrap fieldset { border: 1px solid #555; border-radius: 4px; padding: 12px 16px; margin-bottom: 14px; }
+    .flags-title { font-size: 14px; color: #bbb; margin: 0 0 14px; }
+    .flags-checks { display: flex; gap: 24px; flex-wrap: wrap; margin-bottom: 4px; }
+    .flags-checks label { font-size: 13px; color: #ccc; display: flex; align-items: center; gap: 6px; cursor: pointer; }
+    .flags-checks input[type=checkbox] { accent-color: #c48f06; width: 15px; height: 15px; }
+    .flags-select { display: flex; flex-direction: column; gap: 6px; }
+    .flags-select label { font-size: 13px; color: #ccc; }
+    .flags-select .flags-original { font-size: 12px; color: #888; margin-top: 2px; }
+    .flags-select select { background: #111; color: #fff; border: 1px solid #555; border-radius: 4px; padding: 5px 8px; font-size: 13px; max-width: 340px; }
+    .flags-select select:focus { border-color: #c48f06; outline: none; }
+    .transfer-ac { position: relative; max-width: 420px; }
+    #transfer-search { background: #111; color: #fff; border: 1px solid #555; border-radius: 4px; padding: 5px 8px; font-size: 13px; width: 100%; box-sizing: border-box; }
+    #transfer-search:focus { border-color: #c48f06; outline: none; }
+    #transfer-suggestions { display: none; position: absolute; top: 100%; left: 0; right: 0; background: #1a1a1a; border: 1px solid #555; border-top: none; border-radius: 0 0 4px 4px; z-index: 200; max-height: 220px; overflow-y: auto; }
+    #transfer-suggestions div { padding: 7px 10px; font-size: 13px; color: #ccc; cursor: pointer; }
+    #transfer-suggestions div:hover, #transfer-suggestions div.active { background: rgba(196,143,6,0.2); color: #fff; }
+    .flags-actions { border-top: 1px solid #333; padding-top: 12px; display: flex; gap: 10px; }
+    .cat-overridden { color: #888; font-size: 11px; margin-left: 6px; }
 
 .el-wrap
     h3 All Entries
 
-- let entered  = content.entries.filter(e => e.entryaccepted)
-- let invoiced = content.entries.filter(e => !e.entryaccepted && e.invoiceid && !e.invoicedeleted)
-- let unpaid   = content.entries.filter(e => !e.entryaccepted && (!e.invoiceid || e.invoicedeleted))
-- let sorted   = [...entered, ...invoiced, ...unpaid]
+- var sortByCat = function(a, b) { return (a.categoryname || '').localeCompare(b.categoryname || ''); }
+- var entered  = content.entries.filter(function(e) { return e.entryaccepted; }).sort(sortByCat)
+- var invoiced = content.entries.filter(function(e) { return !e.entryaccepted && e.invoiceid && !e.invoicedeleted; }).sort(sortByCat)
+- var unpaid   = content.entries.filter(function(e) { return !e.entryaccepted && (!e.invoiceid || e.invoicedeleted); }).sort(sortByCat)
+- var sorted   = entered.concat(invoiced).concat(unpaid)
 
-form(onsubmit='return false')
+if user && user.admin
+    .flags-form-wrap#flags-form-wrap
+        p.flags-title#flags-entry-title Edit Entry Flags
+        form(method='POST' action='/formEntryFlags')
+            input(type='hidden' name='entryid' id='flags-entryid' value='')
+            fieldset
+                legend Flags
+                .flags-checks
+                    label
+                        input(type='checkbox' name='entryaccepted' id='flags-entryaccepted')
+                        | Accepted
+                    label
+                        input(type='checkbox' name='entryopen' id='flags-entryopen')
+                        | Open
+                    label
+                        input(type='checkbox' name='finalised' id='flags-finalised')
+                        | Finalised
+            fieldset#flags-catoverride-fieldset
+                legend Category Override
+                .flags-select
+                    label(for='flags-overridecatid') Move to Category
+                    select(name='overridecatid' id='flags-overridecatid')
+                        each cat in content.categories
+                            option(value=cat.categoryid)= cat.name
+                    p.flags-original#flags-original-note
+            .flags-actions
+                button.btn(type='submit') Save
+                button.btn-secondary(type='button' id='flags-cancel') Cancel
+
+        form(method='POST' action='/formEntryFlags/transfer')
+            input(type='hidden' name='sourceentryid' id='transfer-sourceentryid' value='')
+            fieldset#flags-transfer-fieldset(style='margin-top:16px')
+                legend Transfer Payment
+                .flags-select
+                    label(for='transfer-search') Transfer invoice &amp; payment to
+                    .transfer-ac
+                        input#transfer-search(type='text' autocomplete='off' placeholder='Type at least 3 characters…')
+                        div#transfer-suggestions
+                    input(type='hidden' name='targetentryid' id='transfer-targetentryid' value='')
+                    p.flags-original#transfer-note
+                .flags-actions(style='margin-top:12px; padding-top:12px; border-top:1px solid #333;')
+                    button.btn-danger(type='submit' data-confirm='Transfer the invoice and payment to the selected entry? This cannot be undone.') Transfer Payment
+
+form(data-nosubmit)
     .el-toolbar
-        input#entry-search(type='text' placeholder='Search entries…' oninput='filterEntries(this.value)')
+        input#entry-search(type='text' placeholder='Search entries…' data-filter='.el-table tbody tr')
 
     table.el-table
         thead
@@ -39,21 +104,36 @@ form(onsubmit='return false')
                 th
         tbody
             each entry in sorted
-                - let pmt = entry.entryaccepted ? 'Entered' : (entry.invoiceid && !entry.invoicedeleted ? 'Invoiced' : 'Unpaid')
-                - let badgeClass = entry.entryaccepted ? 'badge-entered' : (entry.invoiceid && !entry.invoicedeleted ? 'badge-invoiced' : 'badge-unpaid')
-                tr
+                - var pmt = entry.entryaccepted ? 'Entered' : (entry.invoiceid && !entry.invoicedeleted ? 'Invoiced' : 'Unpaid')
+                - var badgeClass = entry.entryaccepted ? 'badge-entered' : (entry.invoiceid && !entry.invoicedeleted ? 'badge-invoiced' : 'badge-unpaid')
+                - var origCat = entry.originalcatid ? content.categories.find(function(c) { return c.categoryid === entry.originalcatid; }) : null
+                - var currentCat = content.categories.find(function(c) { return c.categoryid === entry.categoryid; })
+                tr(
+                    data-entryid=entry.entryid
+                    data-categoryid=entry.categoryid
+                    data-entryaccepted=entry.entryaccepted ? '1' : '0'
+                    data-entryopen=entry.entryopen ? '1' : '0'
+                    data-finalised=entry.finalised ? '1' : '0'
+                    data-originalcatid=entry.originalcatid || ''
+                    data-originalcatname=origCat ? origCat.name : ''
+                    data-categoryname=entry.categoryname || ''
+                    data-entryname=entry.finalisttext || entry.entrantname
+                    data-catopen=(currentCat && currentCat.entriesopen) ? '1' : '0'
+                )
                     td(style='color:#888; width:50px')= entry.entryid
                     td= entry.finalisttext || entry.entrantname
-                    td= entry.categoryname
+                    td
+                        = entry.categoryname
+                        if entry.originalcatid
+                            span.cat-overridden (overridden)
                     td: span.badge(class=badgeClass)= pmt
                     td(style='white-space:nowrap')
-                        a(href='/viewEntry?entryid=' + entry.entryid) View
+                        a(href='/viewEntry?entryid=' + entry.entryid title='View') 👁
+                        if user && user.admin
+                            |
+                            a(href='#' data-action='edit-flags' title='Edit flags') ✏️
 
-script.
-    function filterEntries(q) {
-        q = q.toLowerCase();
-        document.querySelectorAll('.el-table tbody tr').forEach(function(row) {
-            row.classList.toggle('hidden', q.length > 0 && row.textContent.toLowerCase().indexOf(q) === -1);
-        });
-    }
+script(src='/js/jade.js')
+script(src='/js/home-entrylist.js')
+script(nonce=nonce).
     document.getElementById('entry-search').focus();

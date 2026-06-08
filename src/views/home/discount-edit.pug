@@ -64,8 +64,4 @@ form.disc-edit-form(method='POST' action='/formDiscount')
         a(href='/home?action=discounts') < Discounts
         button(type='submit') Save Discount
 
-script.
-    function toggleCodeField(type) {
-        document.getElementById('code-row').style.display = type === 'code' ? 'table-row' : 'none';
-    }
-    toggleCodeField(document.querySelector('select[name=type]').value);
+script(src='/js/home-discount.js')

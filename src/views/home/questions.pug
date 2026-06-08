@@ -28,7 +28,7 @@ form(method='POST' action='/formQuestion')
     input(type='hidden' name='task' value='reorder')
 
     .q-toolbar
-        input#q-list-search(type='text' placeholder='Search questions…' oninput='filterQ(this.value)')
+        input#q-list-search(type='text' placeholder='Search questions…' data-filter='.q-table tbody tr')
         a#btn-new-q(href='#') + New Question
 
     div#new-q-form(style='display:none; margin-bottom:16px; padding:12px; background:#111; border:1px solid #555; border-radius:4px; max-width:600px')
@@ -42,7 +42,7 @@ form(method='POST' action='/formQuestion')
             tr
                 td(style='padding-right:8px; padding-top:6px') Type
                 td(style='padding-top:6px')
-                    select#new-q-type(onchange='toggleQOptions(this.value)')
+                    select#new-q-type
                         option(value='text') Text field
                         option(value='textarea') Text area
                         option(value='select') Dropdown
@@ -83,68 +83,10 @@ form(method='POST' action='/formQuestion')
                     td: input(type='text' name='#' + q.questionid value=i+1)
                     td.q-actions
                         a(href='/home?action=questions&type=' + content.type + '&questionid=' + q.questionid) Edit
-                        a(href='/formQuestion?questionid=' + q.questionid + '&action=delete' onclick='return confirm("Delete ' + q.questionid + '?")' style='color:#c44') Delete
+                        a(href='/formQuestion?questionid=' + q.questionid + '&action=delete' data-confirm='Delete question ' + q.questionid + '?' style='color:#c44') Delete
 
     div(style='margin-top:12px')
         button(type='submit') Reorder
 
-script.
-    function filterQ(q) {
-        q = q.toLowerCase();
-        document.querySelectorAll('.q-table tbody tr').forEach(function(row) {
-            row.classList.toggle('hidden', q.length > 0 && row.textContent.toLowerCase().indexOf(q) === -1);
-        });
-    }
-    document.getElementById('q-list-search').focus();
-
-    function toggleQOptions(type) {
-        var row = document.getElementById('new-q-options-row');
-        if (row) row.style.display = (type === 'select' || type === 'radio' || type === 'checkbox') ? '' : 'none';
-    }
-
-    (function () {
-        var btn     = document.getElementById('btn-new-q');
-        var form    = document.getElementById('new-q-form');
-        var text    = document.getElementById('new-q-text');
-        var desc    = document.getElementById('new-q-desc');
-        var type    = document.getElementById('new-q-type');
-        var options = document.getElementById('new-q-options');
-        var save    = document.getElementById('new-q-save');
-        var cancel  = document.getElementById('new-q-cancel');
-        var err     = document.getElementById('new-q-error');
-
-        btn.addEventListener('click', function (e) {
-            e.preventDefault();
-            form.style.display = 'block';
-            text.focus();
-        });
-
-        cancel.addEventListener('click', function (e) {
-            e.preventDefault();
-            form.style.display = 'none';
-            text.value = ''; desc.value = ''; options.value = '';
-            toggleQOptions('text');
-            err.style.display = 'none';
-        });
-
-        save.addEventListener('click', function () {
-            var val = text.value.trim();
-            if (!val) { err.textContent = 'Question text required.'; err.style.display = ''; return; }
-            save.disabled = true; save.textContent = 'Saving…'; err.style.display = 'none';
-            var body = 'questiontext=' + encodeURIComponent(val)
-                + '&questiontype=' + encodeURIComponent(type.value)
-                + '&description=' + encodeURIComponent(desc.value.trim())
-                + '&options=' + encodeURIComponent(options.value);
-            fetch((window.JADE_BASE || '') + '/formCategory/create-question', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: body,
-            })
-            .then(function (r) { return r.json(); })
-            .then(function (data) {
-                if (data.error) { err.textContent = data.error; err.style.display = ''; save.disabled = false; save.textContent = 'Add Question'; return; }
-                window.location.href = (window.JADE_BASE || '') + '/home?action=questions&type=entry&questionid=' + data.questionid;
-            })
-            .catch(function () { err.textContent = 'Failed to create question.'; err.style.display = ''; save.disabled = false; save.textContent = 'Add Question'; });
-        });
-    })();
+script(src='/js/jade.js')
+script(src='/js/home-questions.js')

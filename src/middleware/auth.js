@@ -56,10 +56,17 @@ export async function requireAuth(req, res, next) {
         } else {
             req.user = user;
         }
+        res.locals.user = req.user;
         next();
     } catch (err) {
         next(err);
     }
+}
+
+export function requireAdmin(req, res, next) {
+    if (!req.user) return res.redirect('/login');
+    if (!req.user.admin) return res.redirect('/home');
+    next();
 }
 
 export function requireRole(...roles) {

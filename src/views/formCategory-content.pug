@@ -105,7 +105,7 @@ form.cat-form(method='POST' action='/formCategory')
                     span#criteria-total(style='font-weight:bold') 0%
                 button(type='button' onclick='addCriteriaRow()' style='margin-top:6px') + Add Criteria
 
-                script.
+                script(nonce=nonce).
                     var newCriteriaCount = 0;
 
                     function updateCriteriaTotal() {
@@ -188,7 +188,7 @@ form.cat-form(method='POST' action='/formCategory')
                 if !eligibilities || !eligibilities.length
                     p.note No eligibility rules defined for this program yet — use the form above to create one.
 
-                script.
+                script(nonce=nonce).
                     (function () {
                         var elist = document.getElementById('e-assigned');
                         var eAssigned = new Set(Array.from(elist.querySelectorAll('[data-eid]')).map(function (el) { return el.dataset.eid; }));
@@ -350,7 +350,7 @@ form.cat-form(method='POST' action='/formCategory')
                 if !questions || !questions.length
                     p.note No questions defined for this program yet — use the form above to create one.
 
-                script.
+                script(nonce=nonce).
                     (function () {
                         var list = document.getElementById('q-assigned');
                         var assigned = new Set(Array.from(list.querySelectorAll('[data-qid]')).map(function (el) { return el.dataset.qid; }));
@@ -479,7 +479,7 @@ form.cat-form(method='POST' action='/formCategory')
                         };
                     })();
 
-    script.
+    script(nonce=nonce).
         function toggleAccordion(legend) {
             var body = legend.nextElementSibling;
             var collapsed = body.style.display === 'none';

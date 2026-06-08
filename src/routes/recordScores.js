@@ -64,7 +64,7 @@ router.post('/', async (req, res, next) => {
 
         let commentsFailed = false;
         if (excel || improve || other) {
-            const program = req.user.program;
+            const program = req.program;
             if (program?.judgingmodelid) {
                 const jm = await JudgingModel.findByPk(program.judgingmodelid);
                 if (jm?.commentguidelines) {

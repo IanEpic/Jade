@@ -21,7 +21,7 @@ router.get('/', (req, res) => res.redirect('/home?action=discounts'));
 router.post('/', async (req, res, next) => {
     try {
         const user    = req.user;
-        const program = user.program;
+        const program = req.program;
         const body    = req.body;
 
         const name      = (body.name || '').trim() || null;

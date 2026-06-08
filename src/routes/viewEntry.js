@@ -15,6 +15,7 @@ import Address      from '../models/Address.js';
 import Category     from '../models/Category.js';
 import Response     from '../models/Response.js';
 import { getPool, sql } from '../config/database.js';
+import { getCriteria } from '../queries/categoryQueries.js';
 
 const router = Router();
 router.use(requireAuth);
@@ -44,13 +45,6 @@ async function getInputOptions(questionId) {
     return result.recordset;
 }
 
-async function getCriteria(categoryId) {
-    const pool = await getPool();
-    const result = await pool.request()
-        .input('categoryId', sql.Int, categoryId)
-        .query(`SELECT * FROM Criteria WHERE categoryid = @categoryId ORDER BY orda, criteriaid`);
-    return result.recordset;
-}
 
 async function getJudgeEntryLinks(userId, entryId) {
     const pool = await getPool();
@@ -136,7 +130,7 @@ async function getSimpleReviewComment(entryId, userId) {
 router.get('/', async (req, res, next) => {
     try {
         const user     = req.user;
-        const program  = user.program;
+        const program  = req.program;
         const entryId  = req.query.entryid;
         const task     = req.query.task || '';
 

@@ -12,7 +12,7 @@ router.use(requireAuth);
 router.get('/', async (req, res, next) => {
     try {
         const { name } = req.query;
-        const program = req.user.program;
+        const program = req.program;
 
         if (!name) {
             return res.renderInShell('viewPage', { user: req.user, program, page: null });

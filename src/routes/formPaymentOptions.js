@@ -9,6 +9,7 @@ import { requireAuth } from '../middleware/auth.js';
 import { getPool, sql } from '../config/database.js';
 import { currency } from '../services/helpers.js';
 import { getApplicableDiscounts } from '../services/pricing.js';
+import { renderInHome } from './home/homeHelpers.js';
 
 const router = Router();
 router.use(requireAuth);
@@ -84,10 +85,10 @@ async function getEarlyBirdDiscount(programId) {
 router.get('/', async (req, res, next) => {
     try {
         const user    = req.user;
-        const program = user.program;
+        const program = req.program;
 
         if (!user.paymentsopen) {
-            return res.renderInShell('formPaymentOptions', {
+            return await renderInHome(req, res, 'home/paymentoptions', {
                 user, program, mode: 'closed',
                 unpaidInvoices: [], uninvoicedEntries: [], allEntries: [],
                 pmtoption: null, alert: null, currency,
@@ -100,7 +101,7 @@ router.get('/', async (req, res, next) => {
                 getAllEntries(user.userid),
                 getEarlyBirdDiscount(program.programid),
             ]);
-            return res.renderInShell('formPaymentOptions', {
+            return await renderInHome(req, res, 'home/paymentoptions', {
                 user, program, mode: 'step2',
                 pmtoption: 3,
                 allEntries, uninvoicedEntries: [], unpaidInvoices: [],
@@ -114,7 +115,7 @@ router.get('/', async (req, res, next) => {
             getUninvoicedEntries(user.userid),
         ]);
 
-        res.renderInShell('formPaymentOptions', {
+        await renderInHome(req, res, 'home/paymentoptions', {
             user, program, mode: 'step1',
             unpaidInvoices, uninvoicedEntries,
             pmtoption: null, alert: null, currency,
@@ -130,7 +131,7 @@ router.get('/', async (req, res, next) => {
 router.post('/', async (req, res, next) => {
     try {
         const user    = req.user;
-        const program = user.program;
+        const program = req.program;
         const body    = req.body;
         const action  = body.action || '';
 
@@ -140,7 +141,7 @@ router.post('/', async (req, res, next) => {
                 getUnpaidInvoices(user.userid),
                 getUninvoicedEntries(user.userid),
             ]);
-            return res.renderInShell('formPaymentOptions', {
+            return await renderInHome(req, res, 'home/paymentoptions', {
                 user, program, mode: 'step1',
                 unpaidInvoices, uninvoicedEntries,
                 pmtoption: null, alert: '! No Data. Please select from the list below', currency,
@@ -167,7 +168,7 @@ router.post('/', async (req, res, next) => {
             nextAction = '/formPayment';
         }
 
-        res.renderInShell('formPaymentOptions', {
+        await renderInHome(req, res, 'home/paymentoptions', {
             user, program, mode: 'step2',
             pmtoption, unpaidInvoices, uninvoicedEntries, allEntries,
             alert: action === 'nodata' ? '! No Data. Please select from the list below' : null,

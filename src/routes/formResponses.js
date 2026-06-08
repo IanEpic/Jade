@@ -10,7 +10,7 @@
 //  - Save is AJAX — returns JSON {status:'OK'} not a page redirect
 //  - Files are stored on disk; value column stores the filename
 
-import { Router }       from 'express';
+import express, { Router } from 'express';
 import { requireAuth }  from '../middleware/auth.js';
 import { getPool, sql } from '../config/database.js';
 import multer           from 'multer';
@@ -31,8 +31,10 @@ const ORIGINAL_VIDEOS_DIR  = path.join(FILESTORE_ROOT, 'originalVideos');
 const CONVERTED_VIDEOS_DIR = path.join(FILESTORE_ROOT, 'convertedVideoStore');
 const ORIGINAL_FILES_DIR   = path.join(FILESTORE_ROOT, 'originalFiles');
 
+const TUS_TEMP_DIR = path.join(FILESTORE_ROOT, 'tusTemp');
+
 // Ensure upload dirs exist on startup
-for (const dir of [ORIGINAL_IMAGES_DIR, ORIGINAL_VIDEOS_DIR, ORIGINAL_FILES_DIR]) {
+for (const dir of [ORIGINAL_IMAGES_DIR, ORIGINAL_VIDEOS_DIR, ORIGINAL_FILES_DIR, TUS_TEMP_DIR]) {
     fs.mkdir(dir, { recursive: true }).catch(() => {});
 }
 
@@ -121,7 +123,7 @@ async function getEntry(entryid) {
 router.get('/', async (req, res, next) => {
     try {
         const user    = req.user;
-        const program = user.program;
+        const program = req.program;
         const entryid = parseInt(req.query.entryid);
 
         if (!entryid) return res.redirect('/home');
@@ -400,9 +402,128 @@ async function upsertResponse(pool, entryid, questionid, responseid, value) {
     }
 }
 
-// ── POST /formResponses/upload — single file auto-upload ─────────────────────
-// Called immediately when user selects/drops a file.
-// Returns JSON { filename, url } so JS can show a preview.
+// ── Chunked upload — in-memory upload registry ────────────────────────────────
+// Cloudflare limits request bodies to 100 MB. To support files up to 2 GB,
+// the client slices the file into 50 MB chunks and posts them one at a time.
+// Three endpoints handle the lifecycle: init → chunk(s) → complete.
+//
+// uploadRegistry holds pending uploads keyed by uploadId. Entries are cleaned
+// up on complete or on a 2-hour TTL sweep.
+
+const MAX_UPLOAD_BYTES = 2 * 1024 * 1024 * 1024; // 2 GB
+const uploadRegistry   = new Map();
+
+// Purge stale uploads older than 2 hours every 30 minutes.
+setInterval(() => {
+    const cutoff = Date.now() - 2 * 60 * 60 * 1000;
+    for (const [id, meta] of uploadRegistry) {
+        if (meta.createdAt < cutoff) {
+            fs.unlink(meta.tempFile).catch(() => {});
+            uploadRegistry.delete(id);
+        }
+    }
+}, 30 * 60 * 1000);
+
+// POST /formResponses/upload/chunk-init
+// Body (JSON): { type, filename, size }
+// Returns: { status:'OK', uploadId }  or  { status:'E_TOOBIG', msg }
+router.post('/upload/chunk-init', async (req, res, next) => {
+    try {
+        const type     = req.body.type     || 'file';
+        const filename = req.body.filename || 'upload';
+        const size     = parseInt(req.body.size) || 0;
+
+        if (size > MAX_UPLOAD_BYTES) {
+            return res.json({ status: 'E_TOOBIG', msg: 'File exceeds the 2 GB limit. Please choose a smaller file.' });
+        }
+
+        const uploadId = randomFilename();
+        const ext      = path.extname(filename);
+        const tempFile = path.join(TUS_TEMP_DIR, uploadId + ext + '.part');
+
+        // Pre-allocate an empty file so appendFile always finds it
+        await fs.writeFile(tempFile, Buffer.alloc(0));
+
+        uploadRegistry.set(uploadId, { type, filename, size, ext, tempFile, received: 0, createdAt: Date.now() });
+
+        return res.json({ status: 'OK', uploadId });
+    } catch (err) { next(err); }
+});
+
+// POST /formResponses/upload/chunk?uploadId=XXX
+// Body: raw binary (Content-Type: application/octet-stream), up to 60 MB.
+// Returns: { status:'OK', received }
+router.post('/upload/chunk', express.raw({ type: 'application/octet-stream', limit: '60mb' }), async (req, res, next) => {
+    try {
+        const { uploadId } = req.query;
+        const meta = uploadRegistry.get(uploadId);
+        if (!meta) return res.json({ status: 'E_NOTFOUND', msg: 'Unknown upload ID — the session may have expired.' });
+
+        if (!Buffer.isBuffer(req.body) || req.body.length === 0) {
+            return res.json({ status: 'E_EMPTY', msg: 'Empty chunk received.' });
+        }
+
+        await fs.appendFile(meta.tempFile, req.body);
+        meta.received += req.body.length;
+
+        return res.json({ status: 'OK', received: meta.received });
+    } catch (err) { next(err); }
+});
+
+// POST /formResponses/upload/chunk-abort
+// Body (JSON): { uploadId }
+// Called when the user hits Stop — deletes the temp .part file and removes from registry.
+router.post('/upload/chunk-abort', async (req, res, next) => {
+    try {
+        const { uploadId } = req.body;
+        const meta = uploadRegistry.get(uploadId);
+        if (meta) {
+            try { await fs.unlink(meta.tempFile); } catch {}
+            uploadRegistry.delete(uploadId);
+        }
+        return res.json({ status: 'OK' });
+    } catch (err) { next(err); }
+});
+
+// POST /formResponses/upload/chunk-complete
+// Body (JSON): { uploadId }
+// Returns: { status:'OK', filename, originalname }
+router.post('/upload/chunk-complete', async (req, res, next) => {
+    try {
+        const { uploadId } = req.body;
+        const meta = uploadRegistry.get(uploadId);
+        if (!meta) return res.json({ status: 'E_NOTFOUND', msg: 'Unknown upload ID — the session may have expired.' });
+
+        // Verify the assembled file is the expected size
+        const stat = await fs.stat(meta.tempFile);
+        if (stat.size !== meta.size) {
+            return res.json({
+                status: 'E_INCOMPLETE',
+                msg: `Upload incomplete: expected ${meta.size} bytes, got ${stat.size}.`,
+            });
+        }
+
+        const filename = randomFilename() + meta.ext;
+        const destDir  = meta.type === 'image' ? ORIGINAL_IMAGES_DIR
+                       : meta.type === 'video' ? ORIGINAL_VIDEOS_DIR
+                       : ORIGINAL_FILES_DIR;
+
+        await fs.rename(meta.tempFile, path.join(destDir, filename));
+        uploadRegistry.delete(uploadId);
+
+        if (meta.type === 'image') {
+            processImage(filename).catch(err => console.error('[chunk] image processing error:', err.message));
+        } else if (meta.type === 'video') {
+            processVideo(filename);
+        }
+
+        return res.json({ status: 'OK', filename, originalname: meta.filename });
+    } catch (err) { next(err); }
+});
+
+// ── POST /formResponses/upload — single file upload (images) ─────────────────
+// Used for images only; videos and files go through the chunked endpoints above.
+// Returns JSON { filename, previewUrl } so JS can show a preview.
 
 router.post('/upload', upload.single('file'), async (req, res) => {
     try {

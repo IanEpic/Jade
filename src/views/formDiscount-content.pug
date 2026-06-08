@@ -88,7 +88,7 @@ style.
 
     //- ── Toolbar ─────────────────────────────────────────────────────────────────
     .disc-toolbar
-        input#disc-search(type='text' placeholder='Search discounts…' oninput='filterDisc(this.value)')
+        input#disc-search(type='text' placeholder='Search discounts…' oninput='jadeTableFilter(this, ".disc-table tbody tr")')
         a(href='#' id='btn-new-disc') + New Discount
 
     //- ── List ────────────────────────────────────────────────────────────────────
@@ -122,26 +122,5 @@ style.
     else
         p(style='color:#888; font-size:13px') No discounts configured.
 
-script.
-    function filterDisc(q) {
-        q = q.toLowerCase();
-        document.querySelectorAll('.disc-table tbody tr').forEach(function(row) {
-            row.classList.toggle('hidden', q.length > 0 && row.textContent.toLowerCase().indexOf(q) === -1);
-        });
-    }
-
-    function toggleCodeField(type) {
-        document.getElementById('code-row').style.display = type === 'code' ? 'table-row' : 'none';
-    }
-
-    document.getElementById('btn-new-disc').addEventListener('click', function(e) {
-        e.preventDefault();
-        var wrap = document.getElementById('disc-form-wrap');
-        wrap.style.display = 'block';
-        wrap.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    });
-
-    document.getElementById('disc-cancel').addEventListener('click', function(e) {
-        e.preventDefault();
-        document.getElementById('disc-form-wrap').style.display = 'none';
-    });
+script(src='/js/jade.js')
+script(src='/js/home-discount.js')

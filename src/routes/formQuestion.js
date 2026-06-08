@@ -4,18 +4,14 @@
 // Questions are always questiontype='entry'.
 
 import { Router } from 'express';
-import { requireAuth } from '../middleware/auth.js';
+import { requireAuth, requireAdmin } from '../middleware/auth.js';
 import Question             from '../models/Question.js';
 import InputOption          from '../models/InputOption.js';
 import Category             from '../models/Category.js';
 import CategoryQuestionLink from '../models/CategoryQuestionLink.js';
 
 const router = Router();
-router.use(requireAuth);
-router.use((req, res, next) => {
-    if (!req.user.admin) return res.renderInShell('error', { message: 'You do not have permission to access this page.' });
-    next();
-});
+router.use(requireAuth, requireAdmin);
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -44,7 +40,7 @@ async function getAddressQuestions(programid, questiontype, beforeOrda = null) {
 router.get('/', async (req, res, next) => {
     try {
         const user    = req.user;
-        const program = user.program;
+        const program = req.program;
         const { questionid, action, task } = req.query;
 
         // ── Delete question ──
@@ -115,7 +111,7 @@ router.get('/', async (req, res, next) => {
 router.post('/', async (req, res, next) => {
     try {
         const user    = req.user;
-        const program = user.program;
+        const program = req.program;
         const body    = req.body;
         const questionid = body.questionid ? parseInt(body.questionid) : null;
 

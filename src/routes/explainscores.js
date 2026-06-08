@@ -11,7 +11,7 @@ router.use(requireAuth);
 router.get('/', (req, res) => {
     res.renderInShell('explainscores', {
         user:    req.user,
-        program: req.user.program,
+        program: req.program,
     });
 });
 

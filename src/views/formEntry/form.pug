@@ -196,29 +196,5 @@ form(name='entryform' method='POST' action='/formEntry')
                 | &nbsp;
                 button(type='submit' name='submit' value='SaveProceed') Save &amp; Proceed to Questions
 
-script.
-    function showHide(el, show) {
-        el.style.display = show ? '' : 'none';
-    }
-    function checkEntrant(sel) {
-        var isNew = sel.value === 'b';
-        var block = document.getElementById('new-entrant-fields');
-        showHide(block, isNew);
-        if (!isNew) {
-            showHide(document.getElementById('street-address-fields'), false);
-            showHide(document.getElementById('postal-address-fields'), false);
-            var streetSel = document.querySelector('[name=streetaddressid]');
-            var postalSel = document.querySelector('[name=postaladdressid]');
-            if (streetSel) streetSel.value = 'a';
-            if (postalSel) postalSel.value = 'a';
-        }
-    }
-    function checkAddress(sel) {
-        var isNew = sel.value === 'b';
-        var targetId = sel.name === 'streetaddressid' ? 'street-address-fields' : 'postal-address-fields';
-        showHide(document.getElementById(targetId), isNew);
-    }
-    var entrantSel = document.querySelector('[name=entrantid]');
-    if (entrantSel) {
-        entrantSel.addEventListener('change', function() { checkEntrant(this); });
-    }
+script(src='/js/jade.js')
+script(src='/js/form-entry.js')

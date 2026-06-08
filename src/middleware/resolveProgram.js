@@ -23,7 +23,8 @@ export async function resolveProgram(req, res, next) {
         }
 
         req.program = program;
-        res.locals.slug = slug;
+        res.locals.program = program;
+        res.locals.slug    = slug;
 
         // ── Redirect wrapper ──────────────────────────────────────────────────
         // Intercepts res.redirect() calls so absolute paths get slug-prefixed.

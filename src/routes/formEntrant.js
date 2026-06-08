@@ -9,6 +9,7 @@
 
 import { Router } from 'express';
 import { requireAuth } from '../middleware/auth.js';
+import { renderInHome } from './home/homeHelpers.js';
 import Entrant from '../models/Entrant.js';
 import Address from '../models/Address.js';
 import Entry from '../models/Entry.js';
@@ -37,7 +38,7 @@ async function entriesOpenByOverride(userId) {
 router.get('/', async (req, res, next) => {
     try {
         const user      = req.user;
-        const program   = user.program;
+        const program = req.program;
         const entrantId = req.query.entrantid;
         const action    = req.query.action;
 
@@ -51,7 +52,7 @@ router.get('/', async (req, res, next) => {
                 where: { entrantid: entrantId, deleted: 0 },
             });
             if (activeEntries.length) {
-                return res.renderInShell('formEntrant', {
+                return renderInHome(req, res, 'home/entrant', {
                     user,
                     program,
                     error: 'inuse',
@@ -68,14 +69,14 @@ router.get('/', async (req, res, next) => {
             }
 
             await entrant.update({ deleted: 1 });
-            return res.redirect('/home');
+            return res.redirect('/home?action=entrants');
         }
 
         // ── Check entries are open (required to show the form at all) ─────
         const openCats     = await catsOpenForEntries(program.programid);
         const overrideOpen = await entriesOpenByOverride(user.userid);
         if (!openCats.length && !overrideOpen.length) {
-            return res.renderInShell('formEntrant', {
+            return renderInHome(req, res, 'home/entrant', {
                 user, program, mode: 'closed',
                 addresses: [], entrant: null,
                 nameLabel: '', typeLabel: '', abnLabel: '', createLabel: '', editLabel: '', entrantsLabel: '',
@@ -96,7 +97,7 @@ router.get('/', async (req, res, next) => {
             translate(program.programid, 'My Entrants'),
         ]);
 
-        res.renderInShell('formEntrant', {
+        renderInHome(req, res, 'home/entrant', {
             user, program, mode, entrant, addresses, errors: [],
             nameLabel, typeLabel, abnLabel, createLabel, editLabel, entrantsLabel,
         });
@@ -111,7 +112,7 @@ router.get('/', async (req, res, next) => {
 router.post('/', async (req, res, next) => {
     try {
         const user      = req.user;
-        const program   = user.program;
+        const program = req.program;
         const body      = req.body;
         const entrantId = body.entrantid;
 
@@ -126,7 +127,7 @@ router.post('/', async (req, res, next) => {
             translate(program.programid, 'My Entrants'),
         ]);
 
-        const renderError = (errors, entrant = null) => res.renderInShell('formEntrant', {
+        const renderError = (errors, entrant = null) => renderInHome(req, res, 'home/entrant', {
             user, program,
             mode:    entrant ? 'edit' : 'new',
             entrant: entrant || null,
@@ -196,7 +197,7 @@ router.post('/', async (req, res, next) => {
             await Entrant.create(fields);
         }
 
-        res.redirect('/home');
+        res.redirect('/home?action=entrants');
 
     } catch (err) {
         next(err);

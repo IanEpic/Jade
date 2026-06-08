@@ -71,11 +71,11 @@ table
 // ── Buttons ───────────────────────────────────────────────────────────────────
 btn-base()
   border 0
-  border-radius 0
+  border-radius 4px
   background #fff
   font-size font-size-base
   color color-black
-  padding 3px
+  padding 6px 18px
   text-transform none
   line-height 1
   display inline-block
@@ -83,6 +83,7 @@ btn-base()
   text-align center
   margin-right 5px
   transition()
+  cursor pointer
 
 btn-active()
   background color-gold
@@ -97,6 +98,36 @@ input[type="submit"]
 
   &:hover, &:focus, &:active
     btn-active()
+
+// Cancel / back / secondary actions — transparent, grey border, gold on hover
+.btn-secondary
+  btn-base()
+  background transparent
+  color #bbb
+  border 1px solid #888
+  box-shadow 0 1px 3px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.07)
+  text-decoration none
+
+  &:hover, &:focus, &:active
+    background transparent
+    border-color color-gold
+    color color-gold
+    box-shadow 0 1px 3px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.07)
+
+// Destructive actions — red border, red on hover
+.btn-danger
+  btn-base()
+  background transparent
+  color #c44
+  border 1px solid #c44
+  box-shadow 0 1px 3px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.07)
+  text-decoration none
+
+  &:hover, &:focus, &:active
+    background #c44
+    color #fff
+    border-color #c44
+    box-shadow 0 1px 3px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.07)
 
 // ── Form inputs ───────────────────────────────────────────────────────────────
 input-types = text email url password search number tel range date month week time datetime datetime-local color

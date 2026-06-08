@@ -4,7 +4,7 @@
 // category allocations, head-judge category assignments, and cleanup of orphaned scores/links.
 
 import { Router } from 'express';
-import { requireAuth } from '../middleware/auth.js';
+import { requireAuth, requireAdmin } from '../middleware/auth.js';
 import User              from '../models/User.js';
 import UserCredential    from '../models/UserCredential.js';
 import Category          from '../models/Category.js';
@@ -13,11 +13,7 @@ import { getPool, sql }  from '../config/database.js';
 import { encryptPassword, randomPassword } from '../services/helpers.js';
 
 const router = Router();
-router.use(requireAuth);
-router.use((req, res, next) => {
-    if (!req.user.admin) return res.renderInShell('error', { message: 'You do not have permission to access this page.' });
-    next();
-});
+router.use(requireAuth, requireAdmin);
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -43,7 +39,7 @@ async function getHeadJudgeCategoryIds(userid, programid) {
 router.get('/', async (req, res, next) => {
     try {
         const user    = req.user;
-        const program = user.program;
+        const program = req.program;
         const judgeid = req.query.judgeid ? parseInt(req.query.judgeid) : null;
 
         const categories = await getCategories(program.programid);
@@ -84,7 +80,7 @@ router.get('/', async (req, res, next) => {
 router.post('/', async (req, res, next) => {
     try {
         const user    = req.user;
-        const program = user.program;
+        const program = req.program;
         const body    = req.body;
 
         const judgeid   = body.judgeid   ? parseInt(body.judgeid)   : null;

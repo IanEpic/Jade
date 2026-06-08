@@ -41,6 +41,11 @@ export function shellMiddleware(req, res, next) {
                 throw new Error(`Template shell not found: ${shellPath}`);
             }
 
+            // Inject our app stylesheet as the first thing in <head> so it
+            // provides the base and the program's own CSS (loaded after) overrides.
+            shell = shell.replace(/<head>/i,
+                '<head>\n  <link rel="stylesheet" href="/css/main.css">');
+
             // Render the Pug view to an HTML string using Express's render
             // Pass layout:false so the view doesn't try to extend layout.pug
             res.render(viewName, { ...locals, ...options, layout: false }, (err, content) => {

@@ -3,9 +3,11 @@ import express from 'express';
 import session from 'express-session';
 import MssqlStore from 'connect-mssql-v2';
 import helmet from 'helmet';
+import compression from 'compression';
 import morgan from 'morgan';
 import path from 'path';
 import fs from 'fs/promises';
+import crypto from 'crypto';
 import { fileURLToPath } from 'url';
 
 import sequelize from './config/sequelize.js';
@@ -38,15 +40,36 @@ const sessionStore = new MssqlStore({
 });
 
 // ── Middleware ────────────────────────────────────────────────────────────────
+app.use(compression());
+
+// Nonce must be generated BEFORE helmet so the CSP directive function can read it.
+app.use((req, res, next) => {
+  res.locals.nonce = crypto.randomBytes(16).toString('base64url');
+  next();
+});
+
 app.use(helmet({
-  // Relax CSP during migration — tighten once all inline scripts are extracted
-  contentSecurityPolicy: false,
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc:     ["'self'"],
+      scriptSrc:      ["'self'", (req, res) => `'nonce-${res.locals.nonce}'`, 'https://cdn.tiny.cloud'],
+      styleSrc:       ["'self'", "'unsafe-inline'", 'https://cdn.tiny.cloud'],
+      imgSrc:         ["'self'", 'data:', 'blob:', 'https://cdn.tiny.cloud', 'https://sp.tinymce.com'],
+      mediaSrc:       ["'self'", 'blob:'],              // blob: needed for dropzone video preview
+      connectSrc:     ["'self'", 'https://cdn.tiny.cloud'],
+      fontSrc:        ["'self'", 'https://cdn.tiny.cloud'],
+      workerSrc:      ["'self'", 'blob:', 'https://cdn.tiny.cloud'],
+      objectSrc:      ["'none'"],
+      frameAncestors: ["'none'"],
+    },
+  },
 }));
 
 app.use(morgan(isProd ? 'combined' : 'dev'));
 
-app.use(express.urlencoded({ extended: true, limit: '200mb' }));  // equiv of $CGI::POST_MAX
-app.use(express.json({ limit: '200mb' }));
+app.use(express.urlencoded({ extended: true, limit: '2mb' }));
+app.use(express.json({ limit: '2mb' }));
+// Note: file uploads go through multer in formResponses.js which sets its own limit.
 
 app.use(session({
   store:             sessionStore,
@@ -84,9 +107,8 @@ app.set('views', path.join(__dirname, 'views'));
 
 // ── Template globals ──────────────────────────────────────────────────────────
 // Makes these available in every Pug template without passing them explicitly.
-// Equivalent of the global $INPUT, $user etc. that Perl scripts relied on.
+// requireAuth sets res.locals.user; resolveProgram sets res.locals.program.
 app.use((req, res, next) => {
-  res.locals.user        = req.user || null;
   res.locals.currentYear = new Date().getFullYear();
   res.locals.env         = process.env.NODE_ENV || 'development';
   next();
@@ -95,8 +117,8 @@ app.use((req, res, next) => {
 // ── Template shell middleware ─────────────────────────────────────────────────
 // Inline rather than imported to avoid ES module load-order timing issues.
 // Attaches res.renderInShell(viewName, locals, options) to every response.
-const TEMPLATE_ROOT = process.env.TEMPLATE_ROOT
-    || 'C:/Data/WebProjects/Apache/htdocs/jade/cgi-bin/design';
+const TEMPLATE_ROOT = process.env.TEMPLATE_ROOT;
+if (!TEMPLATE_ROOT) throw new Error('TEMPLATE_ROOT env var is required');
 
 app.use((req, res, next) => {
   res.renderInShell = async (viewName, locals = {}, options = {}) => {
@@ -124,11 +146,12 @@ app.use((req, res, next) => {
         // attributes to be slug-prefixed (e.g. /home → /aea25/home).
         // This means templates don't need to know the slug — they keep using
         // plain absolute paths and the rewriter fixes them at runtime.
-        const slug = program.slug;
+        const slug  = program.slug;
+        const nonce = res.locals.nonce;
         const otherSlugs = (req.session?.linkedPrograms || [])
             .map(p => p.slug)
             .filter(s => s !== slug);
-        const rewriterScript = `<script>
+        const rewriterScript = `<script nonce="${nonce}">
 window.JADE_SLUG='${slug}';
 window.JADE_BASE='/${slug}';
 (function(){
@@ -150,7 +173,15 @@ window.JADE_BASE='/${slug}';
 })();
 </script>`;
 
-        res.send(shell.replace('<CGIINSERT>', content + rewriterScript));
+        // Inject nonce into any inline <script> tags in the legacy shell that
+        // don't already have a src= or nonce= attribute (shell is a static file
+        // we can't edit, so we patch it at serve time).
+        const assembled = shell.replace('<CGIINSERT>', content + rewriterScript);
+        const withNonces = assembled.replace(/<script(\b[^>]*)>/gi, (match, attrs) => {
+            if (/\bsrc=/i.test(attrs) || /\bnonce=/i.test(attrs)) return match;
+            return `<script${attrs} nonce="${nonce}">`;
+        });
+        res.send(withNonces);
       });
 
     } catch (err) {

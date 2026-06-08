@@ -3,8 +3,8 @@
 style.
     .pmt-wrap { max-width: 700px; margin: 0 auto; font-size: 14px; }
     .pmt-wrap h2 { text-align: center; color: #c48f06; margin-bottom: 16px; }
-    .pmt-wrap fieldset { border: 1px solid #666; border-radius: 4px; margin-bottom: 14px; padding: 12px 18px; }
-    .pmt-wrap legend { font-weight: bold; padding: 0 6px; }
+    .pmt-wrap fieldset { border: 1px solid #555; border-radius: 4px; margin-bottom: 14px; padding: 14px 18px; }
+    .pmt-wrap legend { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: #c48f06; padding: 0 8px; }
     .pmt-wrap table { border-collapse: collapse; width: 100%; }
     .pmt-wrap .form-table td { padding: 5px 8px; vertical-align: middle; }
     .pmt-wrap .form-table td:first-child { text-align: right; white-space: nowrap; width: 1%; padding-right: 12px; }
@@ -22,11 +22,6 @@ style.
     .pmt-wrap .alert-error { background: #7a2a00; color: #fff; padding: 8px 12px; margin-bottom: 12px; border-left: 4px solid #c44; }
     .pmt-wrap .alert-success { background: #1a4a1a; color: #fff; padding: 12px 16px; margin-bottom: 14px; border-left: 4px solid #4caf50; text-align: center; }
     .pmt-wrap .form-actions { text-align: center; margin-top: 20px; padding-top: 16px; border-top: 1px solid #333; display: flex; justify-content: center; gap: 10px; }
-    .pmt-wrap .btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 18px; font-size: 14px; border-radius: 3px; cursor: pointer; text-decoration: none; border: none; transition: all 0.2s; font-family: inherit; }
-    .pmt-wrap .btn-primary { background: #c48f06; color: #000; font-weight: 600; }
-    .pmt-wrap .btn-primary:hover { background: #ffba01; }
-    .pmt-wrap .btn-secondary { background: transparent; color: #ccc; border: 1px solid #555; }
-    .pmt-wrap .btn-secondary:hover { border-color: #c48f06; color: #c48f06; }
     .pmt-wrap .cvn-note { font-size: 12px; color: #aaa; margin-top: 4px; }
 
 .pmt-wrap
@@ -121,8 +116,8 @@ style.
                             p.cvn-note 3 digits on the back of Visa/Mastercard, 4 digits on the front of Amex.
 
             .form-actions
-                a.btn.btn-secondary(href='/home') Cancel
-                button.btn.btn-primary(type='submit') 💳 Make Payment
+                a.btn-secondary(href='/home') Cancel
+                button(type='submit') 💳 Make Payment
 
     else
         //- ── Receipt ──────────────────────────────────────────────────────────
@@ -136,5 +131,5 @@ style.
             .rich-text(style='margin-top:16px; padding-top:12px; border-top:1px solid #333; font-size:13px;')!= receipt
 
         .form-actions
-            a.btn.btn-secondary(href='/home') ← Home
-            button.btn.btn-secondary(onclick='window.print()' type='button') 🖨 Print
+            a.btn-secondary(href='/home') ← Home
+            button.btn-secondary(type='button' data-action='print') 🖨 Print

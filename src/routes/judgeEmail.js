@@ -4,22 +4,18 @@
 // If the judge has no password yet, generates one and sets it first.
 
 import { Router } from 'express';
-import { requireAuth } from '../middleware/auth.js';
+import { requireAuth, requireAdmin } from '../middleware/auth.js';
 import User from '../models/User.js';
 import { mailHtml, parseSmtp } from '../services/mailer.js';
 import { randomPassword, encryptPassword } from '../services/helpers.js';
 
 const router = Router();
-router.use(requireAuth);
-router.use((req, res, next) => {
-    if (!req.user.admin) return res.redirect('/home');
-    next();
-});
+router.use(requireAuth, requireAdmin);
 
 router.post('/', async (req, res, next) => {
     try {
         const user    = req.user;
-        const program = user.program;
+        const program = req.program;
         const body    = req.body;
 
         const judgeIds         = [].concat(body.judges || []).map(Number);

@@ -7,10 +7,10 @@
 //-   'c' = same as above (postal only)
 //-   <id> = existing address
 
-- let isEdit = mode === 'edit'
-- let submitLabel = isEdit ? editLabel : createLabel
-- let streetDefault = entrant ? String(entrant.streetaddressid) : 'a'
-- let postalDefault = entrant ? String(entrant.postaladdressid) : 'a'
+- var isEdit = mode === 'edit'
+- var submitLabel = isEdit ? editLabel : createLabel
+- var streetDefault = entrant ? String(entrant.streetaddressid) : 'a'
+- var postalDefault = entrant ? String(entrant.postaladdressid) : 'a'
 
 if errors && errors.length
     div(style='background:#5a0000; color:#fff; border-left:4px solid #c44; padding:10px 14px; margin-bottom:14px;')
@@ -43,7 +43,7 @@ form(name='entrantform' method='POST' action='/formEntrant')
             tr
                 td Select a Street Address
                 td
-                    select(name='streetaddressid' onchange='checkAddress(document.entrantform)')
+                    select(name='streetaddressid')
                         if !isEdit
                             option(value='a') ------Please Select------
                         option(value='b') New Address Below
@@ -78,7 +78,7 @@ form(name='entrantform' method='POST' action='/formEntrant')
             tr
                 td Select a Postal Address
                 td
-                    select(name='postaladdressid' onchange='checkAddress(document.entrantform)')
+                    select(name='postaladdressid')
                         if !isEdit
                             option(value='a') ------Please Select------
                         option(value='b') New Address Below
@@ -129,25 +129,5 @@ form(name='entrantform' method='POST' action='/formEntrant')
 //- ── Address toggle script ────────────────────────────────────────────────────
 //- Equiv of checkAddress() JS in the Perl legacy shell.
 //- Enables/disables the inline address fields based on dropdown selection.
-script.
-    function checkAddress(form) {
-        var streetSel = form.streetaddressid;
-        var postalSel = form.postaladdressid;
-
-        var streetFields = document.querySelectorAll('#street-address-fields input');
-        var postalFields = document.querySelectorAll('#postal-address-fields input');
-
-        if (streetSel) {
-            var streetNew = streetSel.value === 'b';
-            streetFields.forEach(function(f) { f.disabled = !streetNew; });
-        }
-        if (postalSel) {
-            var postalNew = postalSel.value === 'b';
-            postalFields.forEach(function(f) { f.disabled = !postalNew; });
-        }
-    }
-
-    // Run on load to set initial state
-    document.addEventListener('DOMContentLoaded', function() {
-        checkAddress(document.entrantform);
-    });
+script(src='/js/jade.js')
+script(src='/js/form-entry.js')
