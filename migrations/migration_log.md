@@ -808,6 +808,18 @@ DROP TABLE TopMenu;
 
 ---
 
+## 026 — Update adminwelcometext for AEA 2026
+
+**Date applied:** 2026-06-09
+**Purpose:** Rewrites adminwelcometext for programid 1056 with a concise
+admin-facing welcome (key dates, entry costs, contact). Uses plain semantic
+HTML — no inline styles — relying on the `.home-content` CSS added in the
+same commit to apply the dark theme. Also expands `.home-content` in
+main.styl to properly style all TinyMCE-emitted elements (h2/h3, p, ul,
+table, a, strong).
+
+---
+
 ## 025 — Update standardwelcometext for AEA 2026
 
 **Date applied:** 2026-06-09
