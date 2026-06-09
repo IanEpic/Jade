@@ -14,26 +14,26 @@ style.
     .ve-entrant-grid { display: grid; grid-template-columns: 120px 1fr; gap: 4px 12px; }
     .ve-entrant-grid .lbl { color: #888; }
     .ve-entrant-grid .val { color: #ccc; }
-    .ve-question { padding: 12px 0; border-bottom: 1px solid #2a2a2a; }
-    .ve-question:last-child { border-bottom: none; padding-bottom: 0; }
-    .ve-q-label { font-weight: 600; color: #fff; margin-bottom: 4px; }
-    .ve-q-desc { font-size: 12px; color: #aaa; font-style: italic; margin-bottom: 6px; }
-    .ve-q-answer { color: #ccc; line-height: 1.6; }
+    .ve-question { background: #0d0d0d; border: 1px solid #2a2a2a; border-radius: 3px; padding: 12px 14px; margin-bottom: 6px; }
+    .ve-question:last-child { margin-bottom: 0; }
+    .ve-q-label { font-weight: 600; color: #ddd; margin-bottom: 6px; line-height: 1.4; }
+    .ve-q-desc { font-size: 12px; color: #888; font-style: italic; margin-bottom: 8px; }
+    .ve-q-answer { color: #bbb; line-height: 1.6; margin-top: 6px; padding-top: 6px; border-top: 1px solid #1e1e1e; }
     .ve-q-answer p { margin: 0 0 8px; }
     .ve-q-answer p:last-child { margin-bottom: 0; }
-    .ve-q-noresp { color: #555; font-style: italic; }
-    .ve-q-ddr { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; }
-    .ve-q-ddr .ve-q-label { margin-bottom: 0; }
+    .ve-q-noresp { color: #444; font-style: italic; }
+    .ve-q-ddr { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; }
+    .ve-q-ddr .ve-q-label { margin-bottom: 0; flex: 1; }
+    .ve-q-ddr > span { color: #bbb; white-space: nowrap; flex-shrink: 0; padding-top: 2px; }
     .ve-check-grid { display: grid; grid-template-columns: 1fr auto; gap: 3px 16px; margin-top: 6px; font-size: 13px; }
     .ve-check-yes { color: #4caf50; font-weight: 600; }
-    .ve-check-no { color: #555; }
+    .ve-check-no { color: #444; }
     .ve-media { border: 1px solid #c48f06; border-radius: 4px; padding: 14px 18px; margin-top: 8px; background: rgba(196,143,6,0.06); text-align: center; }
     .ve-media img, .ve-media video { max-width: 100%; display: block; margin: 0 auto; }
     .ve-media .caption { margin: 8px 0 0; font-size: 13px; text-align: left; color: #aaa; }
     .ve-doc-link { display: inline-flex; align-items: center; gap: 8px; font-size: 15px; font-weight: bold; text-decoration: none; color: #fff; }
     .ve-doc-link:hover { color: #c48f06; }
-    .ve-noinput { color: #ccc; padding: 10px 0; border-bottom: 1px solid #2a2a2a; line-height: 1.6; }
-    .ve-noinput:last-child { border-bottom: none; }
+    .ve-noinput { color: #c48f06; font-weight: 600; font-size: 13px; padding: 14px 0 8px; letter-spacing: 0.03em; }
     .ve-form-actions { display: flex; justify-content: center; gap: 12px; margin-top: 6px; }
 
 if error === 'noaccess'
