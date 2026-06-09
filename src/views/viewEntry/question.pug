@@ -29,11 +29,16 @@ else if q.inputtype === 'drop down list' || q.inputtype === 'radio'
     - let resolvedOpt = (optById || optByName)
     - let displayVal = resolvedOpt ? resolvedOpt.name : (rawVal && rawVal !== '--Please Select--' ? rawVal : null)
     .ve-question
-        .ve-q-ddr
-            .ve-q-label!= num + '. ' + q.questiontext
-            span= displayVal || noResp
+        .ve-q-label!= num + '. ' + q.questiontext
         if q.description
             .ve-q-desc!= q.description
+        .ve-q-answer
+            if displayVal === 'Confirmed' || displayVal === 'Yes'
+                span.ve-q-confirmed= displayVal
+            else if displayVal
+                = displayVal
+            else
+                span.ve-q-noresp= noResp
 
 else if q.inputtype === 'textarea'
     .ve-question

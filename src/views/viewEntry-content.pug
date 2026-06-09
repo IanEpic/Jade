@@ -6,28 +6,26 @@ style.
     .ve-wrap .ve-meta { text-align: center; color: #aaa; font-size: 13px; margin: 0 0 18px; }
     .ve-card { border: 1px solid #555; border-radius: 4px; padding: 16px 20px; margin-bottom: 14px; box-shadow: 0 1px 3px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.07); }
     .ve-card-title { color: #c48f06; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; margin: 0 0 12px; padding-bottom: 8px; border-bottom: 1px solid #333; }
-    .ve-criteria-table { width: 100%; border-collapse: collapse; }
-    .ve-criteria-table th { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: #c48f06; border-bottom: 1px solid #555; padding: 5px 8px; text-align: left; }
-    .ve-criteria-table td { padding: 5px 8px; border-bottom: 1px solid #2a2a2a; color: #ccc; }
+    .ve-criteria-table { width: auto; min-width: 340px; border-collapse: collapse; margin: 0 auto; }
+    .ve-criteria-table th { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: #c48f06; border-bottom: 1px solid #555; padding: 5px 12px; text-align: left; }
+    .ve-criteria-table td { padding: 5px 12px; border-bottom: 1px solid #2a2a2a; color: #ccc; text-align: left; }
     .ve-criteria-table tr:last-child td { border-bottom: none; }
-    .ve-criteria-table td.r { text-align: right; white-space: nowrap; }
-    .ve-entrant-grid { display: grid; grid-template-columns: 120px 1fr; gap: 4px 12px; }
-    .ve-entrant-grid .lbl { color: #888; }
-    .ve-entrant-grid .val { color: #ccc; }
-    .ve-question { background: #0d0d0d; border: 1px solid #2a2a2a; border-radius: 3px; padding: 12px 14px; margin-bottom: 6px; }
-    .ve-question:last-child { margin-bottom: 0; }
-    .ve-q-label { font-weight: 600; color: #ddd; margin-bottom: 6px; line-height: 1.4; }
-    .ve-q-desc { font-size: 12px; color: #888; font-style: italic; margin-bottom: 8px; }
-    .ve-q-answer { color: #bbb; line-height: 1.6; margin-top: 6px; padding-top: 6px; border-top: 1px solid #1e1e1e; }
+    .ve-criteria-table th.r, .ve-criteria-table td.r { text-align: right; white-space: nowrap; }
+    .ve-entrant-grid { display: grid; grid-template-columns: 120px auto; gap: 6px 12px; width: fit-content; margin: 0 auto; }
+    .ve-entrant-grid .lbl { color: #888; text-align: left; }
+    .ve-entrant-grid .val { color: #ccc; text-align: left; }
+    .ve-question { border-bottom: 1px solid #222; padding: 14px 0; text-align: left; }
+    .ve-question:last-child { border-bottom: none; }
+    .ve-q-label { font-weight: 600; color: #eee; margin-bottom: 8px; line-height: 1.5; text-align: left !important; }
+    .ve-q-desc { font-size: 12px; color: #888; font-style: italic; margin-bottom: 8px; text-align: left; }
+    .ve-q-answer { color: #bbb; line-height: 1.7; border-left: 3px solid #333; padding-left: 12px; margin-left: 2px; text-align: left; }
     .ve-q-answer p { margin: 0 0 8px; }
     .ve-q-answer p:last-child { margin-bottom: 0; }
-    .ve-q-noresp { color: #444; font-style: italic; }
-    .ve-q-ddr { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; }
-    .ve-q-ddr .ve-q-label { margin-bottom: 0; flex: 1; }
-    .ve-q-ddr > span { color: #bbb; white-space: nowrap; flex-shrink: 0; padding-top: 2px; }
-    .ve-check-grid { display: grid; grid-template-columns: 1fr auto; gap: 3px 16px; margin-top: 6px; font-size: 13px; }
+    .ve-q-noresp { color: #666; font-style: italic; }
+    .ve-check-grid { display: grid; grid-template-columns: auto auto; gap: 3px 16px; font-size: 13px; width: fit-content; margin: 0 auto; }
     .ve-check-yes { color: #4caf50; font-weight: 600; }
-    .ve-check-no { color: #444; }
+    .ve-q-confirmed { color: #4caf50; font-weight: 600; }
+    .ve-check-no { color: #555; }
     .ve-media { border: 1px solid #c48f06; border-radius: 4px; padding: 14px 18px; margin-top: 8px; background: rgba(196,143,6,0.06); text-align: center; }
     .ve-media img, .ve-media video { max-width: 100%; display: block; margin: 0 auto; }
     .ve-media .caption { margin: 8px 0 0; font-size: 13px; text-align: left; color: #aaa; }
@@ -59,7 +57,7 @@ else
                         each c in criteria
                             tr
                                 td!= c.description
-                                td.r= c.weight + '%'
+                                td.r= c.weight ? c.weight + '%' : ''
 
         //- ── Entrant Details ─────────────────────────────────────────────────
         .ve-card
