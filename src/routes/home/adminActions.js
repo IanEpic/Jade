@@ -314,6 +314,10 @@ export async function handleAdminAction(action, req, res, program, user) {
         return { view: 'home/users', users, success: req.query.success === '1' };
     }
 
+    if (action === 'activeusers') {
+        return { view: 'home/activeusers' };
+    }
+
     if (action === 'stats') {
         const stats = await getEntryStats();
         return { view: 'home/stats', stats };
