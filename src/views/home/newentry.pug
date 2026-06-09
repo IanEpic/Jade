@@ -1,17 +1,18 @@
 //- home/newentry.pug
-//- Equiv of $newentrytable in home.cgi.
 
 style.
-    .newentry-wrap { max-width: 680px; margin: 0 auto; }
+    .newentry-wrap { max-width: 620px; margin: 0 auto; }
     .newentry-heading { text-align: center; color: #c48f06; font-size: 18px; margin-bottom: 2px; }
     .newentry-sub { text-align: center; color: #aaa; font-size: 13px; margin-top: 0; margin-bottom: 16px; }
-    .cat-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-    .cat-table th { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1px solid #555; padding: 6px 10px; text-align: left; color: #c48f06; }
-    .cat-table td { padding: 8px 10px; border-bottom: 1px solid #2a2a2a; vertical-align: middle; }
-    .cat-table tr:hover td { background: rgba(255,255,255,0.05); }
-    .cat-table .cost-col { text-align: right; width: 90px; color: #c48f06; white-space: nowrap; }
-    .cat-table .action-col { text-align: right; width: 140px; }
-    .cat-table .btn { padding: 6px 18px; font-size: 13px; white-space: nowrap; }
+    .newentry-card { border: 1px solid #555; border-radius: 4px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.07); }
+    .tier-header { padding: 10px 16px; background: rgba(196,143,6,0.08); border-bottom: 1px solid #444; font-size: 12px; font-weight: 600; color: #c48f06; text-transform: uppercase; letter-spacing: 0.05em; }
+    .tier-header + .tier-header { border-top: 1px solid #555; }
+    a.cat-row { display: flex; justify-content: space-between; align-items: center; padding: 11px 16px; border-bottom: 1px solid #2a2a2a; color: #ccc; text-decoration: none; font-size: 14px; cursor: pointer; transition: background 0.12s, color 0.12s; }
+    a.cat-row:last-child { border-bottom: none; }
+    a.cat-row:hover { background: rgba(255,255,255,0.06); color: #fff; }
+    a.cat-row::after { content: '›'; font-size: 20px; color: #555; line-height: 1; transition: color 0.12s, transform 0.12s; }
+    a.cat-row:hover::after { color: #c48f06; }
+    .newentry-cost-note { font-size: 12px; color: #888; text-align: center; margin-top: 12px; }
 
 if !content.cats || !content.cats.length
     p Sorry, there are no categories that are currently open for new entries.
@@ -21,19 +22,21 @@ else
         p.newentry-sub Step 1 — Select the category you want to enter
 
         if content.program && content.program.costexplanationtext
-            p!= content.program.costexplanationtext
+            p(style='font-size:13px; color:#aaa; text-align:center; margin-bottom:14px;')!= content.program.costexplanationtext
 
-        table.cat-table
-            thead
-                tr
-                    th Category
-                    th.cost-col Cost
-                    th.action-col
-            tbody
-                each cat in content.cats
-                    - let cost = (parseFloat(cat.costex) || 0) + (parseFloat(cat.gst) || 0)
-                    - let costDisplay = cost > 0 ? content.currency(cost) : ''
-                    tr
-                        td= cat.name
-                        td.cost-col= costDisplay
-                        td.action-col: a.btn(href='/tc?type=approve&cat=' + cat.categoryid) Start Your Entry
+        -
+            var tiers = {};
+            content.cats.forEach(function(cat) {
+                var cost = (parseFloat(cat.costex) || 0) + (parseFloat(cat.gst) || 0);
+                var key = cost.toFixed(2);
+                if (!tiers[key]) tiers[key] = { cost: cost, costDisplay: cost > 0 ? content.currency(cost) : 'Free', cats: [] };
+                tiers[key].cats.push(cat);
+            });
+            var tierKeys = Object.keys(tiers).sort(function(a, b) { return parseFloat(a) - parseFloat(b); });
+
+        .newentry-card
+            each tierKey in tierKeys
+                - var tier = tiers[tierKey]
+                .tier-header= tier.costDisplay + ' per entry (inc. GST)'
+                each cat in tier.cats
+                    a.cat-row(href='/' + slug + '/tc?type=approve&cat=' + cat.categoryid)= cat.name
