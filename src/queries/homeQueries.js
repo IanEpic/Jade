@@ -767,6 +767,66 @@ export async function getActiveUsersReport({ programId }) {
     return result.recordset;
 }
 
+// Paid (accepted) but not yet finalised
+export async function getPaidNotFinalisedReport({ programId }) {
+    const pool = await getPool();
+    const result = await pool.request()
+        .input('programId', sql.Int, programId)
+        .query(`
+            SELECT
+                e.entryid,
+                e.userid,
+                u.email,
+                u.firstname,
+                u.lastname,
+                u.organisation,
+                e.userref,
+                e.entryaccepted,
+                e.entryopen,
+                e.finalised,
+                e.timestamp
+            FROM Entry e
+            INNER JOIN [User] u ON e.userid = u.userid
+            WHERE e.programid    = @programId
+              AND e.entryaccepted = 1
+              AND (e.finalised IS NULL OR e.finalised = 0)
+              AND e.deleted      = 0
+              AND u.exclude      = 0
+            ORDER BY u.email, e.entryid
+        `);
+    return result.recordset;
+}
+
+// Finalised but not yet paid (accepted)
+export async function getFinalisedNotPaidReport({ programId }) {
+    const pool = await getPool();
+    const result = await pool.request()
+        .input('programId', sql.Int, programId)
+        .query(`
+            SELECT
+                e.entryid,
+                e.userid,
+                u.email,
+                u.firstname,
+                u.lastname,
+                u.organisation,
+                e.userref,
+                e.entryaccepted,
+                e.entryopen,
+                e.finalised,
+                e.timestamp
+            FROM Entry e
+            INNER JOIN [User] u ON e.userid = u.userid
+            WHERE e.programid  = @programId
+              AND e.finalised   = 1
+              AND (e.entryaccepted IS NULL OR e.entryaccepted = 0)
+              AND e.deleted     = 0
+              AND u.exclude     = 0
+            ORDER BY u.email, e.entryid
+        `);
+    return result.recordset;
+}
+
 // All judge comments for an entry (for scorescomments view)
 export async function getJudgeCommentsForEntry({ entryId }) {
     const pool = await getPool();

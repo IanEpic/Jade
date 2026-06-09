@@ -41,7 +41,9 @@ import viewPageRouter         from './viewPage.js';
 import formDiscountRouter        from './formDiscount.js';
 import checkCommentsRouter       from './checkComments.js';
 import formEntryFlagsRouter      from './formEntryFlags.js';
-import reportActiveUsersRouter   from './reportActiveUsers.js';
+import reportActiveUsersRouter    from './reportActiveUsers.js';
+import reportPaidNotFinalisedRouter from './reportPaidNotFinalised.js';
+import reportFinalisedNotPaidRouter from './reportFinalisedNotPaid.js';
 
 const router = Router({ mergeParams: true });
 
@@ -89,7 +91,9 @@ router.use('/explainscores',       explainscoresRouter);
 router.use('/viewPage',            viewPageRouter);
 router.use('/formDiscount',        formDiscountRouter);
 router.use('/formEntryFlags',      formEntryFlagsRouter);
-router.use('/reportActiveUsers',   reportActiveUsersRouter);
+router.use('/reportActiveUsers',      reportActiveUsersRouter);
+router.use('/reportPaidNotFinalised', reportPaidNotFinalisedRouter);
+router.use('/reportFinalisedNotPaid', reportFinalisedNotPaidRouter);
 
 // ── Compatibility shims ───────────────────────────────────────────────────────
 // Legacy .cgi URLs that may still appear in TopMenuButton records or bookmarks.

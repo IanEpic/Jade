@@ -169,8 +169,8 @@ export async function buildSidebar(user, program, data) {
             reportsItems.push({ href: url('/home?action=statsconfig'), label: 'Stats Config' });
         }
         reportsItems.push({ href: url('/home?action=activeusers'), label: 'Active Users' });
-        reportsItems.push({ href: '#', label: 'Finalised Unpaid' });
-        reportsItems.push({ href: '#', label: 'Paid Unfinalised' });
+        reportsItems.push({ href: url('/home?action=finalisednotpaid'), label: 'Finalised Unpaid' });
+        reportsItems.push({ href: url('/home?action=paidnotfinalised'), label: 'Paid Unfinalised' });
         panels.reports = {
             back: 'admin', backLabel: '< Admin',
             items: reportsItems,

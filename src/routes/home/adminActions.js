@@ -314,9 +314,9 @@ export async function handleAdminAction(action, req, res, program, user) {
         return { view: 'home/users', users, success: req.query.success === '1' };
     }
 
-    if (action === 'activeusers') {
-        return { view: 'home/activeusers' };
-    }
+    if (action === 'activeusers')      return { view: 'home/activeusers' };
+    if (action === 'paidnotfinalised') return { view: 'home/paidnotfinalised' };
+    if (action === 'finalisednotpaid') return { view: 'home/finalisednotpaid' };
 
     if (action === 'stats') {
         const stats = await getEntryStats();

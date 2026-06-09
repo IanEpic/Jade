@@ -1,0 +1,25 @@
+//- home/paidnotfinalised.pug
+
+style.
+    .rpt-wrap { max-width: 600px; margin: 40px auto; text-align: center; }
+    .rpt-wrap h3 { color: #c48f06; font-size: 18px; margin-bottom: 16px; }
+    .rpt-wrap p { color: #aaa; font-size: 13px; margin-bottom: 24px; }
+    .rpt-download-btn { display: inline-block; padding: 10px 28px; background: #c48f06; color: #000; font-weight: 600; font-size: 14px; border-radius: 4px; text-decoration: none; }
+    .rpt-download-btn:hover { background: #d4a017; }
+    .rpt-note { margin-top: 20px; font-size: 12px; color: #666; }
+
+.rpt-wrap
+    h3 Paid — Not Finalised
+    p Entries that have been accepted (paid) but not yet finalised by the entrant.
+    a.rpt-download-btn(href='/' + program.slug + '/reportPaidNotFinalised') ⬇ Download Excel
+    p.rpt-note Your download will begin automatically.
+
+script.
+    setTimeout(() => {
+        const a = document.createElement('a');
+        a.href = window.location.href.replace(/\/home\?action=paidnotfinalised.*/, '/reportPaidNotFinalised');
+        a.download = '';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+    }, 400);
