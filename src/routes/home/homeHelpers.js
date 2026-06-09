@@ -16,7 +16,8 @@ import {
     getFinalistsNotOpenByUser,
     getNonFinalistsNotOpenByUser,
 } from '../../queries/entryQueries.js';
-import { buildSidebar } from './sidebar.js';
+import { buildSidebar }    from './sidebar.js';
+import { getLinkedPrograms } from '../../services/auth.js';
 
 // ── Menu buttons (hardcoded per role) ─────────────────────────────────────────
 
@@ -101,7 +102,9 @@ export async function renderInHome(req, res, view, locals) {
         sidebarMenus,
         content:          { view },
         isEmulating:      !!req.session.emulateUserId,
-        linkedPrograms:   req.session.linkedPrograms || [],
+        linkedPrograms:   req.session.emulateUserId
+            ? await getLinkedPrograms(user.credentialid)
+            : (req.session.linkedPrograms || []),
         currentProgramId: program.programid,
         ...locals,
     });

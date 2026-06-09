@@ -14,8 +14,9 @@ import { Router } from 'express';
 import { requireAuth } from '../middleware/auth.js';
 import { getCatsOpenForJudgingByJudge } from '../queries/homeQueries.js';
 
-import { buildSidebar }                                  from './home/sidebar.js';
-import { buildMenuButtons, loadCommonData }  from './home/homeHelpers.js';
+import { buildSidebar }                                   from './home/sidebar.js';
+import { buildMenuButtons, loadCommonData }   from './home/homeHelpers.js';
+import { getLinkedPrograms }                  from '../services/auth.js';
 import { handleSharedAction } from './home/sharedActions.js';
 import { handleAdminAction }  from './home/adminActions.js';
 import { handleJudgeAction }  from './home/judgeActions.js';
@@ -82,7 +83,9 @@ router.get('/', async (req, res, next) => {
             content,
             isEmulating:      !!req.session.emulateUserId,
             action,
-            linkedPrograms:   req.session.linkedPrograms || [],
+            linkedPrograms:   req.session.emulateUserId
+                ? await getLinkedPrograms(user.credentialid)
+                : (req.session.linkedPrograms || []),
             currentProgramId: program.programid,
         });
 

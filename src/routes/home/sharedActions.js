@@ -6,8 +6,9 @@
 //   null            → redirect already sent
 //   undefined       → action not matched here
 
-import { translate } from '../../services/translate.js';
-import { currency }  from '../../services/helpers.js';
+import { translate }        from '../../services/translate.js';
+import { currency }         from '../../services/helpers.js';
+import { getLinkedPrograms } from '../../services/auth.js';
 import Address       from '../../models/Address.js';
 import {
     getAllEntriesForProgram,
@@ -180,9 +181,14 @@ export async function handleSharedAction(action, req, res, program, user, data) 
     }
 
     if (action === 'switchProgram') {
+        // When emulating, look up programs for the emulated user's credential,
+        // not the admin's session linkedPrograms.
+        const linkedPrograms = req.session.emulateUserId
+            ? await getLinkedPrograms(user.credentialid)
+            : (req.session.linkedPrograms || []);
         return {
             view:             'home/switchProgram',
-            linkedPrograms:   req.session.linkedPrograms || [],
+            linkedPrograms,
             currentProgramId: program.programid,
         };
     }
