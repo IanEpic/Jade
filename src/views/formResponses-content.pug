@@ -141,7 +141,7 @@ style.
                                         - const iconColors = {pdf:'#e74c3c',doc:'#2980b9',docx:'#2980b9',xls:'#27ae60',xlsx:'#27ae60',ppt:'#e67e22',pptx:'#e67e22',zip:'#8e44ad',rar:'#8e44ad','7z':'#8e44ad',csv:'#16a085',txt:'#7f8c8d'}
                                         - const iconColor = iconColors[ext] || '#555'
                                         - const iconLabel = ext ? ext.toUpperCase() : 'FILE'
-                                        a.dz-filename(href='/formResponses/download?responseid='+resp.responseid target='_blank')
+                                        a.dz-filename(href='/'+slug+'/formResponses/download?responseid='+resp.responseid target='_blank')
                                             span.dz-file-icon(style='background:'+iconColor)= iconLabel
                                             = respval
                                     else
@@ -162,7 +162,7 @@ style.
                                         span.dz-uploading-icon 🖼
                                         span Uploading…
                                     if resp && respval
-                                        img.dz-thumb(src='/formResponses/image?responseid='+resp.responseid)
+                                        img.dz-thumb(src='/'+slug+'/formResponses/image?responseid='+resp.responseid)
                                     else
                                         img.dz-thumb
                                     button.btn-dz-remove(type='button' data-action='remove-file') ✕ Remove
@@ -181,7 +181,7 @@ style.
                                 input(type='file' class='dz-input' accept='video/*')
                                 .dz-preview(style=(respval ? 'display:block' : 'display:none'))
                                     if resp && respval
-                                        video.dz-video-player(src='/formResponses/video?responseid='+resp.responseid controls preload='metadata' style='max-width:100%;max-height:200px;display:block;margin-bottom:4px;')
+                                        video.dz-video-player(src='/'+slug+'/formResponses/video?responseid='+resp.responseid controls preload='metadata' style='max-width:100%;max-height:200px;display:block;margin-bottom:4px;')
                                     else
                                         video.dz-video-player(controls preload='metadata' style='max-width:100%;max-height:200px;display:none;margin-bottom:4px;')
                                     button.btn-dz-remove(type='button' data-action='remove-file') ✕ Remove
