@@ -39,7 +39,6 @@ import formPageRouter         from './formPage.js';
 import explainscoresRouter    from './explainscores.js';
 import viewPageRouter         from './viewPage.js';
 import formDiscountRouter     from './formDiscount.js';
-import switchProgramRouter    from './switchProgram.js';
 import checkCommentsRouter    from './checkComments.js';
 import formEntryFlagsRouter   from './formEntryFlags.js';
 
@@ -89,7 +88,6 @@ router.use('/explainscores',       explainscoresRouter);
 router.use('/viewPage',            viewPageRouter);
 router.use('/formDiscount',        formDiscountRouter);
 router.use('/formEntryFlags',      formEntryFlagsRouter);
-router.use('/switch-confirm',      switchProgramRouter);
 
 // ── Compatibility shims ───────────────────────────────────────────────────────
 // Legacy .cgi URLs that may still appear in TopMenuButton records or bookmarks.

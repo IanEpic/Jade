@@ -21,17 +21,14 @@ export async function requireAuth(req, res, next) {
                 },
             });
             if (targetUser) {
-                req.session.pendingSwitch = {
-                    userId:      targetUser.userid,
-                    programId:   req.program.programid,
-                    programSlug: req.program.slug,
-                    programName: req.program.name,
-                };
+                req.session.userId        = targetUser.userid;
+                req.session.programId     = req.program.programid;
+                req.session.programSlug   = req.program.slug;
+                req.session.pendingSwitch = null;
+                req.session.emulateUserId = null;
                 return req.session.save(err => {
                     if (err) return next(err);
-                    // Use redirectAbsolute — we're under the target slug's router but
-                    // need to send the user back to their current program's shell
-                    res.redirectAbsolute(`/${req.session.programSlug}/switch-confirm`);
+                    res.redirect(`/${req.program.slug}/home`);
                 });
             }
         }
