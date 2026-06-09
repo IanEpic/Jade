@@ -717,6 +717,58 @@ WHERE Entry.programid = ${p.progid}
     };
 }
 
+// Active users report for a program — mirrors 2026 ActiveUserStatusIncPaid.sql
+export async function getActiveUsersReport({ programId, opendate }) {
+    const pool = await getPool();
+    const result = await pool.request()
+        .input('programId', sql.Int,      programId)
+        .input('opendate',  sql.DateTime, new Date(opendate + 'T00:00:00'))
+        .query(`
+            SELECT
+                [User].userid,
+                [User].email,
+                [User].firstname,
+                [User].lastname,
+                [User].organisation,
+                [User].telephone,
+                [User].mobile,
+                Logons.LastLogon,
+                ISNULL(EntriesStarted.entries, 0) AS started,
+                ISNULL(EntriesPaid.entries,    0) AS paid,
+                ISNULL(EntriesFinalised.entries,0) AS finalised
+            FROM [User]
+            INNER JOIN (
+                SELECT userid, MAX(timestamp) AS LastLogon
+                FROM LogOnRecord
+                WHERE timestamp > @opendate
+                GROUP BY userid
+            ) AS Logons ON Logons.userid = [User].userid
+            LEFT JOIN (
+                SELECT userid, COUNT(entryid) AS entries
+                FROM Entry
+                WHERE deleted = 0 AND programid = @programId
+                GROUP BY userid
+            ) AS EntriesStarted ON EntriesStarted.userid = [User].userid
+            LEFT JOIN (
+                SELECT userid, COUNT(entryid) AS entries
+                FROM Entry
+                WHERE entryaccepted = 1 AND deleted = 0 AND programid = @programId
+                GROUP BY userid
+            ) AS EntriesPaid ON EntriesPaid.userid = [User].userid
+            LEFT JOIN (
+                SELECT userid, COUNT(entryid) AS entries
+                FROM Entry
+                WHERE finalised = 1 AND deleted = 0 AND programid = @programId
+                GROUP BY userid
+            ) AS EntriesFinalised ON EntriesFinalised.userid = [User].userid
+            WHERE [User].programid = @programId
+              AND [User].exclude = 0
+              AND [User].deleted = 0
+            ORDER BY started, paid, finalised, LastLogon
+        `);
+    return result.recordset;
+}
+
 // All judge comments for an entry (for scorescomments view)
 export async function getJudgeCommentsForEntry({ entryId }) {
     const pool = await getPool();
