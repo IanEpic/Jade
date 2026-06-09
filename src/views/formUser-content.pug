@@ -91,7 +91,7 @@ form.user-form(method='POST' action='/formUser')
                         if addresses && addresses.length
                             each addr in addresses
                                 option(value=addr.addressid selected=(addr.addressid == targetUser.postaladdressid))
-                                    = addr.address + ', ' + addr.city + ', ' + addr.state
+                                    = [addr.address, addr.city, addr.state].filter(Boolean).join(', ') || '(no address)'
                         option(value='b') + New address below
             tr#new-address-row(style='display:none')
                 td(colspan='2')
