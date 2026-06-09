@@ -15,16 +15,15 @@ router.get('/', async (req, res, next) => {
     try {
         const program = req.program;
 
-        // Find this program's opendate from StatsProgram
+        // Use opendate from StatsProgram if available; otherwise fall back to Jan 1 of current year
         const statsPrograms = await getStatsPrograms();
         const sp = statsPrograms.find(p => p.progid === program.programid);
-        if (!sp) {
-            return res.status(404).send('This program is not configured in Stats Program.');
-        }
+        const opendate = sp ? sp.opendate : `${new Date().getFullYear()}-01-01`;
+        const year     = sp ? sp.year     : new Date().getFullYear();
 
         const rows = await getActiveUsersReport({
             programId: program.programid,
-            opendate:  sp.opendate,
+            opendate,
         });
 
         // ── Build Excel workbook ───────────────────────────────────────────────
@@ -100,7 +99,6 @@ router.get('/', async (req, res, next) => {
         };
 
         // ── Stream to client ───────────────────────────────────────────────────
-        const year     = sp.year;
         const filename = `ActiveUsers_${program.slug}_${year}.xlsx`;
         res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
         res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
