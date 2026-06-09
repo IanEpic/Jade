@@ -21,7 +21,7 @@ npm install
 
 ### 2. Configure environment
 
-Copy `.env.example` to `.env` and fill in all values:
+Copy `.env.example` to `.env` and fill in all values. `.env.example` is committed to the repo and lists every required field with comments — use it as the reference:
 
 ```
 NODE_ENV=production
