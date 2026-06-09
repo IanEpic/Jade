@@ -6,7 +6,7 @@
 import { Router } from 'express';
 import ExcelJS from 'exceljs';
 import { requireAuth, requireAdmin } from '../middleware/auth.js';
-import { getActiveUsersReport, getStatsPrograms } from '../queries/homeQueries.js';
+import { getActiveUsersReport } from '../queries/homeQueries.js';
 
 const router = Router();
 router.use(requireAuth, requireAdmin);
@@ -15,16 +15,7 @@ router.get('/', async (req, res, next) => {
     try {
         const program = req.program;
 
-        // Use opendate from StatsProgram if available; otherwise fall back to Jan 1 of current year
-        const statsPrograms = await getStatsPrograms();
-        const sp = statsPrograms.find(p => p.progid === program.programid);
-        const opendate = sp ? sp.opendate : `${new Date().getFullYear()}-01-01`;
-        const year     = sp ? sp.year     : new Date().getFullYear();
-
-        const rows = await getActiveUsersReport({
-            programId: program.programid,
-            opendate,
-        });
+        const rows = await getActiveUsersReport({ programId: program.programid });
 
         // ── Build Excel workbook ───────────────────────────────────────────────
         const wb = new ExcelJS.Workbook();
@@ -99,7 +90,7 @@ router.get('/', async (req, res, next) => {
         };
 
         // ── Stream to client ───────────────────────────────────────────────────
-        const filename = `ActiveUsers_${program.slug}_${year}.xlsx`;
+        const filename = `ActiveUsers_${program.slug}.xlsx`;
         res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
         res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
 

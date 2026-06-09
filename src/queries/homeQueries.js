@@ -717,12 +717,11 @@ WHERE Entry.programid = ${p.progid}
     };
 }
 
-// Active users report for a program — mirrors 2026 ActiveUserStatusIncPaid.sql
-export async function getActiveUsersReport({ programId, opendate }) {
+// Active users report for a program — all non-excluded users with logon/entry counts
+export async function getActiveUsersReport({ programId }) {
     const pool = await getPool();
     const result = await pool.request()
-        .input('programId', sql.Int,      programId)
-        .input('opendate',  sql.DateTime, new Date(opendate + 'T00:00:00'))
+        .input('programId', sql.Int, programId)
         .query(`
             SELECT
                 [User].userid,
@@ -737,10 +736,9 @@ export async function getActiveUsersReport({ programId, opendate }) {
                 ISNULL(EntriesPaid.entries,    0) AS paid,
                 ISNULL(EntriesFinalised.entries,0) AS finalised
             FROM [User]
-            INNER JOIN (
+            LEFT JOIN (
                 SELECT userid, MAX(timestamp) AS LastLogon
                 FROM LogOnRecord
-                WHERE timestamp > @opendate
                 GROUP BY userid
             ) AS Logons ON Logons.userid = [User].userid
             LEFT JOIN (
