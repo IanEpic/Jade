@@ -13,12 +13,13 @@ style.
     .cat-form .criteria-row td { padding: 4px; vertical-align: top; }
     .cat-form .link-table td { padding: 3px 8px; }
     .cat-form .note { color: #aaa; font-size: 12px; }
-    .cat-form .form-actions { display: flex; gap: 10px; justify-content: flex-end; align-items: center; border-top: 1px solid #333; margin-top: 18px; padding-top: 14px; }
+    .cat-form .form-actions { text-align: center; border-top: 1px solid #333; margin-top: 18px; padding-top: 14px; }
+    .cat-form .form-actions a, .cat-form .form-actions button { margin: 0 6px; }
     .cat-form .accordion-legend { cursor: pointer; user-select: none; display: flex; align-items: center; gap: 6px; }
-    .cat-form .accordion-legend::after { content: ' ▾'; font-size: 11px; color: #aaa; }
-    .cat-form .accordion-legend.collapsed::after { content: ' ▸'; }
-    .cat-form .accordion-body { width: 100%; min-width: 600px; box-sizing: border-box; }
-    .cat-form fieldset { min-width: 600px; }
+    .cat-form .accordion-legend::after { content: ' ▴'; font-size: 11px; color: #aaa; }
+    .cat-form .accordion-legend.collapsed::after { content: ' ▾'; }
+    .cat-form .accordion-body { width: 100%; box-sizing: border-box; }
+    .cat-form fieldset { min-width: 0; }
 
 form.cat-form(method='POST' action='/formCategory')
     if category
@@ -72,11 +73,14 @@ form.cat-form(method='POST' action='/formCategory')
                 td: input(type='checkbox' name='adminonly' value='ON' checked=(category ? category.adminonly : false))
                 td: label Admin only (hidden from public entry list)
 
+    if isNew
+        p(style='color:#888; font-size:13px; margin-top:8px') Save the category first to configure Scoring Criteria, Eligibility Rules, and Questions.
+
     if !isNew
 
         //- ── Criteria ─────────────────────────────────────────────────────────
         fieldset
-            legend.accordion-legend.collapsed(onclick='toggleAccordion(this)') Scoring Criteria
+            legend.accordion-legend.collapsed(data-action='toggle-accordion') Scoring Criteria
             div.accordion-body(style='display:none')
                 if criteria && criteria.length
                     p.section-title Existing Criteria
@@ -102,7 +106,7 @@ form.cat-form(method='POST' action='/formCategory')
                 div(style='margin-top:8px; font-size:13px')
                     | Criteria weight total:
                     span#criteria-total(style='font-weight:bold') 0%
-                button(type='button' onclick='addCriteriaRow()' style='margin-top:6px') + Add Criteria
+                button.btn-secondary(type='button' data-action='add-criteria' style='margin-top:6px') + Add Criteria
 
                 script(nonce=nonce).
                     var newCriteriaCount = 0;
@@ -142,7 +146,7 @@ form.cat-form(method='POST' action='/formCategory')
                             '<td><label>Weight %</label><br>' +
                             '<input type="number" name="~~new~weight~cr' + i + '" min="0" max="100" step="0.1" style="width:60px"></td>' +
                             '<td style="vertical-align:bottom">' +
-                            '<a href="#" onclick="this.closest(\'tr\').nextSibling.remove();this.closest(\'tr\').remove();return false;" style="color:#c44">Remove</a>' +
+                            '<a href="#" data-action="remove-criteria-row" style="color:#c44">Remove</a>' +
                             '</td>';
                         var tr2 = document.createElement('tr');
                         tr2.innerHTML = '<td colspan="3"><hr style="border-color:#333"></td>';
@@ -151,11 +155,11 @@ form.cat-form(method='POST' action='/formCategory')
                         updateCriteriaTotal();
                     }
 
-        script(src='https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js')
+        script(src='/js/sortable.min.js')
 
         //- ── Eligibility ──────────────────────────────────────────────────────
         fieldset
-            legend.accordion-legend.collapsed(onclick='toggleAccordion(this)') Eligibility Rules
+            legend.accordion-legend.collapsed(data-action='toggle-accordion') Eligibility Rules
             div.accordion-body(style='display:none')
                 - const linkedEs   = (eligibilities || []).filter(e => e.linked)
                 - const unlinkedEs = (eligibilities || []).filter(e => !e.linked)
@@ -169,9 +173,9 @@ form.cat-form(method='POST' action='/formCategory')
                         li.e-item(data-eid=e.eligibilityid style='display:flex; align-items:center; gap:8px; padding:5px 8px; margin-bottom:4px; background:#1a2a3a; border:1px solid #64b5f6; border-radius:3px; font-size:12px; cursor:grab')
                             input(type='hidden' name='e~' + e.eligibilityid value='ON')
                             input(type='hidden' name='eord~' + e.eligibilityid value=e.linkOrda || 0 class='e-orda')
-                            span(style='color:#666; margin-right:4px') ⠿
+                            span.drag-grip(style='color:#666; margin-right:4px; cursor:grab') ⠿
                             span= e.eligibilityid + ' — ' + e.eligibilityrule
-                            a(href='#' onclick='removeEligibility(this,' + e.eligibilityid + ');return false;' style='color:#c44; font-weight:bold; text-decoration:none; margin-left:auto') ×
+                            a(href='#' data-action='remove-eligibility' data-eid=e.eligibilityid style='color:#c44; font-weight:bold; text-decoration:none; margin-left:auto') ×
 
                 div(style='position:relative')
                     input#e-search(type='text' placeholder='Search eligibility rules to add…' autocomplete='off' style='width:100%; box-sizing:border-box; padding:5px 8px; background:#111; color:#eee; border:1px solid #555; border-radius:3px')
@@ -201,7 +205,9 @@ form.cat-form(method='POST' action='/formCategory')
                             });
                         }
 
-                        Sortable.create(elist, { animation: 150, handle: '[data-eid]', onEnd: updateEOrda });
+                        window._eAssigned = eAssigned;
+                        window._updateEOrda = updateEOrda;
+                        Sortable.create(elist, { animation: 150, handle: '.drag-grip', onEnd: updateEOrda });
 
                         var search = document.getElementById('e-search');
                         var dropdown = document.getElementById('e-dropdown');
@@ -255,7 +261,7 @@ form.cat-form(method='POST' action='/formCategory')
                             if (!text) { newText.focus(); return; }
                             newSave.disabled = true;
                             newSave.textContent = 'Saving…';
-                            fetch('/formCategory/create-eligibility', {
+                            fetch((window.JADE_BASE || '') + '/formCategory/create-eligibility', {
                                 method: 'POST',
                                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                                 body: 'eligibilityrule=' + encodeURIComponent(text),
@@ -281,22 +287,17 @@ form.cat-form(method='POST' action='/formCategory')
                             li.style.cssText = 'display:flex; align-items:center; gap:8px; padding:5px 8px; margin-bottom:4px; background:#1a2a3a; border:1px solid #64b5f6; border-radius:3px; font-size:12px; cursor:grab';
                             li.innerHTML = '<input type="hidden" name="e~' + eid + '" value="ON">' +
                                 '<input type="hidden" name="eord~' + eid + '" value="' + orda + '" class="e-orda">' +
-                                '<span style="color:#666; margin-right:4px">⠿</span>' +
+                                '<span class="drag-grip" style="color:#666; margin-right:4px; cursor:grab">⠿</span>' +
                                 '<span>' + eid + ' — ' + label + '</span>' +
-                                '<a href="#" onclick="removeEligibility(this,' + eid + ');return false;" style="color:#c44;font-weight:bold;text-decoration:none;margin-left:auto">×</a>';
+                                '<a href="#" data-action="remove-eligibility" data-eid="' + eid + '" style="color:#c44;font-weight:bold;text-decoration:none;margin-left:auto">×</a>';
                             elist.appendChild(li);
                         };
 
-                        window.removeEligibility = function (el, eid) {
-                            el.closest('.e-item').remove();
-                            eAssigned.delete(String(eid));
-                            updateEOrda();
-                        };
                     })();
 
         //- ── Questions ────────────────────────────────────────────────────────
         fieldset
-            legend.accordion-legend.collapsed(onclick='toggleAccordion(this)') Questions
+            legend.accordion-legend.collapsed(data-action='toggle-accordion') Questions
             div.accordion-body(style='display:none')
                 - const linkedQs   = (questions || []).filter(q => q.linked)
                 - const unlinkedQs = (questions || []).filter(q => !q.linked)
@@ -307,12 +308,12 @@ form.cat-form(method='POST' action='/formCategory')
                 //- Draggable assigned list
                 ul#q-assigned(style='list-style:none; padding:0; margin:0 0 10px; min-height:28px')
                     each q in linkedQs
-                        li.q-item(data-qid=q.questionid style='display:flex; align-items:center; gap:8px; padding:5px 8px; margin-bottom:4px; background:#1a3a1a; border:1px solid #4caf50; border-radius:3px; font-size:12px; cursor:grab')
+                        li.q-item(data-qid=q.questionid style='display:flex; align-items:center; gap:8px; padding:5px 8px; margin-bottom:4px; background:#1a3a1a; border:1px solid #4caf50; border-radius:3px; font-size:12px;')
                             input(type='hidden' name='q~' + q.questionid value='ON')
                             input(type='hidden' name='qord~' + q.questionid value=q.linkOrda || 0 class='q-orda')
-                            span(style='color:#666; margin-right:4px') ⠿
+                            span.drag-grip(style='color:#666; margin-right:4px; cursor:grab') ⠿
                             span= q.questionid + ' — ' + q.questiontext
-                            a(href='#' onclick='removeQuestion(this,' + q.questionid + ');return false;' style='color:#c44; font-weight:bold; text-decoration:none; margin-left:auto') ×
+                            a(href='#' data-action='remove-question' data-qid=q.questionid style='color:#c44; font-weight:bold; text-decoration:none; margin-left:auto') ×
 
                 div(style='position:relative')
                     input#q-search(type='text' placeholder='Search questions to add…' autocomplete='off' style='width:100%; box-sizing:border-box; padding:5px 8px; background:#111; color:#eee; border:1px solid #555; border-radius:3px')
@@ -363,7 +364,9 @@ form.cat-form(method='POST' action='/formCategory')
                             });
                         }
 
-                        Sortable.create(list, { animation: 150, handle: '[data-qid]', onEnd: updateOrda });
+                        window._assigned = assigned;
+                        window._updateOrda = updateOrda;
+                        Sortable.create(list, { animation: 150, handle: '.drag-grip', onEnd: updateOrda });
 
                         var search = document.getElementById('q-search');
                         var dropdown = document.getElementById('q-dropdown');
@@ -436,7 +439,7 @@ form.cat-form(method='POST' action='/formCategory')
                                 + '&questiontype=' + encodeURIComponent(newType.value)
                                 + '&description=' + encodeURIComponent(newDesc ? newDesc.value.trim() : '')
                                 + '&options=' + encodeURIComponent(newOptions ? newOptions.value : '');
-                            fetch('/formCategory/create-question', {
+                            fetch((window.JADE_BASE || '') + '/formCategory/create-question', {
                                 method: 'POST',
                                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                                 body: body,
@@ -462,33 +465,75 @@ form.cat-form(method='POST' action='/formCategory')
                             var li = document.createElement('li');
                             li.className = 'q-item';
                             li.dataset.qid = qid;
-                            li.style.cssText = 'display:flex; align-items:center; gap:8px; padding:5px 8px; margin-bottom:4px; background:#1a3a1a; border:1px solid #4caf50; border-radius:3px; font-size:12px; cursor:grab';
+                            li.style.cssText = 'display:flex; align-items:center; gap:8px; padding:5px 8px; margin-bottom:4px; background:#1a3a1a; border:1px solid #4caf50; border-radius:3px; font-size:12px;';
                             li.innerHTML = '<input type="hidden" name="q~' + qid + '" value="ON">' +
                                 '<input type="hidden" name="qord~' + qid + '" value="' + orda + '" class="q-orda">' +
-                                '<span style="color:#666; margin-right:4px">⠿</span>' +
+                                '<span class="drag-grip" style="color:#666; margin-right:4px; cursor:grab">⠿</span>' +
                                 '<span>' + qid + ' — ' + label + '</span>' +
-                                '<a href="#" onclick="removeQuestion(this,' + qid + ');return false;" style="color:#c44;font-weight:bold;text-decoration:none;margin-left:auto">×</a>';
+                                '<a href="#" data-action="remove-question" data-qid="' + qid + '" style="color:#c44;font-weight:bold;text-decoration:none;margin-left:auto">×</a>';
                             list.appendChild(li);
                         };
 
-                        window.removeQuestion = function (el, qid) {
-                            el.closest('.q-item').remove();
-                            assigned.delete(String(qid));
-                            updateOrda();
-                        };
                     })();
 
     script(nonce=nonce).
-        function toggleAccordion(legend) {
-            var body = legend.nextElementSibling;
-            var collapsed = body.style.display === 'none';
-            body.style.display = collapsed ? '' : 'none';
-            legend.classList.toggle('collapsed', !collapsed);
-        }
+        document.addEventListener('click', function(e) {
+            var el = e.target;
+
+            // Accordion toggle
+            var legend = el.closest('[data-action="toggle-accordion"]');
+            if (legend) {
+                var body = legend.nextElementSibling;
+                var collapsed = body.style.display === 'none' || body.style.display === '';
+                body.style.display = collapsed ? 'block' : 'none';
+                legend.classList.toggle('collapsed', !collapsed);
+                return;
+            }
+
+            // Add criteria row
+            if (el.closest('[data-action="add-criteria"]')) {
+                e.preventDefault();
+                addCriteriaRow();
+                return;
+            }
+
+            // Remove new criteria row (dynamically added)
+            if (el.closest('[data-action="remove-criteria-row"]')) {
+                e.preventDefault();
+                var a = el.closest('[data-action="remove-criteria-row"]');
+                var tr = a.closest('tr');
+                if (tr && tr.nextSibling) tr.nextSibling.remove();
+                if (tr) tr.remove();
+                updateCriteriaTotal();
+                return;
+            }
+
+            // Remove eligibility
+            var remE = el.closest('[data-action="remove-eligibility"]');
+            if (remE) {
+                e.preventDefault();
+                var eid = remE.dataset.eid;
+                remE.closest('.e-item').remove();
+                if (window._eAssigned) window._eAssigned.delete(String(eid));
+                if (window._updateEOrda) window._updateEOrda();
+                return;
+            }
+
+            // Remove question
+            var remQ = el.closest('[data-action="remove-question"]');
+            if (remQ) {
+                e.preventDefault();
+                var qid = remQ.dataset.qid;
+                remQ.closest('.q-item').remove();
+                if (window._assigned) window._assigned.delete(String(qid));
+                if (window._updateOrda) window._updateOrda();
+                return;
+            }
+        });
 
     //- ── Actions ──────────────────────────────────────────────────────────────
     .form-actions
-        a.btn-secondary(href='/home?action=categories') ‹ Categories
+        a.btn-secondary(href='/home?action=categories') Categories
         if !isNew
             button.btn-secondary(type='submit' name='submit' value='Preview Form') Preview Form
         button.btn(type='submit' name='submit' value='Save Category') Save Category

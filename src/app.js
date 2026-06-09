@@ -85,6 +85,16 @@ app.use(session({
 }));
 
 // ── Static files ──────────────────────────────────────────────────────────────
+// Copy vendored JS from node_modules into public/js at startup (public/js is gitignored).
+(async () => {
+    const publicJs = path.join(__dirname, '../public/js');
+    await fs.mkdir(publicJs, { recursive: true });
+    await fs.copyFile(
+        path.join(__dirname, '../node_modules/sortablejs/Sortable.min.js'),
+        path.join(publicJs, 'sortable.min.js')
+    );
+})().catch(err => console.error('Failed to copy vendor JS:', err));
+
 app.use(express.static(path.join(__dirname, '../public')));
 
 // Legacy per-program assets (CSS, images) — served from the existing Apache htdocs folder.

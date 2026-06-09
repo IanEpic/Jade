@@ -80,13 +80,6 @@ export async function loadCommonData(user) {
     };
 }
 
-// ── Top description text ──────────────────────────────────────────────────────
-
-export function getTopText(user, program, hasFinalists) {
-    if (hasFinalists && !user.judge && !user.admin) return program.finalistdescriptiontext || '';
-    return '';
-}
-
 // ── renderInHome ──────────────────────────────────────────────────────────────
 // Renders any content view inside the full sidebar layout.
 // `view`   — string matching a `when` case in home-content.pug
@@ -104,7 +97,6 @@ export async function renderInHome(req, res, view, locals) {
     res.renderInShell('home', {
         user,
         program,
-        topText:          getTopText(user, program, data.finalistsNotOpen.length > 0),
         menuButtons,
         sidebarMenus,
         content:          { view },

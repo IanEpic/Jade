@@ -190,11 +190,9 @@ form(name='entryform' method='POST' action='/formEntry')
         tr: td(colspan='2'): hr
         tr
             td(colspan='2' align='center')
-                a(href='/home') Cancel
-                | &nbsp;
-                button(type='submit' name='submit' value='Save') Save &amp; Return Home
-                | &nbsp;
-                button(type='submit' name='submit' value='SaveProceed') Save &amp; Proceed to Questions
+                a.btn-secondary(href='/home') Cancel
+                button.btn(type='submit' name='submit' value='Save') Save &amp; Return Home
+                button.btn(type='submit' name='submit' value='SaveProceed') Save &amp; Proceed to Questions
 
 script(src='/js/jade.js')
 script(src='/js/form-entry.js')

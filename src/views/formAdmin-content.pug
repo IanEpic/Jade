@@ -22,8 +22,8 @@ else
         .admin-form .form-actions { text-align: center; margin-top: 10px; }
         .admin-form .form-actions a, .admin-form .form-actions button { margin: 0 8px; }
         .admin-form .accordion-legend { cursor: pointer; user-select: none; display: flex; align-items: center; gap: 6px; }
-        .admin-form .accordion-legend::after { content: ' ▾'; font-size: 11px; color: #aaa; }
-        .admin-form .accordion-legend.collapsed::after { content: ' ▸'; }
+        .admin-form .accordion-legend::after { content: ' ▴'; font-size: 11px; color: #aaa; }
+        .admin-form .accordion-legend.collapsed::after { content: ' ▾'; }
         .admin-form .accordion-body { display: none; }
         .admin-form .tech-table td:first-child { text-align: left; white-space: nowrap; }
 
@@ -145,8 +145,8 @@ else
 
         //- ── Actions ──────────────────────────────────────────────────────────
         .form-actions
-            a(href='/home') Cancel
-            button(type='submit' name='submit' value='Save Program') Save Program
+            a.btn-secondary(href='/home') Cancel
+            button.btn(type='submit' name='submit' value='Save Program') Save Program
 
     script(src='https://cdn.tiny.cloud/1/t5u2zqqe9s1ltcgp3yrcdormdh3wb2qaquf31suupv3rupdw/tinymce/7/tinymce.min.js' referrerpolicy='origin')
     script(src='/js/form-admin.js')

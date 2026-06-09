@@ -1,16 +1,49 @@
 //- home/catcost.pug
-//- Equiv of $catcosttable in home.cgi.
 
 - let hasCosts = content.cats.some(c => (parseFloat(c.costex)||0) + (parseFloat(c.gst)||0) > 0)
 
-center: h3= 'Categories' + (hasCosts ? ' and Entry Costs' : '')
+style.
+    .catcost-wrap { max-width: 900px; margin: 0 auto; font-size: 14px; }
+    .catcost-wrap h2 { text-align: center; color: #c48f06; margin-bottom: 8px; }
+    .catcost-explanation { color: #bbb; font-size: 13px; margin-bottom: 18px; text-align: center; }
+    .catcost-table { width: 100%; border-collapse: collapse; }
+    .catcost-table th { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1px solid #555; padding: 6px 10px; text-align: left; color: #c48f06; }
+    .catcost-table th.r { text-align: right; }
+    .catcost-table td { padding: 8px 10px; border-bottom: 1px solid #2a2a2a; vertical-align: top; }
+    .catcost-table tr:hover td { background: rgba(255,255,255,0.04); }
+    .catcost-table .cat-name { font-weight: 600; color: #fff; }
+    .catcost-table .cat-desc { font-size: 12px; color: #888; margin-top: 3px; }
+    .catcost-table td.r { text-align: right; white-space: nowrap; color: #ccc; }
+    .catcost-table .cost-total { color: #fff; font-weight: 600; }
 
-if content.program && content.program.costexplanationtext
-    p!= content.program.costexplanationtext
+.catcost-wrap
+    h2= 'Categories' + (hasCosts ? ' & Entry Costs' : '')
 
-table(width='640')
-    each cat, i in content.cats
-        if i > 0
-            tr: td(colspan='2'): hr
-        tr: td(colspan='2'): b= cat.name
-        tr: td(style='padding-left:10px;')= cat.description
+    if content.program && content.program.costexplanationtext
+        p.catcost-explanation!= content.program.costexplanationtext
+
+    fieldset
+        legend= hasCosts ? 'Category List & Costs' : 'Category List'
+        table.catcost-table
+            thead
+                tr
+                    th Category
+                    if hasCosts
+                        th.r Ex GST
+                        th.r GST
+                        th.r Total (inc GST)
+            tbody
+                each cat in content.cats
+                    - let costex  = parseFloat(cat.costex) || 0
+                    - let gst     = parseFloat(cat.gst)    || 0
+                    - let total   = costex + gst
+                    - let hasCost = total > 0
+                    tr
+                        td
+                            div.cat-name= cat.name
+                            if cat.description
+                                div.cat-desc= cat.description
+                        if hasCosts
+                            td.r= hasCost ? content.currency(costex) : '—'
+                            td.r= hasCost ? content.currency(gst)    : '—'
+                            td.r: span(class=hasCost ? 'cost-total' : '')= hasCost ? content.currency(total) : '—'

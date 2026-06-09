@@ -33,7 +33,7 @@ if form
                 tr
                     td(colspan='2'): input#login-email(type='email' name='email' size='40' maxlength='300' autocomplete='email' placeholder='Please enter your email address' value=locals.loginEmail || '')
                 tr
-                    td(colspan='2'): button#btn-continue(type='submit' style='padding:8px 40px; font-size:1em;') Continue
+                    td(colspan='2'): button#btn-continue.btn(type='submit') Continue
                 tr: td(colspan='2')
                     div#email-error(style='color:#c0392b; margin-top:6px; display:none;')
 
@@ -48,7 +48,7 @@ if form
                 tr
                     td(colspan='2'): input#login-password(type='password' name='password' size='40' maxlength='50' autocomplete='current-password' placeholder='Password')
                 tr
-                    td(colspan='2'): button(type='submit' style='padding:8px 40px; font-size:1em;') Log In
+                    td(colspan='2'): button.btn(type='submit') Log In
                 tr: td(colspan='2')
                     div#password-error(style='color:#c0392b; margin-top:6px; display:none;')
                     if errors && errors.length
@@ -56,9 +56,9 @@ if form
                             p(style='color:#c0392b; margin:4px 0;')= e
         div(style='margin-top:10px; font-size:0.85em; color:#aaa; text-align:center;')
             div
-                a#reset-link(href=resetUrl style='color:#aaa;') Forgot your password?
+                a#reset-link(href=resetUrl) Forgot your password?
                 span(style='margin:0 8px;') ·
-                a(href='#' id='btn-back-from-pw' style='color:#aaa;') Use a different email
+                a(href='#' id='btn-back-from-pw') Use a different email
 
     //- ── Step 2b: Sign up ─────────────────────────────────────────────────────
     style.
@@ -90,7 +90,7 @@ if form
                         input(type='checkbox' name='tc' id='signup-tc' required)
                         |  I agree to the terms and conditions
                 div#signup-error(style='color:#c0392b; margin-top:6px; display:none;')
-                button#btn-signup(type='submit' style='margin-top:6px;') Create Account
+                button#btn-signup.btn(type='submit') Create Account
             br
             a(href='#' id='btn-back-from-signup') Use a different email
 

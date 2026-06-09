@@ -14,8 +14,9 @@ style.
     .invoice-wrap .eb-note { font-size: 12px; color: #c48f06; margin-top: 8px; padding: 6px 10px; border-left: 3px solid #c48f06; }
     .invoice-wrap .alert-error { background: #7a2a00; color: #fff; padding: 8px 12px; margin-bottom: 12px; border-left: 4px solid #c44; }
     .invoice-wrap .form-actions { text-align: center; margin-top: 20px; padding-top: 16px; border-top: 1px solid #333; display: flex; justify-content: center; align-items: center; gap: 10px; flex-wrap: wrap; }
-    .invoice-wrap .radio-list p { margin: 10px 0; line-height: 1.5; }
-    .invoice-wrap .radio-list input[type=radio] { margin-right: 8px; vertical-align: middle; }
+    .invoice-wrap .radio-list p { margin: 10px 0; }
+    .invoice-wrap .radio-list label { display: flex; align-items: flex-start; gap: 8px; line-height: 1.5; }
+    .invoice-wrap .radio-list input[type=radio] { margin-top: 4px; flex-shrink: 0; }
 
 .invoice-wrap
 
@@ -59,7 +60,7 @@ style.
                                     |  Pay for entries now using your credit card (you will receive an invoice at the conclusion of the payment process)
                 .form-actions
                     a.btn-secondary(href='/home') Cancel
-                    button(type='submit' name='submit' value='Continue') Continue
+                    button.btn(type='submit' name='submit' value='Continue') Continue
 
     else if mode === 'step2'
         if alert
@@ -101,7 +102,7 @@ style.
                                     td.c
                                         input(type='checkbox' name='#INV#' + inv.invoiceid value='ON' checked=!isPaid disabled=isPaid)
                                     td.c
-                                        a(href='/formInvoice?invoiceid=' + inv.invoiceid + '&action=delete' data-confirm='Delete this invoice?') Delete
+                                        a(href='/formInvoice?invoiceid=' + inv.invoiceid + '&action=delete' data-confirm='Delete this invoice?' title='Delete invoice' style='color:#c44') ✕
 
             else
                 fieldset

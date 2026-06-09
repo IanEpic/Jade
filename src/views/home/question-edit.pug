@@ -125,7 +125,7 @@ form.q-edit-form(method='POST' action='/formQuestion')
                     = cat.name
 
     .form-actions
-        a(href='/home?action=questions&type=entry') < Questions
-        button(type='submit') Save Question
+        a.btn-secondary(href='/home?action=questions&type=entry') < Questions
+        button.btn(type='submit') Save Question
 
 script(src='/js/question-edit.js')

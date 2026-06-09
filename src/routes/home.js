@@ -15,7 +15,7 @@ import { requireAuth } from '../middleware/auth.js';
 import { getCatsOpenForJudgingByJudge } from '../queries/homeQueries.js';
 
 import { buildSidebar }                                  from './home/sidebar.js';
-import { buildMenuButtons, loadCommonData, getTopText }  from './home/homeHelpers.js';
+import { buildMenuButtons, loadCommonData }  from './home/homeHelpers.js';
 import { handleSharedAction } from './home/sharedActions.js';
 import { handleAdminAction }  from './home/adminActions.js';
 import { handleJudgeAction }  from './home/judgeActions.js';
@@ -77,7 +77,6 @@ router.get('/', async (req, res, next) => {
         res.renderInShell('home', {
             user,
             program,
-            topText:          getTopText(user, program, data.finalistsNotOpen.length > 0),
             menuButtons,
             sidebarMenus,
             content,

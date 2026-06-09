@@ -1,39 +1,53 @@
 //- tc-content.pug
-//- Equiv of $tc in tc.cgi.
+
+style.
+    .tc-wrap { max-width: 860px; min-width: 600px; margin: 0 auto; font-size: 14px; }
+    .tc-wrap h2 { text-align: center; color: #c48f06; margin-bottom: 20px; }
+    .tc-step { text-align: center; color: #aaa; font-size: 13px; margin-top: 0; margin-bottom: 16px; }
+    .tc-body { background: #111; border: 1px solid #555; border-radius: 4px; padding: 18px 24px; margin-bottom: 18px; color: #ccc; line-height: 1.7; }
+    .tc-body p { margin: 0 0 12px; }
+    .tc-body ol, .tc-body ul { padding-left: 22px; margin: 0 0 12px; }
+    .tc-body li { margin-bottom: 8px; }
+    .tc-body a { color: #c48f06; }
+    .tc-body a:hover { color: #cf9702; }
+    .tc-agree { background: #111; border: 1px solid #555; border-radius: 4px; padding: 14px 18px; margin-bottom: 14px; }
+    .tc-agree label { display: flex; align-items: flex-start; gap: 10px; line-height: 1.5; cursor: pointer; }
+    .tc-agree input[type=checkbox] { margin-top: 3px; flex-shrink: 0; accent-color: #c48f06; width: 15px; height: 15px; }
+    .form-actions { display: flex; justify-content: center; gap: 10px; padding-top: 12px; border-top: 1px solid #333; }
 
 if mode === 'closed'
-    p Entries are currently closed.
-    p: a(href='/home') Return Home
+    .tc-wrap
+        p Entries are currently closed.
+        .form-actions
+            a.btn-secondary(href='/home') Return Home
+
 else
     if error
-        div(style='background:#5a0000; color:#fff; border-left:4px solid #c44; padding:10px 14px; margin-bottom:14px;')
+        div(style='background:#5a0000; color:#fff; border-left:4px solid #c44; padding:10px 14px; margin-bottom:14px; border-radius:3px;')
             p(style='margin:2px 0') You must agree to the terms and conditions to proceed.
             p(style='margin:2px 0') Please click the checkbox at the bottom of this form.
 
-    if mode === 'approve'
-        p(style='text-align:center; color:#c48f06; font-size:18px; margin-bottom:2px') Start a New Entry
-        p(style='text-align:center; color:#aaa; font-size:13px; margin-top:0; margin-bottom:16px') Step 2 — Read and agree to the entry terms and conditions
-
-    table(width='700')
-        tr: td(align='center'): b TERMS &amp; CONDITIONS
-        tr: td(style='text-align:left;' cellpadding='10')!= program.entrytctext
+    .tc-wrap
+        h2 Terms &amp; Conditions
 
         if mode === 'approve'
-            tr
-                td
-                    form(method='POST' action='/formEntry')
-                        input(type='hidden' name='categoryid' value=cat)
-                        tr
-                            td(align='center')
-                                label
-                                    input(type='checkbox' name='agree' value='ON')
-                                    |   I,&nbsp;
-                                    = user.firstname + ' ' + user.lastname
-                                    |  &nbsp;understand and agree to be bound by these terms and conditions
-                        tr
-                            td(align='center')
-                                a(href='/home') Cancel
-                                | &nbsp;
-                                button(type='submit' name='submit' value='Proceed to Entry') Proceed to Entry
+            p.tc-step Start a New Entry — Step 2: Read and agree to the entry terms and conditions
+
+        .tc-body!= program.entrytctext
+
+        if mode === 'approve'
+            form(method='POST' action='/formEntry')
+                input(type='hidden' name='categoryid' value=cat)
+                .tc-agree
+                    label
+                        input(type='checkbox' name='agree' value='ON')
+                        span
+                            | I,&nbsp;
+                            b= user.firstname + ' ' + user.lastname
+                            | &nbsp;understand and agree to be bound by these terms and conditions
+                .form-actions
+                    a.btn-secondary(href='/home') Cancel
+                    button.btn(type='submit' name='submit' value='Proceed to Entry') Proceed to Entry
         else
-            tr: td(align='center'): a(href='/home') Home
+            .form-actions
+                a.btn-secondary(href='/home') Home

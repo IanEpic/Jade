@@ -83,8 +83,8 @@ style.
                                 option(value='1') Yes
                                 option(value='0') No
             .form-actions
-                button#disc-submit-btn(type='submit') Add Discount
-                a(href='#' id='disc-cancel' style='font-size:13px; color:#aaa') Cancel
+                a.btn-secondary(href='#' id='disc-cancel') Cancel
+                button#disc-submit-btn.btn(type='submit') Add Discount
 
     //- ── Toolbar ─────────────────────────────────────────────────────────────────
     .disc-toolbar
@@ -117,8 +117,8 @@ style.
                         td= d.usecount + (d.maxuses ? ' / ' + d.maxuses : '')
                         td: span.badge(class=d.active ? '' : 'badge-off')= d.active ? 'Active' : 'Inactive'
                         td.disc-actions(style='white-space:nowrap')
-                            a(href='/home?action=discounts&discountid=' + d.discountid) Edit
-                            a(href='/home?action=discounts&delete=' + d.discountid onclick='return confirm("Delete this discount?")' style='color:#c44') Delete
+                            a(href='/home?action=discounts&discountid=' + d.discountid title='Edit') ✏️
+                            a.btn-danger(href='/home?action=discounts&delete=' + d.discountid data-confirm='Delete this discount?' title='Delete') ✕
     else
         p(style='color:#888; font-size:13px') No discounts configured.
 

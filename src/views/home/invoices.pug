@@ -12,7 +12,7 @@ style.
     .invoices-table td { padding: 7px 10px; border-bottom: 1px solid #2a2a2a; vertical-align: middle; font-size: 14px; }
     .invoices-table tr:hover td { background: rgba(255,255,255,0.04); }
     .invoices-table .actions { white-space: nowrap; text-align: right; }
-    .invoices-table .actions a { margin-left: 10px; font-size: 14px; color: #aaa; text-decoration: none; }
+    .invoices-table .actions a { margin-left: 8px; font-size: 16px; color: #aaa; text-decoration: none; }
     .invoices-table .actions a:hover { color: #c48f06; }
     .invoices-table .balance-zero { color: #4caf50; }
 
@@ -39,6 +39,6 @@ style.
                         td.r= content.currency(inv.paid || 0)
                         td.r(class=(balance <= 0 ? 'balance-zero' : ''))= content.currency(balance)
                         td.actions
-                            a(href='/formInvoice?invoiceid=' + inv.invoiceid) View
+                            a(href='/formInvoice?invoiceid=' + inv.invoiceid title='View invoice') 👁
                             if canDelete
-                                a(href='/formInvoice?invoiceid=' + inv.invoiceid + '&action=delete' data-confirm='Delete this invoice?') Delete
+                                a(href='/formInvoice?invoiceid=' + inv.invoiceid + '&action=delete' title='Delete invoice' data-confirm='Delete this invoice?' style='color:#c44') ✕

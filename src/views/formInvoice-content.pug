@@ -161,8 +161,8 @@ style.
         if !forEmail
             .form-actions
                 a.btn-secondary(href='/home') Home
-                button(type='button' data-action='show-email-modal') 📧 Email Invoice
-                button(type='button' data-action='print') 🖨 Print
+                button.btn-secondary(type='button' data-action='show-email-modal') 📧 Email Invoice
+                button.btn-secondary(type='button' data-action='print') 🖨 Print
                 a.btn-danger(href='/formInvoice?invoiceid=' + invoice.invoiceid + '&action=delete' data-confirm='Delete this invoice?') 🗑 Delete
 
             //- Email modal
@@ -175,6 +175,6 @@ style.
                         input#email-input(type='email' name='emailto' value=invoice.email style='width:100%; box-sizing:border-box; background:#111; color:#fff; border:1px solid #555; padding:8px; font-size:14px; margin-bottom:14px;')
                         div(style='display:flex; gap:10px; justify-content:flex-end;')
                             button.btn-secondary(type='button' data-action='hide-email-modal') Cancel
-                            button.btn.btn-primary(type='submit') Send
+                            button.btn(type='submit') Send
 
 script(src='/js/form-invoice.js')

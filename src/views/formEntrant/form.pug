@@ -122,9 +122,8 @@ form(name='entrantform' method='POST' action='/formEntrant')
             td(colspan='2' align='center'): hr
         tr
             td(colspan='2' align='center')
-                button(type='submit')= submitLabel
-                | &nbsp;
-                a(href='/home') Cancel
+                a.btn-secondary(href='/home') Cancel
+                button.btn(type='submit')= submitLabel
 
 //- ── Address toggle script ────────────────────────────────────────────────────
 //- Equiv of checkAddress() JS in the Perl legacy shell.

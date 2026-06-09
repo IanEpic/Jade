@@ -57,7 +57,7 @@ style.
     if closed
         .closed-msg
             p Entries are currently closed for this category.
-            a.btn.btn-secondary(href='/home') ← Home
+            a.btn-secondary(href='/home') ← Home
 
     else
         h2= entry.categoryname
@@ -201,8 +201,8 @@ style.
                 p#upload-progress-label(style='text-align:center; font-size:11px; color:#aaa; margin:5px 0 0;') 0%
 
             .form-actions
-                a(href='/home') Home
-                button(type='button' id='btn-save' data-action='save') Save
+                a.btn-secondary(href='/home') Home
+                button.btn(type='button' id='btn-save' data-action='save') Save
                 a.btn(href='/viewEntry?entryid=' + entry.entryid) Review &amp; Finalise
 
 script(src='/js/form-responses.js')
