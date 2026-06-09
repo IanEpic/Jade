@@ -2,10 +2,12 @@
 
 style.
     .judge-wrap { max-width: 900px; margin: 0 auto; }
-    .judge-wrap h2 { text-align: center; color: #c48f06; margin-bottom: 20px; }
-    .judge-table { width: 100%; border-collapse: collapse; }
+    .judge-wrap h2 { text-align: center; color: #c48f06; font-size: 20px; font-weight: 600; margin: 0 0 18px; }
+    .judge-card { border: 1px solid #555; border-radius: 4px; padding: 16px 20px 10px; margin-bottom: 14px; box-shadow: 0 1px 3px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.07); }
+    .judge-card-title { color: #c48f06; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; margin: 0 0 10px; padding-bottom: 8px; border-bottom: 1px solid #333; }
+    .judge-table { width: 100%; border-collapse: collapse; margin-bottom: 4px; font-size: 14px; }
     .judge-table th { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: #c48f06; border-bottom: 1px solid #555; padding: 6px 10px; text-align: left; }
-    .judge-table td { padding: 7px 10px; border-bottom: 1px solid #2a2a2a; font-size: 14px; vertical-align: middle; }
+    .judge-table td { padding: 7px 10px; border-bottom: 1px solid #2a2a2a; vertical-align: middle; }
     .judge-table tr:hover td { background: rgba(255,255,255,0.04); }
     .judge-table td.c { text-align: center; width: 120px; }
     .judge-table td.act { text-align: center; width: 60px; }
@@ -16,8 +18,8 @@ style.
 .judge-wrap
     h2 Entries to Judge
 
-    fieldset
-        legend Assigned Entries
+    .judge-card
+        p.judge-card-title Assigned Entries
         table.judge-table
             thead
                 tr
