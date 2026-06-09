@@ -26,8 +26,8 @@ div#up-form-wrap.up-form-wrap
             td(style='white-space:nowrap; padding-right:8px; width:1%; vertical-align:middle') Page Name
             td: input#up-name(type='text' maxlength='200' placeholder='Page name' style='width:100%; box-sizing:border-box; background:#1a1a1a; color:#eee; border:1px solid #555; padding:5px 8px; border-radius:3px; font-size:13px')
     div(style='margin-top:10px; display:flex; gap:8px; align-items:center')
-        button#up-save(type='button') Create Page
-        a#up-cancel(href='#' style='font-size:12px; color:#aaa') Cancel
+        button#up-save.btn(type='button') Create Page
+        a#up-cancel.btn-secondary(href='#') Cancel
         span#up-error(style='color:#c44; font-size:12px; display:none')
 
 form(method='GET' action='/home' data-nosubmit)

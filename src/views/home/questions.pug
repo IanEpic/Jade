@@ -58,8 +58,8 @@ form(method='POST' action='/formQuestion')
                     textarea#new-q-options(rows='4' style='width:100%; box-sizing:border-box' placeholder='One option per line')
                     div(style='font-size:11px; color:#888; margin-top:2px') Enter each option on a new line
         div(style='margin-top:10px; display:flex; gap:8px; align-items:center')
-            button#new-q-save(type='button' style='padding:5px 18px') Add Question
-            a#new-q-cancel(href='#' style='font-size:12px; color:#aaa') Cancel
+            button#new-q-save.btn(type='button') Add Question
+            a#new-q-cancel.btn-secondary(href='#') Cancel
             span#new-q-error(style='color:#c44; font-size:12px; display:none')
 
     table.q-table
@@ -86,7 +86,7 @@ form(method='POST' action='/formQuestion')
                         a(href='/formQuestion?questionid=' + q.questionid + '&action=delete' data-confirm='Delete question ' + q.questionid + '?' title='Delete' style='color:#c44') ✕
 
     div(style='margin-top:12px')
-        button(type='submit') Reorder
+        button.btn(type='submit') Reorder
 
 script(src='/js/jade.js')
 script(src='/js/home-questions.js')
