@@ -41,6 +41,20 @@ async function getDefaultContent(user, program, data) {
     return { view: 'home/welcome', text: program.standardwelcometext || '' };
 }
 
+// ── POST /home — only used by admin actions that need form submission ──────────
+
+router.post('/', requireAuth, async (req, res, next) => {
+    try {
+        const user    = req.user;
+        const program = req.program;
+        const action  = req.query.action || '';
+        if (!user.admin) return res.redirect(`/${program.slug}/home`);
+        const content = await handleAdminAction(action, req, res, program, user);
+        if (content === null) return; // redirect already sent
+        res.redirect(`/${program.slug}/home?action=${action}`);
+    } catch (err) { next(err); }
+});
+
 // ── GET /home ─────────────────────────────────────────────────────────────────
 
 router.get('/', async (req, res, next) => {

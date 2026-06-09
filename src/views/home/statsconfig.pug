@@ -1,0 +1,144 @@
+//- home/statsconfig.pug — manage StatsProgram rows
+
+style.
+    .sc-wrap { max-width: 900px; margin: 0 auto; }
+    .sc-wrap h3 { color: #c48f06; font-size: 18px; text-align: center; margin-bottom: 16px; }
+    .sc-table { border-collapse: collapse; width: 100%; }
+    .sc-table th { font-size: 11px; text-transform: uppercase; color: #c48f06; border-bottom: 1px solid #555; padding: 4px 8px; text-align: left; white-space: nowrap; }
+    .sc-table td { padding: 5px 8px; border-bottom: 1px solid #1e1e1e; vertical-align: middle; font-size: 12px; color: #fff; }
+    .sc-table .sc-actions a { margin-right: 10px; font-size: 12px; }
+    .sc-toolbar { display: flex; justify-content: flex-end; margin-bottom: 12px; }
+    .sc-form-wrap { display: none; margin-bottom: 16px; padding: 14px 16px; background: #111; border: 1px solid #555; border-radius: 4px; max-width: 640px; }
+    .sc-form-wrap h4 { color: #c48f06; margin: 0 0 12px; font-size: 14px; }
+    .sc-form table { border-collapse: collapse; width: 100%; }
+    .sc-form td { padding: 4px 8px; vertical-align: middle; }
+    .sc-form td:first-child { text-align: right; width: 120px; padding-right: 10px; white-space: nowrap; font-size: 12px; color: #aaa; }
+    .sc-form input[type=number], .sc-form input[type=date] { background: #1a1a1a; color: #eee; border: 1px solid #555; padding: 4px 7px; border-radius: 3px; font-size: 13px; }
+    .sc-form input[type=number] { width: 100px; }
+    .sc-form input[type=date] { width: 150px; }
+    .sc-form input[type=date]::-webkit-calendar-picker-indicator { filter: invert(1); }
+    .sc-form .form-actions { margin-top: 12px; display: flex; gap: 10px; align-items: center; }
+    .alert-ok { background: #1a4a1a; color: #fff; padding: 8px 12px; border-left: 4px solid #4caf50; margin-bottom: 14px; }
+
+.sc-wrap
+
+    h3 Stats Program Config
+
+    if content.success
+        p.alert-ok Saved.
+
+    //- ── Inline add/edit form ────────────────────────────────────────────────
+    div#sc-form-wrap.sc-form-wrap
+        h4#sc-form-title Add Program
+        form#sc-form.sc-form(method='POST' action='/' + program.slug + '/home?action=statsconfig')
+            input(type='hidden' name='task' value='save')
+            input#sc-id(type='hidden' name='statsprogramid' value='')
+            table
+                tr
+                    td Year
+                    td: input#sc-year(type='number' name='year' min='2000' max='2099' placeholder='e.g. 2027')
+                tr
+                    td Program ID
+                    td: input#sc-programid(type='number' name='programid' min='1' placeholder='e.g. 1057')
+                tr
+                    td Open Date
+                    td: input#sc-opendate(type='date' name='opendate')
+                tr
+                    td Early Starters
+                    td: input#sc-esdate(type='date' name='esdate')
+                tr
+                    td Close Date
+                    td: input#sc-closedate(type='date' name='closedate')
+                tr
+                    td Lifetime Cat ID
+                    td: input#sc-lifetimecat(type='number' name='lifetimecat' min='1' value='1' placeholder='1')
+            .form-actions
+                button#sc-save.btn(type='submit') Save
+                a#sc-cancel.btn-secondary(href='#') Cancel
+
+    //- ── Toolbar ─────────────────────────────────────────────────────────────
+    .sc-toolbar
+        a#btn-new-sc(href='#') + Add Program
+
+    //- ── Table ───────────────────────────────────────────────────────────────
+    table.sc-table
+        thead
+            tr
+                th Year
+                th Program ID
+                th Open Date
+                th Early Starters
+                th Close Date
+                th Lifetime Cat
+                th
+        tbody
+            each p in content.programs
+                tr(data-id=p.statsprogramid data-year=p.year data-programid=p.progid data-opendate=p.opendate data-esdate=p.esdate data-closedate=p.closedate data-lifetimecat=p.lifetimecat)
+                    td= p.year
+                    td(style='color:#888')= p.progid
+                    td= p.opendate
+                    td= p.esdate
+                    td= p.closedate
+                    td(style='color:#888')= p.lifetimecat
+                    td.sc-actions(style='white-space:nowrap')
+                        a.sc-edit(href='#' title='Edit') ✏️
+                        a.sc-delete(href='#' title='Delete' style='color:#c44') ✕
+
+script(src='/js/jade.js')
+script.
+    (function () {
+        const wrap   = document.getElementById('sc-form-wrap');
+        const title  = document.getElementById('sc-form-title');
+        const idFld  = document.getElementById('sc-id');
+        const btnNew = document.getElementById('btn-new-sc');
+        const cancel = document.getElementById('sc-cancel');
+
+        function openForm(label) {
+            title.textContent = label;
+            wrap.style.display = 'block';
+            wrap.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+        function closeForm() {
+            wrap.style.display = 'none';
+            idFld.value = '';
+            document.getElementById('sc-form').reset();
+        }
+
+        btnNew.addEventListener('click', e => {
+            e.preventDefault();
+            idFld.value = '';
+            closeForm();
+            openForm('Add Program');
+        });
+        cancel.addEventListener('click', e => { e.preventDefault(); closeForm(); });
+
+        document.querySelectorAll('.sc-edit').forEach(a => {
+            a.addEventListener('click', e => {
+                e.preventDefault();
+                const tr = a.closest('tr');
+                idFld.value = tr.dataset.id;
+                document.getElementById('sc-year').value        = tr.dataset.year;
+                document.getElementById('sc-programid').value   = tr.dataset.programid;
+                document.getElementById('sc-opendate').value    = tr.dataset.opendate;
+                document.getElementById('sc-esdate').value      = tr.dataset.esdate;
+                document.getElementById('sc-closedate').value   = tr.dataset.closedate;
+                document.getElementById('sc-lifetimecat').value = tr.dataset.lifetimecat;
+                openForm('Edit Program');
+            });
+        });
+
+        document.querySelectorAll('.sc-delete').forEach(a => {
+            a.addEventListener('click', e => {
+                e.preventDefault();
+                const tr = a.closest('tr');
+                const year = tr.dataset.year;
+                if (!confirm('Delete ' + year + '?')) return;
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = window.location.pathname + '?action=statsconfig';
+                form.innerHTML = '<input name="task" value="delete"><input name="statsprogramid" value="' + tr.dataset.id + '">';
+                document.body.appendChild(form);
+                form.submit();
+            });
+        });
+    })();

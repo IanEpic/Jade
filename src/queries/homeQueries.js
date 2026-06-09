@@ -527,31 +527,57 @@ export async function getJudgeCommentsForEntryByJudge({ entryId, userId }) {
 // Shows active users, entries started, and entries paid for each year of the
 // Australian Event Awards, compared at the same relative point in the entry cycle.
 //
-// The program IDs and key dates are hardcoded here (historical data, not in DB).
-// UPDATE THIS LIST each year by adding a new entry for the new program.
-//
-// TODO: Add a `showstats` boolean column to the Program table and use
-//       program.showstats instead of the hardcoded programid === 1056 check
-//       in home.js. That way this feature can be toggled per program in the DB.
+export async function getStatsPrograms() {
+    const pool = await getPool();
+    const result = await pool.request().query(`
+        SELECT statsprogramid, year, programid, opendate, esdate, closedate, lifetimecat
+        FROM StatsProgram
+        ORDER BY year
+    `);
+    return result.recordset.map(r => ({
+        statsprogramid: r.statsprogramid,
+        year:           r.year,
+        progid:         r.programid,
+        opendate:       r.opendate.toISOString().slice(0, 10),
+        esdate:         r.esdate.toISOString().slice(0, 10),
+        closedate:      r.closedate.toISOString().slice(0, 10),
+        lifetimecat:    r.lifetimecat,
+    }));
+}
 
-const STATS_PROGRAMS = [
-    { year: 2011, progid: 15,   opendate: '2011-06-03', esdate: '2011-07-12', closedate: '2011-07-27', lifetimecat: 2250 },
-    { year: 2012, progid: 17,   opendate: '2012-06-05', esdate: '2012-07-10', closedate: '2012-07-24', lifetimecat: 2848 },
-    { year: 2013, progid: 18,   opendate: '2013-07-09', esdate: '2013-08-17', closedate: '2013-09-10', lifetimecat: 3160 },
-    { year: 2014, progid: 20,   opendate: '2014-06-05', esdate: '2014-07-15', closedate: '2014-08-12', lifetimecat: 3745 },
-    { year: 2015, progid: 22,   opendate: '2015-05-12', esdate: '2015-07-07', closedate: '2015-08-11', lifetimecat: 4226 },
-    { year: 2016, progid: 1026, opendate: '2016-05-24', esdate: '2016-06-21', closedate: '2016-07-26', lifetimecat: 44045 },
-    { year: 2017, progid: 1033, opendate: '2017-05-03', esdate: '2017-06-14', closedate: '2017-07-18', lifetimecat: 45722 },
-    { year: 2018, progid: 1038, opendate: '2018-06-13', esdate: '2018-07-25', closedate: '2018-08-28', lifetimecat: 46567 },
-    { year: 2019, progid: 1048, opendate: '2019-04-10', esdate: '2019-06-12', closedate: '2019-07-16', lifetimecat: 1 },
-    { year: 2020, progid: 1049, opendate: '2020-04-29', esdate: '2020-06-27', closedate: '2020-08-04', lifetimecat: 1 },
-    { year: 2021, progid: 1051, opendate: '2021-05-11', esdate: '2021-06-26', closedate: '2021-07-20', lifetimecat: 1 },
-    { year: 2022, progid: 1052, opendate: '2022-07-06', esdate: '2022-08-13', closedate: '2022-09-20', lifetimecat: 1 },
-    { year: 2023, progid: 1053, opendate: '2023-04-12', esdate: '2023-06-03', closedate: '2023-07-18', lifetimecat: 1 },
-    { year: 2024, progid: 1054, opendate: '2024-04-16', esdate: '2024-06-12', closedate: '2024-08-05', lifetimecat: 1 },
-    { year: 2025, progid: 1055, opendate: '2025-04-02', esdate: '2025-06-03', closedate: '2025-07-29', lifetimecat: 1 },
-    { year: 2026, progid: 1056, opendate: '2026-03-25', esdate: '2026-06-02', closedate: '2026-07-17', lifetimecat: 1 },
-];
+export async function upsertStatsProgram({ statsprogramid, year, programid, opendate, esdate, closedate, lifetimecat }) {
+    const pool = await getPool();
+    if (statsprogramid) {
+        await pool.request()
+            .input('id',          sql.Int,     statsprogramid)
+            .input('year',        sql.Int,     year)
+            .input('programid',   sql.Int,     programid)
+            .input('opendate',    sql.Date,    opendate)
+            .input('esdate',      sql.Date,    esdate)
+            .input('closedate',   sql.Date,    closedate)
+            .input('lifetimecat', sql.Int,     lifetimecat)
+            .query(`UPDATE StatsProgram SET year=@year, programid=@programid,
+                    opendate=@opendate, esdate=@esdate, closedate=@closedate,
+                    lifetimecat=@lifetimecat WHERE statsprogramid=@id`);
+    } else {
+        await pool.request()
+            .input('year',        sql.Int,     year)
+            .input('programid',   sql.Int,     programid)
+            .input('opendate',    sql.Date,    opendate)
+            .input('esdate',      sql.Date,    esdate)
+            .input('closedate',   sql.Date,    closedate)
+            .input('lifetimecat', sql.Int,     lifetimecat)
+            .query(`INSERT INTO StatsProgram (year, programid, opendate, esdate, closedate, lifetimecat)
+                    VALUES (@year, @programid, @opendate, @esdate, @closedate, @lifetimecat)`);
+    }
+}
+
+export async function deleteStatsProgram({ statsprogramid }) {
+    const pool = await getPool();
+    await pool.request()
+        .input('id', sql.Int, statsprogramid)
+        .query('DELETE FROM StatsProgram WHERE statsprogramid = @id');
+}
 
 const MS_PER_DAY = 86400000;
 
@@ -571,10 +597,11 @@ function toSqlDatetime(d) {
 }
 
 export async function getEntryStats() {
+    const STATS_PROGRAMS = await getStatsPrograms();
+
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    const currentYear = STATS_PROGRAMS[STATS_PROGRAMS.length - 1].year;
     const current = STATS_PROGRAMS[STATS_PROGRAMS.length - 1];
 
     const esDate    = toDate(current.esdate);

@@ -36,6 +36,9 @@ import {
     getJudgeCommentsForEntryByJudge,
     getAllUsersForProgram,
     getEntryStats,
+    getStatsPrograms,
+    upsertStatsProgram,
+    deleteStatsProgram,
     getEntriesAssignedToJudge,
 } from '../../queries/homeQueries.js';
 
@@ -314,6 +317,27 @@ export async function handleAdminAction(action, req, res, program, user) {
     if (action === 'stats') {
         const stats = await getEntryStats();
         return { view: 'home/stats', stats };
+    }
+
+    if (action === 'statsconfig') {
+        if (req.method === 'POST') {
+            const { task, statsprogramid, year, programid, opendate, esdate, closedate, lifetimecat } = req.body;
+            if (task === 'delete') {
+                await deleteStatsProgram({ statsprogramid: parseInt(statsprogramid) });
+            } else {
+                await upsertStatsProgram({
+                    statsprogramid: statsprogramid ? parseInt(statsprogramid) : null,
+                    year:           parseInt(year),
+                    programid:      parseInt(programid),
+                    opendate, esdate, closedate,
+                    lifetimecat:    parseInt(lifetimecat) || 1,
+                });
+            }
+            res.redirect(`/${req.program.slug}/home?action=statsconfig&saved=1`);
+            return null;
+        }
+        const programs = await getStatsPrograms();
+        return { view: 'home/statsconfig', programs, success: req.query.saved === '1' };
     }
 
     return undefined;

@@ -105,9 +105,6 @@ export async function buildSidebar(user, program, data) {
         }
     }
 
-    // TODO: replace with program.showstats once that column is added to Program
-    if (user.admin && program.programid === 1055)
-        addMain(url('/home?action=stats'), 'Stats');
 
     const panels = { main: { items: main } };
 
@@ -166,6 +163,8 @@ export async function buildSidebar(user, program, data) {
         panels.reports = {
             back: 'admin', backLabel: '< Admin',
             items: [
+                { href: url('/home?action=stats'),       label: 'Stats' },
+                { href: url('/home?action=statsconfig'), label: 'Stats Config' },
                 { href: '#', label: 'Active Users' },
                 { href: '#', label: 'Finalised Unpaid' },
                 { href: '#', label: 'Paid Unfinalised' },
