@@ -82,8 +82,8 @@ form(method='POST' action='/formQuestion')
                     td: span.q-type= q.questiontype || '—'
                     td: input(type='text' name='#' + q.questionid value=i+1)
                     td.q-actions
-                        a(href='/home?action=questions&type=' + content.type + '&questionid=' + q.questionid) Edit
-                        a(href='/formQuestion?questionid=' + q.questionid + '&action=delete' data-confirm='Delete question ' + q.questionid + '?' style='color:#c44') Delete
+                        a(href='/home?action=questions&type=' + content.type + '&questionid=' + q.questionid title='Edit') ✏️
+                        a(href='/formQuestion?questionid=' + q.questionid + '&action=delete' data-confirm='Delete question ' + q.questionid + '?' title='Delete' style='color:#c44') ✕
 
     div(style='margin-top:12px')
         button(type='submit') Reorder

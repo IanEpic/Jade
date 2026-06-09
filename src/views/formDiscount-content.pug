@@ -118,7 +118,7 @@ style.
                         td: span.badge(class=d.active ? '' : 'badge-off')= d.active ? 'Active' : 'Inactive'
                         td.disc-actions(style='white-space:nowrap')
                             a(href='/home?action=discounts&discountid=' + d.discountid title='Edit') ✏️
-                            a.btn-danger(href='/home?action=discounts&delete=' + d.discountid data-confirm='Delete this discount?' title='Delete') ✕
+                            a(href='/home?action=discounts&delete=' + d.discountid data-confirm='Delete this discount?' title='Delete' style='color:#c44') ✕
     else
         p(style='color:#888; font-size:13px') No discounts configured.
 

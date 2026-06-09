@@ -58,8 +58,8 @@ form(method='GET' action='/home' data-nosubmit)
                             if p.show4admin
                                 span.badge-vis Admins
                         td.up-actions(style='white-space:nowrap')
-                            a(href='/home?action=userpages&userpageid=' + p.userpageid) Edit
-                            a(href='/home?action=userpages&delete=' + p.userpageid data-confirm='Delete this page?' style='color:#c44') Delete
+                            a(href='/home?action=userpages&userpageid=' + p.userpageid title='Edit') ✏️
+                            a(href='/home?action=userpages&delete=' + p.userpageid data-confirm='Delete this page?' title='Delete' style='color:#c44') ✕
             else
                 tr
                     td(colspan='4' style='color:#888; font-size:13px; min-width:600px') No user pages defined.

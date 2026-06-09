@@ -40,8 +40,8 @@ form(method='POST' action='/formEligibility')
                         option(value='0') No
                         option(value='1') Yes
         div(style='margin-top:10px; display:flex; gap:8px; align-items:center')
-            button#new-el-save(type='button' style='padding:5px 18px') Add Rule
-            a#new-el-cancel(href='#' style='font-size:12px; color:#aaa') Cancel
+            button#new-el-save.btn(type='button') Add Rule
+            a#new-el-cancel.btn-secondary(href='#') Cancel
             span#new-el-error(style='color:#c44; font-size:12px; display:none')
 
     table.el-table
@@ -59,11 +59,11 @@ form(method='POST' action='/formEligibility')
                     td.el-rule= el.eligibilityrule
                     td: input(type='text' name='#' + el.eligibilityid value=i+1)
                     td.el-actions
-                        a(href='/home?action=eligibility&eligibilityid=' + el.eligibilityid) Edit
-                        a(href='/formEligibility?eligibilityid=' + el.eligibilityid + '&action=delete' data-confirm='Delete eligibility rule ' + el.eligibilityid + '?' style='color:#c44') Delete
+                        a(href='/home?action=eligibility&eligibilityid=' + el.eligibilityid title='Edit') ✏️
+                        a(href='/formEligibility?eligibilityid=' + el.eligibilityid + '&action=delete' data-confirm='Delete eligibility rule ' + el.eligibilityid + '?' title='Delete' style='color:#c44') ✕
 
     div(style='margin-top:12px')
-        button(type='submit') Reorder
+        button.btn(type='submit') Reorder
 
 script(src='/js/jade.js')
 script(src='/js/home-eligibility.js')
