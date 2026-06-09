@@ -7,6 +7,7 @@ import {
     getEntriesAssignedToJudge,
     getCatsOpenForReviewOrNomination,
     getCatsOpenForReviewByJudge,
+    getStatsPrograms,
 } from '../../queries/homeQueries.js';
 import {
     getSimpleEntriesOpenForReview,
@@ -160,15 +161,19 @@ export async function buildSidebar(user, program, data) {
                 { href: '#', label: 'Create Category' },
             ],
         };
+        const statsPrograms = await getStatsPrograms();
+        const inStats = statsPrograms.some(p => p.progid === program.programid);
+        const reportsItems = [];
+        if (inStats) {
+            reportsItems.push({ href: url('/home?action=stats'),       label: 'Stats' });
+            reportsItems.push({ href: url('/home?action=statsconfig'), label: 'Stats Config' });
+        }
+        reportsItems.push({ href: '#', label: 'Active Users' });
+        reportsItems.push({ href: '#', label: 'Finalised Unpaid' });
+        reportsItems.push({ href: '#', label: 'Paid Unfinalised' });
         panels.reports = {
             back: 'admin', backLabel: '< Admin',
-            items: [
-                { href: url('/home?action=stats'),       label: 'Stats' },
-                { href: url('/home?action=statsconfig'), label: 'Stats Config' },
-                { href: '#', label: 'Active Users' },
-                { href: '#', label: 'Finalised Unpaid' },
-                { href: '#', label: 'Paid Unfinalised' },
-            ],
+            items: reportsItems,
         };
     }
 
