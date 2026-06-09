@@ -1,6 +1,6 @@
 .env
 node_modules/
 public/css/
-public/js/
+public/js/sortable.min.js
 
 _pug_body.js
