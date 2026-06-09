@@ -91,7 +91,7 @@ form.user-form(method='POST' action='/formUser')
             tr
                 td Select Address
                 td
-                    select(name='postaladdressid' onchange='toggleNewAddress(this.value)')
+                    select(name='postaladdressid' id='postaladdressid-select')
                         if content.addresses && content.addresses.length
                             each addr in content.addresses
                                 option(value=addr.addressid selected=(addr.addressid == content.targetUser.postaladdressid))
