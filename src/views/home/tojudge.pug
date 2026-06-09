@@ -1,35 +1,48 @@
 //- home/tojudge.pug
-//- Equiv of $tojudgetable in home.cgi.
-//- If judge hasn't agreed to T&C, show judgetc form instead (handled in route via judgetcerror redirect).
 
-h3(align='center') Entries to Judge
+style.
+    .judge-wrap { max-width: 900px; margin: 0 auto; }
+    .judge-wrap h2 { text-align: center; color: #c48f06; margin-bottom: 20px; }
+    .judge-table { width: 100%; border-collapse: collapse; }
+    .judge-table th { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: #c48f06; border-bottom: 1px solid #555; padding: 6px 10px; text-align: left; }
+    .judge-table td { padding: 7px 10px; border-bottom: 1px solid #2a2a2a; font-size: 14px; vertical-align: middle; }
+    .judge-table tr:hover td { background: rgba(255,255,255,0.04); }
+    .judge-table td.c { text-align: center; width: 120px; }
+    .judge-table td.act { text-align: center; width: 60px; }
+    .badge-complete { display: inline-block; font-size: 11px; padding: 1px 8px; border-radius: 2px; font-weight: 600; background: #1a4a1a; color: #4caf50; }
+    .badge-incomplete { display: inline-block; font-size: 11px; padding: 1px 8px; border-radius: 2px; font-weight: 600; background: #4a1a1a; color: #f88; }
+    .badge-review { display: inline-block; font-size: 11px; padding: 1px 8px; border-radius: 2px; font-weight: 600; background: #3a2a00; color: #c48f06; }
 
-table(width='640')
-    tr(align='left' valign='top')
-        th= content.entrantLabel || 'Entrant'
-        th Category
-        th Status
+.judge-wrap
+    h2 Entries to Judge
 
-    each entry in content.entries
-        //- Determine completion status
-        - let allScoresDone = entry.criteria.filter(c => c.weight).every(c => entry.scores.some(s => s.criteriaid === c.criteriaid))
-        - let commentsAllowed = content.judgingModel.commentsallowed
-        - let excelComment   = entry.comments.find(c => c.type === 'excel'   && c.comment && c.comment.trim().length > 0)
-        - let improveComment = entry.comments.find(c => c.type === 'improve' && c.comment && c.comment.trim().length > 0)
-        - let allCommentsDone = !commentsAllowed || (excelComment && improveComment)
+    fieldset
+        legend Assigned Entries
+        table.judge-table
+            thead
+                tr
+                    th= content.entrantLabel || 'Entrant'
+                    th Category
+                    th.c Status
+                    th.act
+            tbody
+                each entry in content.entries
+                    - let allScoresDone = entry.criteria.filter(c => c.weight).every(c => entry.scores.some(s => s.criteriaid === c.criteriaid))
+                    - let commentsAllowed = content.judgingModel.commentsallowed
+                    - let excelComment   = entry.comments.find(c => c.type === 'excel'   && c.comment && c.comment.trim().length > 0)
+                    - let improveComment = entry.comments.find(c => c.type === 'improve' && c.comment && c.comment.trim().length > 0)
+                    - let allCommentsDone = !commentsAllowed || (excelComment && improveComment)
+                    - let inCommentReview = entry.commentreview
+                    - let displayName = entry.finalisttext || entry.entrantname
 
-        //- Check for commentreview flag (came from getEntriesToBeJudgedByJudge which includes JudgeEntryLink)
-        - let inCommentReview = entry.commentreview
-
-        - let statusLabel, statusStyle
-        - if (inCommentReview) { statusLabel = 'Review Comments'; statusStyle = 'background:#FF9900;'; }
-        - else if (allScoresDone && allCommentsDone) { statusLabel = 'Complete'; statusStyle = 'background:#9AFF9A;'; }
-        - else { statusLabel = 'Incomplete'; statusStyle = 'background:#FF9999;'; }
-
-        - let displayName = entry.finalisttext || entry.entrantname
-
-        tr
-            td(valign='center')= displayName
-            td(valign='center')= entry.categoryname
-            td(valign='center' align='center' style=statusStyle): b= statusLabel
-            td: a(href='/viewEntry?entryid=' + entry.entryid) View
+                    tr
+                        td= displayName
+                        td= entry.categoryname
+                        td.c
+                            if inCommentReview
+                                span.badge-review Review Comments
+                            else if allScoresDone && allCommentsDone
+                                span.badge-complete Complete
+                            else
+                                span.badge-incomplete Incomplete
+                        td.act: a.btn-secondary(href='/viewEntry?entryid=' + entry.entryid) Judge
