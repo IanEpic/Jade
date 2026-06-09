@@ -17,6 +17,7 @@ style.
     .user-form .form-actions a, .user-form .form-actions button { margin: 0 6px; }
     .user-form .action-links { font-size: 13px; color: #aaa; margin-bottom: 12px; text-align: center; }
     .user-form .action-links a { margin: 0 8px; }
+    .user-form .req { color: #c48f06; }
 
 form.user-form(method='POST' action='/formUser')
     input(type='hidden' name='edituserid' value=targetUser.userid)
@@ -25,6 +26,11 @@ form.user-form(method='POST' action='/formUser')
 
     if error
         p.alert-error= error
+
+    if !isAdmin
+        p(style='font-size:12px; color:#aaa; text-align:right; margin-bottom:4px;')
+            span.req *
+            |  Required field
 
     //- Admin quick-actions
     if isAdmin && user.userid !== targetUser.userid
@@ -44,7 +50,7 @@ form.user-form(method='POST' action='/formUser')
         legend Login Details
         table
             tr
-                td Email Address
+                td Email Address #[span.req *]
                 td: input(type='email' name='email' value=targetUser.email maxlength='300')
             tr
                 td New Password
@@ -65,10 +71,16 @@ form.user-form(method='POST' action='/formUser')
         legend Personal Details
         table
             tr
-                td First Name
+                td
+                    | First Name
+                    if !isAdmin
+                        span.req  *
                 td: input(type='text' name='firstname' value=targetUser.firstname maxlength='300')
             tr
-                td Last Name
+                td
+                    | Last Name
+                    if !isAdmin
+                        span.req  *
                 td: input(type='text' name='lastname' value=targetUser.lastname maxlength='300')
             tr
                 td Organisation
@@ -77,7 +89,10 @@ form.user-form(method='POST' action='/formUser')
                 td Telephone
                 td: input(type='text' name='telephone' value=targetUser.telephone maxlength='50')
             tr
-                td Mobile
+                td
+                    | Mobile
+                    if !isAdmin
+                        span.req  *
                 td: input(type='text' name='mobile' value=targetUser.mobile maxlength='50')
 
     //- ── Postal address ───────────────────────────────────────────────────────
