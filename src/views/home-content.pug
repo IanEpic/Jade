@@ -22,6 +22,7 @@ table(width='780' id='home' style='margin-left: auto; margin-right: auto; displa
             if isEmulating
                 ul#vertnav2
                     li(style='padding:7px 0px 7px 15px; font-weight:bold; background:red;') Emulation Enabled
+                    li: a(href='/' + slug + '/emulate') Cease Emulation
             //- Render all sidebar panels; JS shows the active one
             - const panelKeys = Object.keys(sidebarMenus)
             each panelKey in panelKeys
@@ -38,8 +39,6 @@ table(width='780' id='home' style='margin-left: auto; margin-right: auto; displa
                             li: a(href=item.href)= item.label
                     if panelKey === 'main' && linkedPrograms && linkedPrograms.length > 1
                         li: a(href='/' + slug + '/home?action=switchProgram') Switch Program
-                    if panelKey === 'main' && isEmulating
-                        li: a(href='/' + slug + '/emulate') Cease Emulation
             script(src='/js/sidebar.js')
 
         //- ── Main content area ────────────────────────────────────────────────

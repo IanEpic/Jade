@@ -114,7 +114,7 @@ router.get('/emulate', (req, res) => {
     } else {
         req.session.emulateUserId = null;
     }
-    res.redirect('/home');
+    res.redirect(`/${req.program.slug}/home`);
 });
 
 export default router;
