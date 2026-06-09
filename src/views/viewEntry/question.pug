@@ -1,14 +1,26 @@
 //- viewEntry/question.pug
-//- Renders one question + its response as tr elements.
+//- Renders one question + its response as a .ve-question block.
 
 - let resp = responses[q.questionid]
 - let num  = questionNum
-- let desc = q.description ? '<br><i>' + q.description + '</i>' : ''
 - let noResp = '[No Response Provided]'
 
-if q.inputtype === 'textfield'
-    tr: td(colspan='2' align='left')!= num + '. ' + q.questiontext + desc
-    tr: td(colspan='2' align='left')= resp ? resp.value : noResp
+if q.inputtype === 'noinput'
+    .ve-noinput!= q.questiontext
+        if q.description
+            br
+            i!= q.description
+
+else if q.inputtype === 'textfield'
+    .ve-question
+        .ve-q-label!= num + '. ' + q.questiontext
+        if q.description
+            .ve-q-desc!= q.description
+        .ve-q-answer
+            if resp && resp.value
+                = resp.value
+            else
+                span.ve-q-noresp= noResp
 
 else if q.inputtype === 'drop down list' || q.inputtype === 'radio'
     - let rawVal = resp ? resp.value : null
@@ -16,79 +28,85 @@ else if q.inputtype === 'drop down list' || q.inputtype === 'radio'
     - let optByName = rawVal && q.inputoptions ? q.inputoptions.find(o => o.name === rawVal) : null
     - let resolvedOpt = (optById || optByName)
     - let displayVal = resolvedOpt ? resolvedOpt.name : (rawVal && rawVal !== '--Please Select--' ? rawVal : null)
-    tr(align='left' valign='top')
-        td(colspan='2')
-            div(style='display:flex; justify-content:space-between; align-items:baseline; gap:16px;')
-                span!= num + '. ' + q.questiontext + desc
-                span(style='white-space:nowrap; flex-shrink:0;')= displayVal || noResp
+    .ve-question
+        .ve-q-ddr
+            .ve-q-label!= num + '. ' + q.questiontext
+            span= displayVal || noResp
+        if q.description
+            .ve-q-desc!= q.description
 
 else if q.inputtype === 'textarea'
-    tr: td(colspan='2' align='left')!= num + '. ' + q.questiontext + desc
-    tr: td(colspan='2' align='left')
-        if resp && resp.value
-            p(style='font-size:100%;')!= resp.value.replace(/\n/g, "</p><p style='font-size:100%;'>")
-        else
-            p= noResp
+    .ve-question
+        .ve-q-label!= num + '. ' + q.questiontext
+        if q.description
+            .ve-q-desc!= q.description
+        .ve-q-answer
+            if resp && resp.value
+                - let paras = resp.value.split('\n').filter(l => l.trim())
+                each para in paras
+                    p!= para
+            else
+                span.ve-q-noresp= noResp
 
 else if q.inputtype === 'checkbox'
     - let selected = resp ? resp.value.split('~') : []
-    tr(align='left' valign='top')
-        td!= num + '. ' + q.questiontext + desc
-        td
-            if q.inputoptions
-                table
-                    each opt in q.inputoptions
-                        - let isSelected = selected.includes(String(opt.inputoptionid)) || selected.includes(opt.name)
-                        tr
-                            td= opt.name
-                            td= isSelected ? 'YES' : 'NO'
+    .ve-question
+        .ve-q-label!= num + '. ' + q.questiontext
+        if q.description
+            .ve-q-desc!= q.description
+        if q.inputoptions
+            .ve-check-grid
+                each opt in q.inputoptions
+                    - let isSelected = selected.includes(String(opt.inputoptionid)) || selected.includes(opt.name)
+                    span= opt.name
+                    span(class=isSelected ? 've-check-yes' : 've-check-no')= isSelected ? 'YES' : 'NO'
 
 else if q.inputtype === 'upload'
-    tr: td(colspan='2' align='left')!= num + '. ' + q.questiontext + desc
-    tr: td(colspan='2')
+    .ve-question
+        .ve-q-label!= num + '. ' + q.questiontext
+        if q.description
+            .ve-q-desc!= q.description
         if !resp
-            p(style='color:#888;') [No File Uploaded]
+            span.ve-q-noresp [No File Uploaded]
         else
             - let ext = (resp.value || '').split('.').pop().toLowerCase()
-            if ['jpg','jpeg','png','gif'].includes(ext)
-                div(style='border:2px solid #c48f06; padding:14px 18px; margin:8px 0; background:rgba(196,143,6,0.08); text-align:center;')
-                    img(width='600' src='/' + slug + '/formResponses/image?responseid=' + resp.responseid)
+            - let isImg = ['jpg','jpeg','png','gif'].includes(ext)
+            if isImg
+                .ve-media
+                    img(src='/' + slug + '/formResponses/image?responseid=' + resp.responseid style='max-width:600px;')
             else
                 - let docExt = ext.toUpperCase()
-                - let docColour = ({PDF:'#e74c3c', DOC:'#2980b9', DOCX:'#2980b9', XLS:'#27ae60', XLSX:'#27ae60', PPT:'#e67e22', PPTX:'#e67e22'})[docExt] || '#7f8c8d'
-                div(style='border:2px solid #c48f06; padding:14px 18px; margin:8px 0; background:rgba(196,143,6,0.08);')
-                    p(style='margin:0 0 10px 0;')
-                        b Supporting Document
-                    p(style='margin:0 0 12px 0; font-size:13px;') Click the link below to open the supporting document. This document forms part of the entry and should be reviewed alongside the responses above.
-                    a(href='/' + slug + '/formResponses/download?responseid=' + resp.responseid target='_blank' style='font-size:15px; font-weight:bold; text-decoration:none;')
-                        span(style='display:inline-block; background:' + docColour + '; color:#fff; font-size:11px; font-weight:bold; padding:3px 6px; border-radius:3px; margin-right:8px; vertical-align:middle;')= docExt
-                        span(style='font-size:28px; vertical-align:middle; margin-right:6px;') &#x1F4C4;
-                        span(style='vertical-align:middle;') Open supporting document
+                - let docColour = ({PDF:'#e74c3c',DOC:'#2980b9',DOCX:'#2980b9',XLS:'#27ae60',XLSX:'#27ae60',PPT:'#e67e22',PPTX:'#e67e22'})[docExt] || '#7f8c8d'
+                .ve-media(style='text-align:left;')
+                    p(style='margin:0 0 8px; font-size:13px; color:#aaa;') Click the link below to open the supporting document.
+                    a.ve-doc-link(href='/' + slug + '/formResponses/download?responseid=' + resp.responseid target='_blank')
+                        span(style='background:' + docColour + '; color:#fff; font-size:11px; font-weight:bold; padding:3px 7px; border-radius:3px;')= docExt
+                        span(style='font-size:22px;') 📄
+                        span= resp.value
 
 else if q.inputtype === 'image'
-    tr: td(colspan='2' align='left')!= num + '. ' + q.questiontext + desc
-    tr: td(colspan='2')
+    .ve-question
+        .ve-q-label!= num + '. ' + q.questiontext
+        if q.description
+            .ve-q-desc!= q.description
         if !resp
-            p(style='color:#888;') [No Image Uploaded]
+            span.ve-q-noresp [No Image Uploaded]
         else
-            div(style='border:2px solid #c48f06; padding:14px 18px; margin:8px 0; background:rgba(196,143,6,0.08); text-align:center;')
-                img(src='/' + slug + '/formResponses/image?responseid=' + resp.responseid width='600')
+            .ve-media
+                img(src='/' + slug + '/formResponses/image?responseid=' + resp.responseid style='max-width:600px;')
                 if resp.caption
-                    p(style='margin:10px 0 0; font-size:13px; text-align:left;')= resp.caption
+                    p.caption= resp.caption
 
 else if q.inputtype === 'video'
-    tr: td(colspan='2' align='left')!= num + '. ' + q.questiontext + desc
-    tr: td(colspan='2')
+    .ve-question
+        .ve-q-label!= num + '. ' + q.questiontext
+        if q.description
+            .ve-q-desc!= q.description
         if !resp
-            p(style='color:#888;') [No Video Uploaded]
+            span.ve-q-noresp [No Video Uploaded]
         else
-            - let videoSrc = '/' + slug + '/formResponses/video?responseid=' + resp.responseid
-            div(style='border:2px solid #c48f06; padding:14px 18px; margin:8px 0; background:rgba(196,143,6,0.08); text-align:center;')
-                video(width='425' height='350' controls)
-                    source(src=videoSrc type='video/mp4')
-                    | Your browser does not support the video tag.
+            .ve-media
+                video(controls style='max-width:100%; max-height:360px;')
+                    source(src='/' + slug + '/formResponses/video?responseid=' + resp.responseid type='video/mp4')
                 if resp.caption
-                    p(style='margin:10px 0 0; font-size:13px; text-align:left;')= resp.caption
-
-else if q.inputtype === 'noinput'
-    tr: td(colspan='2' align='left')!= q.questiontext + desc
+                    p.caption= resp.caption

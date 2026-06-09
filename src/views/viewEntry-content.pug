@@ -1,62 +1,100 @@
 //- viewEntry-content.pug
 
+style.
+    .ve-wrap { max-width: 900px; margin: 0 auto; font-size: 14px; }
+    .ve-wrap h2 { text-align: center; color: #c48f06; font-size: 20px; font-weight: 600; margin: 0 0 4px; }
+    .ve-wrap .ve-meta { text-align: center; color: #aaa; font-size: 13px; margin: 0 0 18px; }
+    .ve-card { border: 1px solid #555; border-radius: 4px; padding: 16px 20px; margin-bottom: 14px; box-shadow: 0 1px 3px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.07); }
+    .ve-card-title { color: #c48f06; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; margin: 0 0 12px; padding-bottom: 8px; border-bottom: 1px solid #333; }
+    .ve-criteria-table { width: 100%; border-collapse: collapse; }
+    .ve-criteria-table th { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: #c48f06; border-bottom: 1px solid #555; padding: 5px 8px; text-align: left; }
+    .ve-criteria-table td { padding: 5px 8px; border-bottom: 1px solid #2a2a2a; color: #ccc; }
+    .ve-criteria-table tr:last-child td { border-bottom: none; }
+    .ve-criteria-table td.r { text-align: right; white-space: nowrap; }
+    .ve-entrant-grid { display: grid; grid-template-columns: 120px 1fr; gap: 4px 12px; }
+    .ve-entrant-grid .lbl { color: #888; }
+    .ve-entrant-grid .val { color: #ccc; }
+    .ve-question { padding: 12px 0; border-bottom: 1px solid #2a2a2a; }
+    .ve-question:last-child { border-bottom: none; padding-bottom: 0; }
+    .ve-q-label { font-weight: 600; color: #fff; margin-bottom: 4px; }
+    .ve-q-desc { font-size: 12px; color: #aaa; font-style: italic; margin-bottom: 6px; }
+    .ve-q-answer { color: #ccc; line-height: 1.6; }
+    .ve-q-answer p { margin: 0 0 8px; }
+    .ve-q-answer p:last-child { margin-bottom: 0; }
+    .ve-q-noresp { color: #555; font-style: italic; }
+    .ve-q-ddr { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; }
+    .ve-q-ddr .ve-q-label { margin-bottom: 0; }
+    .ve-check-grid { display: grid; grid-template-columns: 1fr auto; gap: 3px 16px; margin-top: 6px; font-size: 13px; }
+    .ve-check-yes { color: #4caf50; font-weight: 600; }
+    .ve-check-no { color: #555; }
+    .ve-media { border: 1px solid #c48f06; border-radius: 4px; padding: 14px 18px; margin-top: 8px; background: rgba(196,143,6,0.06); text-align: center; }
+    .ve-media img, .ve-media video { max-width: 100%; display: block; margin: 0 auto; }
+    .ve-media .caption { margin: 8px 0 0; font-size: 13px; text-align: left; color: #aaa; }
+    .ve-doc-link { display: inline-flex; align-items: center; gap: 8px; font-size: 15px; font-weight: bold; text-decoration: none; color: #fff; }
+    .ve-doc-link:hover { color: #c48f06; }
+    .ve-noinput { color: #ccc; padding: 10px 0; border-bottom: 1px solid #2a2a2a; line-height: 1.6; }
+    .ve-noinput:last-child { border-bottom: none; }
+    .ve-form-actions { display: flex; justify-content: center; gap: 12px; margin-top: 6px; }
+
 if error === 'noaccess'
-    p You do not have permission to view this entry.
-    p: a(href='/home') Return Home
+    .ve-wrap
+        p(style='color:#c44; text-align:center') You do not have permission to view this entry.
+        .ve-form-actions: a.btn-secondary(href='/home') Return Home
 else
-    p(align='center')
-        b= category.name
-        br
+    .ve-wrap
+        h2= category.name
         if entry
-            | Entry by #{entrant ? entrant.name : entry.entrantid}
+            p.ve-meta Entry by #{entrant ? entrant.name : (entry.entrantid || '')}
 
-    table(style='width:780px;')
-
-        //- ── Criteria table ───────────────────────────────────────────────────
+        //- ── Judging Criteria ────────────────────────────────────────────────
         if criteria && criteria.length
-            tr: td(colspan='2' align='left'): b Judging Criteria
-            tr(align='left' valign='top')
-                td(colspan='2')
-                    table
+            .ve-card
+                p.ve-card-title Judging Criteria
+                table.ve-criteria-table
+                    thead
                         tr
-                            td: b Criteria
-                            td: b Weight
+                            th Criteria
+                            th.r Weight
+                    tbody
                         each c in criteria
                             tr
                                 td!= c.description
-                                td(align='center')= c.weight + '%'
-            tr: td(colspan='2'): hr
+                                td.r= c.weight + '%'
 
-        //- ── Entrant detail ───────────────────────────────────────────────────
-        include viewEntry/entrantdetail.pug
-        tr: td(colspan='2'): hr
+        //- ── Entrant Details ─────────────────────────────────────────────────
+        .ve-card
+            p.ve-card-title Entrant Details
+            include viewEntry/entrantdetail.pug
 
-        //- ── Questions / Responses ────────────────────────────────────────────
-        - let questionNum = 0
-        each q, i in questions
-            - if (q.inputtype !== 'noinput') questionNum++
-            if i > 0
-                tr: td(colspan='2'): hr
-            include viewEntry/question.pug
+        //- ── Questions / Responses ───────────────────────────────────────────
+        .ve-card
+            p.ve-card-title Entry Responses
 
-        tr: td(colspan='2'): hr
+            - let questionNum = 0
+            each q, i in questions
+                - if (q.inputtype !== 'noinput') questionNum++
+                include viewEntry/question.pug
 
-        //- ── Score / action panel ─────────────────────────────────────────────
+        //- ── Score / action panel ────────────────────────────────────────────
         if scorePanel
             case scorePanel.type
                 when 'scoreform'
-                    include viewEntry/scoreform.pug
+                    .ve-card
+                        include viewEntry/scoreform.pug
                 when 'editcomment'
-                    include viewEntry/editcomment.pug
+                    .ve-card
+                        include viewEntry/editcomment.pug
                 when 'hjcomment'
-                    tr: td(colspan='2')
+                    .ve-card
                         include viewEntry/hjcomment.pug
                 when 'simplereview'
-                    tr: td(colspan='2')
+                    .ve-card
                         include viewEntry/simplereview.pug
                 when 'entrant'
-                    include viewEntry/entrantpanel.pug
+                    .ve-card
+                        include viewEntry/entrantpanel.pug
 
-        //- ── Bottom buttons ───────────────────────────────────────────────────
+        //- ── Bottom actions ──────────────────────────────────────────────────
         if !scorePanel || scorePanel.type !== 'entrant'
-            tr: td(colspan='2' align='center'): a(href='/home') Home
+            .ve-form-actions
+                a.btn-secondary(href='/home') Home
