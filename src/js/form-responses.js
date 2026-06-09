@@ -714,7 +714,7 @@ initBlurSave();
 
 // ── Auto-save on exit via sendBeacon ──────────────────────────────────────────
 window.addEventListener('beforeunload', function () {
-    if (_uploadsInFlight > 0) return; // don't beacon mid-upload — incomplete data
+    if (Object.keys(_activeUploads).length > 0) return; // don't beacon mid-upload — incomplete data
     var form = document.getElementById('response-form');
     var data = new FormData(form);
     navigator.sendBeacon(window.JADE_BASE + '/formResponses', data);

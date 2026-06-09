@@ -591,7 +591,10 @@ router.get('/download', async (req, res, next) => {
 // Try a list of candidate paths in order, serve the first one that exists.
 async function serveFirstExisting(res, next, candidates) {
     for (const p of candidates) {
-        try { await fs.access(p); return res.sendFile(p); } catch {}
+        try {
+            await fs.access(p);
+            return res.sendFile(p, err => { if (err && !res.headersSent) next(err); });
+        } catch {}
     }
     res.status(404).send('File not found');
 }
