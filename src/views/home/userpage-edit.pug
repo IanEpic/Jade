@@ -51,8 +51,8 @@ form.up-edit-form(method='POST' action='/formPage')
         a(href='/home?action=userpages') < User Pages
         button(type='submit') Save Page
 
-script(src='https://cdn.tiny.cloud/1/t5u2zqqe9s1ltcgp3yrcdormdh3wb2qaquf31suupv3rupdw/tinymce/7/tinymce.min.js' referrerpolicy='origin')
-script(nonce=nonce).
+script(defer src='https://cdn.tiny.cloud/1/t5u2zqqe9s1ltcgp3yrcdormdh3wb2qaquf31suupv3rupdw/tinymce/7/tinymce.min.js' referrerpolicy='origin')
+script(defer nonce=nonce).
     tinymce.init({
         selector: '#page-html',
         plugins: 'anchor autolink lists link image table code fullscreen',
