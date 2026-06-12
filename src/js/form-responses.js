@@ -124,7 +124,7 @@ document.querySelectorAll('.dropzone').forEach(function (dz) {
 
     // Click on dropzone opens file picker, unless clicking a video player or remove button
     dz.addEventListener('click', function (e) {
-        if (!e.target.closest('.dz-video-player') && !e.target.closest('.btn-dz-remove') && !e.target.closest('.dz-stop-btn')) input.click();
+        if (!e.target.closest('.dz-video-player') && !e.target.closest('.btn-dz-remove') && !e.target.closest('.dz-stop-btn') && !e.target.closest('.dz-filename')) input.click();
     });
 
     input.addEventListener('change', function () {
