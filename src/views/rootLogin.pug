@@ -13,9 +13,8 @@ block content
         div#step-email
             form#form-email(autocomplete='on')
                 table
-                    tr: td(colspan='2'): label(for='login-email') Email address
-                    tr: td(colspan='2'): input#login-email(type='email' name='email' size='35' maxlength='300' autocomplete='email' value=loginEmail||'')
-                    tr: td(colspan='2'): button#btn-continue.btn(type='submit') Continue →
+                    tr: td(colspan='2'): input#login-email(type='email' name='email' size='35' maxlength='300' autocomplete='email' placeholder='Please enter your email address' value=loginEmail||'')
+                    tr: td(colspan='2' style='text-align:center; padding-top:8px;'): button#btn-continue.btn(type='submit') Continue →
                     tr: td(colspan='2')
                         div#email-error(style='color:#c0392b; margin-top:6px; display:none;')
 
@@ -26,9 +25,9 @@ block content
                 table
                     tr: td(colspan='2')
                         span#password-greeting
-                    tr: td(colspan='2'): label(for='login-password') Password
-                    tr: td(colspan='2'): input#login-password(type='password' name='password' size='35' maxlength='50' autocomplete='current-password')
-                    tr: td(colspan='2'): button.btn(type='submit') Log In
+                    tr: td(colspan='2', style='padding-top:12px;')
+                    tr: td(colspan='2'): input#login-password(type='password' name='password' size='35' maxlength='50' autocomplete='current-password' placeholder='Password')
+                    tr: td(colspan='2' style='text-align:center; padding-top:8px;'): button.btn(type='submit') Log In
                     tr: td(colspan='2')
                         if errors && errors.length
                             each e in errors
