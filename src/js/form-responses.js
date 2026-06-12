@@ -412,9 +412,10 @@ document.querySelectorAll('.dropzone').forEach(function (dz) {
         fetch(window.JADE_BASE + '/formResponses/save-file', {
             method:  'POST',
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body:    'entryid='     + encodeURIComponent(dz.dataset.entryid) +
-                     '&questionid=' + encodeURIComponent(dz.dataset.qid) +
-                     '&filename='   + encodeURIComponent(filename),
+            body:    'entryid='      + encodeURIComponent(dz.dataset.entryid) +
+                     '&questionid='  + encodeURIComponent(dz.dataset.qid) +
+                     '&filename='    + encodeURIComponent(filename) +
+                     '&originalname='+ encodeURIComponent(originalname || ''),
         })
         .then(function (r) { return r.json(); })
         .then(function (saved) {

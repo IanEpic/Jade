@@ -137,13 +137,14 @@ style.
                                 input(type='file' class='dz-input')
                                 .dz-preview(style=(respval ? 'display:block' : 'display:none'))
                                     if resp && respval
-                                        - const ext = (respval.split('.').pop() || '').toLowerCase()
+                                        - const displayName = resp.originalname || respval
+                                        - const ext = (displayName.split('.').pop() || '').toLowerCase()
                                         - const iconColors = {pdf:'#e74c3c',doc:'#2980b9',docx:'#2980b9',xls:'#27ae60',xlsx:'#27ae60',ppt:'#e67e22',pptx:'#e67e22',zip:'#8e44ad',rar:'#8e44ad','7z':'#8e44ad',csv:'#16a085',txt:'#7f8c8d'}
                                         - const iconColor = iconColors[ext] || '#555'
                                         - const iconLabel = ext ? ext.toUpperCase() : 'FILE'
                                         a.dz-filename(href='/'+slug+'/formResponses/download?responseid='+resp.responseid target='_blank')
                                             span.dz-file-icon(style='background:'+iconColor)= iconLabel
-                                            = respval
+                                            = displayName
                                     else
                                         span.dz-filename
                                     button.btn-dz-remove(type='button' data-action='remove-file') ✕ Remove

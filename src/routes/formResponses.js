@@ -187,9 +187,10 @@ router.post('/delete-pending', async (req, res, next) => {
 
 router.post('/save-file', async (req, res, next) => {
     try {
-        const entryid    = parseInt(req.body.entryid);
-        const questionid = parseInt(req.body.questionid);
-        const filename   = req.body.filename;
+        const entryid      = parseInt(req.body.entryid);
+        const questionid   = parseInt(req.body.questionid);
+        const filename     = req.body.filename;
+        const originalname = (req.body.originalname || '').slice(0, 500) || null;
         if (!entryid || !questionid || !filename) return res.json({ status: 'E_MISSING' });
 
         const pool = await getPool();
@@ -214,17 +215,19 @@ router.post('/save-file', async (req, res, next) => {
         if (existing.recordset.length) {
             responseid = existing.recordset[0].responseid;
             await pool.request()
-                .input('responseid', sql.Int,     responseid)
-                .input('value',      sql.NVarChar, filename)
-                .query(`UPDATE Response SET value=@value WHERE responseid=@responseid`);
+                .input('responseid',   sql.Int,     responseid)
+                .input('value',        sql.NVarChar, filename)
+                .input('originalname', sql.NVarChar, originalname)
+                .query(`UPDATE Response SET value=@value, originalname=@originalname WHERE responseid=@responseid`);
         } else {
             const insert = await pool.request()
-                .input('entryid',    sql.Int,     entryid)
-                .input('questionid', sql.Int,     questionid)
-                .input('value',      sql.NVarChar, filename)
-                .query(`INSERT INTO Response (entryid, questionid, value, deleted)
+                .input('entryid',      sql.Int,     entryid)
+                .input('questionid',   sql.Int,     questionid)
+                .input('value',        sql.NVarChar, filename)
+                .input('originalname', sql.NVarChar, originalname)
+                .query(`INSERT INTO Response (entryid, questionid, value, originalname, deleted)
                         OUTPUT INSERTED.responseid
-                        VALUES (@entryid, @questionid, @value, 0)`);
+                        VALUES (@entryid, @questionid, @value, @originalname, 0)`);
             responseid = insert.recordset[0].responseid;
         }
 
