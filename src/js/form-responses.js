@@ -719,3 +719,44 @@ window.addEventListener('beforeunload', function () {
     var data = new FormData(form);
     navigator.sendBeacon(window.JADE_BASE + '/formResponses', data);
 });
+
+// ── Video processing detection ────────────────────────────────────────────────
+// When the server returns 202 {processing:true} the browser gets JSON, not a
+// video — the player shows as broken. Detect this at page load, swap the player
+// for a "Converting…" notice, and poll every 8 s until the mp4 is ready.
+
+function _checkVideoProcessing(vid) {
+    var src = vid.getAttribute('src');
+    if (!src) return;
+    fetch(src, { method: 'HEAD' })
+        .then(function (r) {
+            if (r.status !== 202) return; // 200 = ready, 404 = gone — nothing to do
+            // Conversion still in progress — replace player with a notice
+            var notice = document.createElement('div');
+            notice.className = 'dz-video-processing';
+            notice.style.cssText = 'padding:8px 0;font-size:13px;color:#aaa;';
+            notice.textContent = '⏳ Converting video… this may take a minute. Page will update automatically.';
+            vid.parentNode.insertBefore(notice, vid);
+            vid.style.display = 'none';
+
+            var timer = setInterval(function () {
+                fetch(src, { method: 'HEAD' })
+                    .then(function (r2) {
+                        if (r2.status === 200) {
+                            clearInterval(timer);
+                            notice.remove();
+                            vid.style.display = 'block';
+                            // Force reload — src hasn't changed so the browser won't re-fetch
+                            vid.src = src;
+                            vid.load();
+                        }
+                    })
+                    .catch(function () {}); // ignore network errors — keep polling
+            }, 8000);
+        })
+        .catch(function () {});
+}
+
+document.querySelectorAll('video.dz-video-player[src]').forEach(function (vid) {
+    _checkVideoProcessing(vid);
+});

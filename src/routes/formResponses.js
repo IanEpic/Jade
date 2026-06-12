@@ -624,6 +624,8 @@ router.get('/image', async (req, res, next) => {
     } catch (err) { next(err); }
 });
 
+const BROWSER_NATIVE_VIDEO = new Set(['mp4', 'm4v', 'webm', 'ogg']);
+
 router.get('/video', async (req, res, next) => {
     try {
         const pool = await getPool();
@@ -632,10 +634,25 @@ router.get('/video', async (req, res, next) => {
             .query('SELECT value FROM Response WHERE responseid=@responseid');
         if (!r.recordset.length) return res.status(404).send('Not found');
         const filename = r.recordset[0].value;
+        const convertedPath = path.join(CONVERTED_VIDEOS_DIR, noExt(filename) + '.mp4');
+
+        // Try converted mp4 first
+        try {
+            await fs.access(convertedPath);
+            return res.sendFile(convertedPath, err => { if (err && !res.headersSent) next(err); });
+        } catch {}
+
+        // Converted not ready — check if original is browser-playable
+        const ext = (path.extname(filename).replace('.', '') || '').toLowerCase();
+        if (!BROWSER_NATIVE_VIDEO.has(ext)) {
+            // Non-native format (e.g. .mov, .avi) still converting — tell the client to wait
+            return res.status(202).json({ processing: true });
+        }
+
+        // Original is browser-native — serve it directly as a fallback
         await serveFirstExisting(res, next, [
-            path.join(CONVERTED_VIDEOS_DIR, noExt(filename) + '.mp4'), // ffmpeg converted
-            path.join(ORIGINAL_VIDEOS_DIR,  filename),                 // Node upload (with ext)
-            path.join(ORIGINAL_VIDEOS_DIR,  noExt(filename)),          // Perl upload (no ext)
+            path.join(ORIGINAL_VIDEOS_DIR, filename),
+            path.join(ORIGINAL_VIDEOS_DIR, noExt(filename)),
         ]);
     } catch (err) { next(err); }
 });
