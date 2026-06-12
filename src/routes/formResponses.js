@@ -576,17 +576,18 @@ router.get('/download', async (req, res, next) => {
         const pool = await getPool();
         const r = await pool.request()
             .input('responseid', sql.Int, parseInt(req.query.responseid))
-            .query('SELECT value FROM Response WHERE responseid=@responseid');
+            .query('SELECT value, originalname FROM Response WHERE responseid=@responseid');
         if (!r.recordset.length) return res.status(404).send('Not found');
-        const filename = r.recordset[0].value;
+        const filename     = r.recordset[0].value;
+        const downloadName = r.recordset[0].originalname || filename;
         // Try with extension (Node uploads) then without (legacy Perl uploads)
         const withExt    = path.join(ORIGINAL_FILES_DIR, filename);
         const withoutExt = path.join(ORIGINAL_FILES_DIR, noExt(filename));
         try {
             await fs.access(withExt);
-            res.download(withExt, filename);
+            res.download(withExt, downloadName);
         } catch {
-            res.download(withoutExt, filename); // serve with original name for download
+            res.download(withoutExt, downloadName);
         }
     } catch (err) { next(err); }
 });
