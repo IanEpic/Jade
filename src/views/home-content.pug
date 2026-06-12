@@ -40,7 +40,7 @@ table(width='780' id='home' style='margin-left: auto; margin-right: auto; displa
                             li: a(href=item.href)= item.label
                     if panelKey === 'main' && linkedPrograms && linkedPrograms.length > 1
                         li: a(href='/' + slug + '/home?action=switchProgram') Switch Program
-            script(src='/js/sidebar.js')
+            script(defer src='/js/sidebar.js')
 
         //- ── Main content area ────────────────────────────────────────────────
         td(style='padding: 10px; min-width: 600px;')
