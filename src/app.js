@@ -24,6 +24,10 @@ const app  = express();
 const PORT = process.env.PORT || 3000;
 const isProd = process.env.NODE_ENV === 'production';
 
+// Trust Cloudflare (and any reverse proxy) so req.secure = true for HTTPS connections.
+// Required for secure session cookies to be set correctly behind a proxy.
+if (isProd) app.set('trust proxy', 1);
+
 // ── Session store ─────────────────────────────────────────────────────────────
 // Replaces CGI cookie-based auth (email + password cookies on every request).
 // Sessions are stored in MSSQL so they survive server restarts.
