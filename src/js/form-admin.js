@@ -1,5 +1,22 @@
-// form-admin.js — program admin form: accordion toggle + TinyMCE init
-// Note: TinyMCE CDN must be loaded before this file.
+// form-admin.js — program admin form: accordion toggle + lazy TinyMCE init
+
+var TINYMCE_CONFIG = {
+    plugins:  'anchor autolink lists link image table code fullscreen',
+    toolbar:  'undo redo | blocks | bold italic underline | forecolor backcolor | alignleft aligncenter alignright | bullist numlist | link image table | code fullscreen',
+    menubar:  false,
+    height:   250,
+    skin:     'oxide-dark',
+    content_css: 'dark',
+    promotion: false,
+};
+
+function initEditorsIn(container) {
+    container.querySelectorAll('textarea.mceEditor').forEach(function(ta) {
+        if (ta.id && !tinymce.get(ta.id)) {
+            tinymce.init(Object.assign({ target: ta }, TINYMCE_CONFIG));
+        }
+    });
+}
 
 document.addEventListener('click', function(e) {
     var legend = e.target.closest('[data-action="toggle-accordion"]');
@@ -8,15 +25,5 @@ document.addEventListener('click', function(e) {
     var collapsed = body.style.display === 'none' || body.style.display === '';
     body.style.display = collapsed ? 'block' : 'none';
     legend.classList.toggle('collapsed', !collapsed);
-});
-
-tinymce.init({
-    selector:    'textarea.mceEditor',
-    plugins:     'anchor autolink lists link image table code fullscreen',
-    toolbar:     'undo redo | blocks | bold italic underline | forecolor backcolor | alignleft aligncenter alignright | bullist numlist | link image table | code fullscreen',
-    menubar:     false,
-    height:      250,
-    skin:        'oxide-dark',
-    content_css: 'dark',
-    promotion:   false,
+    if (collapsed) initEditorsIn(body);
 });

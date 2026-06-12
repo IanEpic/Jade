@@ -141,7 +141,7 @@ else
                 div.accordion-body
                     each field in group.fields
                         p.rich-label= field.label
-                        textarea.mceEditor(name=field.name rows='5')= program[field.name] || ''
+                        textarea.mceEditor(id=field.name name=field.name rows='5')= program[field.name] || ''
 
         //- ── Actions ──────────────────────────────────────────────────────────
         .form-actions
