@@ -135,6 +135,13 @@ document.querySelectorAll('.dropzone').forEach(function (dz) {
     var CHUNK_SIZE     = 50 * 1024 * 1024;       // 50 MB — well under Cloudflare's 100 MB limit
 
     function handleFile(file) {
+        // ── Type guard ──────────────────────────────────────────────────────
+        if (type === 'image' && !file.type.startsWith('image/')) {
+            return showErr('Please upload an image file (jpg, png, gif, etc.)');
+        }
+        if (type === 'video' && !file.type.startsWith('video/')) {
+            return showErr('Please upload a video file (mp4, mov, etc.)');
+        }
         // ── Size guard ──────────────────────────────────────────────────────
         if (file.size > MAX_FILE_BYTES) {
             showErr('File is too large (maximum 2 GB). Please choose a smaller file.');
