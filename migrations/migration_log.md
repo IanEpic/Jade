@@ -893,3 +893,18 @@ Then seed with INSERT — see `migrations/030_stats_program_table.sql`.
 ALTER TABLE Response ADD originalname NVARCHAR(500) NULL;
 ```
 
+
+---
+
+## 032 — Populate commentguidelines on JudgingModel
+
+**Date applied:** 2026-06-12
+**Purpose:** Copies judging comment guidelines from the dev DB (JadeTest) into UAT and production. Content was copied manually via SSMS. An admin UI to update this field is planned for a future session.
+
+```sql
+-- Verify content is present after manual copy:
+SELECT programid, LEFT(commentguidelines, 100) AS preview
+FROM JudgingModel
+WHERE commentguidelines IS NOT NULL;
+```
+
