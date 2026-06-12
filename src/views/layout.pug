@@ -9,7 +9,7 @@ html(lang='en')
         link(rel='stylesheet' href='/css/main.css')
         block styles
 
-    body
+    body(class=slug ? '' : 'root-login')
         block content
 
         block scripts
