@@ -839,3 +839,57 @@ attrs, `../wwwref/` paths) to clean semantic HTML matching the new dark theme.
 Sections grouped into styled `.dl-section` divs with `.dl-table` tables.
 All file paths updated from `../wwwref/aeadocs/` to `/wwwref/aeadocs/`.
 Applies to programid 1056 (Australian Event Awards 2026) only.
+
+---
+
+## 027 — Restyle standardwelcometext for AEA 2026
+
+**Date applied:** 2026-06-12
+**Purpose:** Rewrites standardwelcometext into `.welcome-section` div cards matching the dark-theme bevel-box aesthetic. Applies to programid 1056 only.
+
+---
+
+## 028 — Update standardwelcometext heading for AEA 2026
+
+**Date applied:** 2026-06-12
+**Purpose:** Moves the Welcome heading to a top-level `<h2>` (centred, larger), removes the card from the intro section, keeps cards for all other sections. Applies to programid 1056 only.
+
+---
+
+## 029 — Restyle all remaining welcome text fields for AEA 2026
+
+**Date applied:** 2026-06-12
+**Purpose:** Applies `.welcome-section` card pattern to `adminwelcometext`, `judgewelcometext`, `finalistwelcometext`, `nonfinalistwelcometext`. Note: `judgewelcometext` still contains 2025 judging dates — update separately before judging opens. Applies to programid 1056 only.
+
+---
+
+## 030 — Create StatsProgram table
+
+**Date applied:** 2026-06-12
+**Purpose:** Creates `StatsProgram` table to replace the hardcoded `STATS_PROGRAMS` array in `homeQueries.js`. Seeds historical AEA data from 2011–2026. Required for the `/home` stats panel — missing this table causes a 500 error on the home page.
+
+```sql
+CREATE TABLE StatsProgram (
+    statsprogramid INT IDENTITY(1,1) PRIMARY KEY,
+    year           INT  NOT NULL,
+    programid      INT  NOT NULL,
+    opendate       DATE NOT NULL,
+    esdate         DATE NOT NULL,
+    closedate      DATE NOT NULL,
+    lifetimecat    INT  NOT NULL DEFAULT 1
+);
+```
+
+Then seed with INSERT — see `migrations/030_stats_program_table.sql`.
+
+---
+
+## 031 — Add originalname to Response
+
+**Date applied:** 2026-06-12
+**Purpose:** Stores the user-facing filename (e.g. `my testimonial.doc`) separately from the random storage filename in `value`. Used to display and suggest the original name on download without exposing the internal storage name.
+
+```sql
+ALTER TABLE Response ADD originalname NVARCHAR(500) NULL;
+```
+
