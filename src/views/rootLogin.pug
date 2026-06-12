@@ -32,10 +32,10 @@ block content
                         if errors && errors.length
                             each e in errors
                                 p(style='color:#c0392b; margin:4px 0;')= e
-                br
-                a#reset-link(href=resetUrl) Forgot your password?
-                |  ·
-                a(href='#' id='btn-back-from-pw') Use a different email
+                div(style='text-align:center; margin-top:10px; font-size:0.85em; color:#aaa;')
+                    a#reset-link(href=resetUrl) Forgot your password?
+                    span(style='margin:0 8px;') ·
+                    a(href='#' id='btn-back-from-pw') Use a different email
 
         //- ── Step: Not found ─────────────────────────────────────────────────
         div#step-notfound(style='display:none;')
