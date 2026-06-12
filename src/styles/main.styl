@@ -197,6 +197,11 @@ select
   padding 15px 0 0 0
   z-index 2
 
+// Suppress TinyMCE's "unregistered domain" notification overlay.
+// Permanent fix: add approved domains in the TinyMCE account portal.
+.tox-notifications-container
+  display none !important
+
 #cgiContent
   text-align center
 
