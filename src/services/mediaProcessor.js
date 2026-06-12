@@ -53,6 +53,7 @@ export function processVideo(filename) {
     const base     = path.parse(filename).name;
     const destName = base + '.mp4';
     const dest     = path.join(CONVERTED_VIDEOS_DIR, destName);
+    const destTmp  = dest + '.tmp';
 
     // Resolve source — Node uploads have extension, Perl uploads don't
     const srcWithExt    = path.join(ORIGINAL_VIDEOS_DIR, filename);
@@ -65,17 +66,24 @@ export function processVideo(filename) {
                 .videoCodec('libx264')
                 .audioCodec('aac')
                 .outputOptions([
-                    '-crf 23',          // quality — lower = better, 23 is a good default
-                    '-preset fast',     // encoding speed vs compression trade-off
-                    '-movflags +faststart', // web-optimised: moov atom at front
-                    '-vf scale=\'min(1280,iw):-2\'', // cap at 1280px wide, keep aspect
+                    '-crf 23',
+                    '-preset fast',
+                    '-movflags +faststart',
+                    '-vf scale=\'min(1280,iw):-2\'',
                 ])
-                .output(dest)
-                .on('start',    (cmd) => console.log(`[media] ffmpeg started: ${filename}`))
+                .output(destTmp)
+                .on('start',    ()    => console.log(`[media] ffmpeg started: ${filename}`))
                 .on('progress', (p)   => { if (p.percent) process.stdout.write(`\r[media] ${filename} ${Math.round(p.percent)}%`); })
-                .on('end',      ()    => { process.stdout.write('\n'); console.log(`[media] video converted: ${filename}`); resolve(); })
+                .on('end',      ()    => { process.stdout.write('\n'); resolve(); })
                 .on('error',    (err) => { console.error(`[media] video conversion failed for ${filename}:`, err.message); reject(err); })
                 .run();
         }))
-        .catch(err => console.error(`[media] processVideo error:`, err.message));
+        // Atomic rename — file only appears at dest when fully written
+        .then(() => fs.rename(destTmp, dest))
+        .then(() => console.log(`[media] video converted: ${filename}`))
+        .catch(err => {
+            console.error(`[media] processVideo error:`, err.message);
+            // Clean up partial tmp file if it exists
+            fs.unlink(destTmp).catch(() => {});
+        });
 }
