@@ -150,6 +150,21 @@ router.post('/upload-favicon', faviconUpload.single('favicon'), async (req, res,
     } catch (err) { next(err); }
 });
 
+// ── DELETE /admin/favicon ─────────────────────────────────────────────────────
+
+router.post('/delete-favicon', async (req, res, next) => {
+    try {
+        const program = await Program.findByPk(req.user.programid);
+        if (program.faviconfile) {
+            const filePath = path.join(FAVICONS_DIR, String(program.programid), program.faviconfile);
+            await fs.unlink(filePath).catch(() => {});
+            await program.update({ faviconfile: null });
+            bustProgramCache(program.slug, program.fqdn);
+        }
+        res.json({ status: 'OK' });
+    } catch (err) { next(err); }
+});
+
 // ── GET /admin/favicon ────────────────────────────────────────────────────────
 
 router.get('/favicon', async (req, res, next) => {

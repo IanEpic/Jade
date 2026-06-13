@@ -29,6 +29,27 @@ document.addEventListener('click', function(e) {
 });
 
 // ── Favicon upload ────────────────────────────────────────────────────────────
+var faviconDeleteBtn = document.getElementById('favicon-delete-btn');
+if (faviconDeleteBtn) {
+    faviconDeleteBtn.addEventListener('click', function () {
+        if (!confirm('Remove the custom favicon and revert to the JADE default?')) return;
+        faviconDeleteBtn.disabled = true;
+        fetch(window.JADE_BASE + '/admin/delete-favicon', { method: 'POST' })
+            .then(function (r) { return r.json(); })
+            .then(function (r) {
+                if (r.status === 'OK') { location.reload(); }
+                else {
+                    faviconDeleteBtn.disabled = false;
+                    alert('Delete failed (' + r.status + ')');
+                }
+            })
+            .catch(function () {
+                faviconDeleteBtn.disabled = false;
+                alert('Network error');
+            });
+    });
+}
+
 var faviconBtn    = document.getElementById('favicon-btn');
 var faviconInput  = document.getElementById('favicon-input');
 var faviconStatus = document.getElementById('favicon-status');
