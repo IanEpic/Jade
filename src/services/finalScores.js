@@ -86,7 +86,7 @@ function moderateJudges(baseScores) {
             const judgeVals = shared.map(e => judgeScores[e]);
 
             const leadMean  = getMean(leadVals);
-            const leadSD    = getSD(leadVals);
+            const leadSD    = Math.max(getSD(leadVals), MIN_SD);
             const judgeMean = getMean(judgeVals);
             const judgeSD   = Math.max(getSD(judgeVals), MIN_SD);
 
