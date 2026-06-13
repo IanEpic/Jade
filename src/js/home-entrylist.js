@@ -334,6 +334,26 @@
         }
     }
 
+    // ── Search keyword filter ─────────────────────────────────────────────────
+    var searchInput = document.getElementById('entry-search');
+    if (searchInput) {
+        searchInput.addEventListener('input', function () {
+            var q = this.value.trim();
+            if (q === ':open') {
+                document.querySelectorAll('.el-table tbody tr').forEach(function (row) {
+                    row.classList.toggle('hidden',
+                        !(row.getAttribute('data-entryopen') === '1' && row.getAttribute('data-catopen') === '0'));
+                });
+            } else if (q.charAt(0) === ':') {
+                // Unknown command — show all (jade.js won't run for ':' prefix queries).
+                document.querySelectorAll('.el-table tbody tr').forEach(function (row) {
+                    row.classList.remove('hidden');
+                });
+            }
+            // else: jade.js handles normal text queries
+        });
+    }
+
     // ── Batch selection ───────────────────────────────────────────────────────
     var batchBar     = document.getElementById('batch-bar');
     var batchCount   = document.getElementById('batch-count');

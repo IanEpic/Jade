@@ -29,7 +29,8 @@ function jadeTableFilter(input, rowSel) {
 // data-filter="<row-selector>"  →  live table search on input
 document.addEventListener('input', function (e) {
     var rows = e.target.dataset && e.target.dataset.filter;
-    if (rows) jadeTableFilter(e.target, rows);
+    // Queries starting with ':' are handled by page-specific JS (e.g. :open).
+    if (rows && e.target.value.charAt(0) !== ':') jadeTableFilter(e.target, rows);
 });
 
 // data-confirm="<message>"  →  confirm dialog before following a link / submitting
