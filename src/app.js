@@ -204,7 +204,10 @@ window.JADE_BASE='/${slug}';
         // Inject nonce into any inline <script> tags in the legacy shell that
         // don't already have a src= or nonce= attribute (shell is a static file
         // we can't edit, so we patch it at serve time).
-        const assembled = shell.replace('<CGIINSERT>', content + rewriterScript);
+        const faviconLinks = '<link rel="icon" type="image/svg+xml" href="/favicon.svg"><link rel="icon" type="image/x-icon" href="/favicon.ico">';
+        const assembled = shell
+            .replace('</head>', faviconLinks + '</head>')
+            .replace('<CGIINSERT>', content + rewriterScript);
         const withNonces = assembled.replace(/<script(\b[^>]*)>/gi, (match, attrs) => {
             if (/\bsrc=/i.test(attrs) || /\bnonce=/i.test(attrs)) return match;
             return `<script${attrs} nonce="${nonce}">`;
@@ -222,7 +225,7 @@ window.JADE_BASE='/${slug}';
 // ── Routes ────────────────────────────────────────────────────────────────────
 // Known static path prefixes that must NOT be treated as program slugs.
 // Add to this list if any other static assets conflict with the slug route.
-const NON_SLUG_PREFIXES = ['/favicon.ico'];
+const NON_SLUG_PREFIXES = ['/favicon.ico', '/favicon.svg'];
 app.use((req, res, next) => {
   if (NON_SLUG_PREFIXES.some(p => req.path.startsWith(p))) {
     return res.status(404).end();
