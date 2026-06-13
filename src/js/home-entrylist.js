@@ -128,7 +128,7 @@
             .then(function (r) { return r.json(); })
             .then(function (data) {
                 if (!data.ok) { flashBtn(saveBtn, 'Error'); return; }
-                if (row) updateRowFromFlags(row, data);
+                if (row) { updateRowFromFlags(row, data); updateEntryOpenBadge(row); }
                 resortTable();
                 flashBtn(saveBtn, '✓ Saved');
             })
@@ -314,6 +314,27 @@
         });
     }
 
+    // ── Entry-open override badge ─────────────────────────────────────────────
+    function updateEntryOpenBadge(row) {
+        var entryOpen = row.getAttribute('data-entryopen') === '1';
+        var catOpen   = row.getAttribute('data-catopen')   === '1';
+        var statusBadge = row.querySelector('.badge:not(.entry-open-flag)');
+        var cell = statusBadge ? statusBadge.parentElement : null;
+        if (!cell) return;
+        var existing = cell.querySelector('.entry-open-flag');
+        if (entryOpen === catOpen) {
+            if (existing) existing.remove();
+        } else {
+            if (!existing) {
+                existing = document.createElement('span');
+                existing.className = 'entry-open-flag badge';
+                cell.appendChild(existing);
+            }
+            existing.className = 'entry-open-flag badge ' + (entryOpen ? 'badge-open-override' : 'badge-closed-override');
+            existing.textContent = entryOpen ? 'open' : 'closed';
+        }
+    }
+
     // ── Batch selection ───────────────────────────────────────────────────────
     var batchBar     = document.getElementById('batch-bar');
     var batchCount   = document.getElementById('batch-count');
@@ -377,7 +398,10 @@
             // Update row data attributes
             ids.forEach(function (id) {
                 var row = document.querySelector('tr[data-entryid="' + id + '"]');
-                if (row) row.setAttribute('data-entryopen', entryopen ? '1' : '0');
+                if (row) {
+                    row.setAttribute('data-entryopen', entryopen ? '1' : '0');
+                    updateEntryOpenBadge(row);
+                }
             });
             // Clear selection
             document.querySelectorAll('.entry-checkbox:checked').forEach(function (cb) { cb.checked = false; });
