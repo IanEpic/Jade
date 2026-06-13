@@ -70,10 +70,6 @@ router.post('/', async (req, res, next) => {
             return renderError('The password you entered is incorrect. Please try again.');
         }
 
-        if (!credential.activated) {
-            return renderError('Please activate your account by clicking the link in the email we sent you when you registered.');
-        }
-
         const programs = await getLinkedPrograms(credential.credentialid);
         if (!programs.length) {
             return renderError('No active program memberships found for this account.');
@@ -147,7 +143,7 @@ router.post('/change-password', async (req, res, next) => {
 
         const hashed = await encryptPassword(password);
         await UserCredential.update(
-            { password: hashed, mustchangepassword: 0 },
+            { password: hashed, mustchangepassword: 0, activationtoken: null },
             { where: { credentialid: req.session.credentialId } },
         );
 
