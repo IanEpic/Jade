@@ -114,7 +114,7 @@ router.post('/', async (req, res, next) => {
                 }
             }
 
-            return res.redirect('/home');
+            return res.redirect('/home?action=judges');
         }
 
         // ── Upgrade existing user to judge ────────────────────────────────────
@@ -136,7 +136,7 @@ router.post('/', async (req, res, next) => {
                     await Category.update({ userid: null }, { where: { categoryid: cat.categoryid } });
                 }
             }
-            return res.redirect('/home');
+            return res.redirect('/home?action=judges');
         }
 
         // ── Check for existing user with that email ───────────────────────────
@@ -190,7 +190,7 @@ router.post('/', async (req, res, next) => {
             }
         }
 
-        return res.redirect('/home');
+        return res.redirect('/home?action=judges');
 
     } catch (err) { next(err); }
 });
