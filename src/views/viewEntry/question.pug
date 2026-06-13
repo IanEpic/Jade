@@ -74,7 +74,7 @@ else if q.inputtype === 'upload'
         if !resp || !resp.value
             span.ve-q-noresp [No File Uploaded]
         else if !resp.fileExists
-            span.ve-q-noresp [File Unavailable]
+            span.ve-q-noresp [Upload Error]
         else
             - let ext = (resp.value || '').split('.').pop().toLowerCase()
             - let isImg = ['jpg','jpeg','png','gif'].includes(ext)
@@ -99,7 +99,7 @@ else if q.inputtype === 'image'
         if !resp || !resp.value
             span.ve-q-noresp [No Image Uploaded]
         else if !resp.fileExists
-            span.ve-q-noresp [Image Unavailable]
+            span.ve-q-noresp [Upload Error]
         else
             .ve-media
                 img(src='/' + slug + '/formResponses/image?responseid=' + resp.responseid style='max-width:600px;')
@@ -114,7 +114,7 @@ else if q.inputtype === 'video'
         if !resp || !resp.value
             span.ve-q-noresp [No Video Uploaded]
         else if !resp.fileExists
-            span.ve-q-noresp [Video Unavailable]
+            span.ve-q-noresp [Upload Error]
         else
             .ve-media
                 video(controls style='max-width:100%; max-height:360px;')
