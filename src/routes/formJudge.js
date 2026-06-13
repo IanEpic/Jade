@@ -140,7 +140,7 @@ router.post('/', async (req, res, next) => {
         }
 
         // ── Check for existing user with that email ───────────────────────────
-        const email = (body.email || '').trim();
+        const email = (Array.isArray(body.email) ? body.email[0] : (body.email || '')).trim();
         const existing = await User.findOne({
             where: { programid: program.programid, email, deleted: false },
         });

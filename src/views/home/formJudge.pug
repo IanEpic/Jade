@@ -45,9 +45,14 @@ style.
                 tr
                     td Last Name
                     td: input(type='text' name='lastname' value=(judge ? judge.lastname : (prefill ? prefill.lastname : '')) maxlength='300')
-                tr
-                    td Email
-                    td: input(type='text' name='email' value=(judge ? judge.email : (prefill ? prefill.email : '')) maxlength='300')
+                if !existingUser
+                    tr
+                        td Email
+                        td: input(type='text' name='email' value=(judge ? judge.email : (prefill ? prefill.email : '')) maxlength='300')
+                else
+                    tr
+                        td Email
+                        td(style='color:#ccc')= existingUser.email
 
         if existingUser
             fieldset
