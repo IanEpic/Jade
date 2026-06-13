@@ -1,0 +1,9 @@
+<svg width="80" height="80" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+  <title>Jade — Icon Mark</title>
+  <g transform="translate(5, 16) scale(1.0)">
+    <polygon points="28,0 56,0 70,24 56,48 28,48 14,24" fill="#1D9E75"/>
+    <polygon points="14,24 28,0 28,48" fill="#085041"/>
+    <polygon points="28,0 56,0 42,24" fill="#5DCAA5"/>
+    <polygon points="42,0 56,0 49,10" fill="#E24B4A"/>
+  </g>
+</svg>
