@@ -74,7 +74,9 @@ function moderateJudges(baseScores) {
         const leadEntries = Object.keys(leadScores);
 
         for (const judgeId of judges) {
-            if (judgeId === leadId) continue;
+            // Note: Perl moderatejudges2 does NOT skip judge==lead (the unless() is commented out).
+            // Self-moderation is a no-op transform but adds a copy of base scores to the
+            // accumulator, diluting the influence of cross-judge moderations.
             const judgeScores = baseScores[judgeId];
 
             // Shared entries
