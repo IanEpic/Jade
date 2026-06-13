@@ -2,7 +2,7 @@
 //- Equiv of $emailjudges in home.cgi.
 
 - let programName   = content.program.name
-- let portalAddress = 'https://' + content.program.fqdn + '/' + content.program.slug + '/login'
+- let portalAddress = content.loginUrl
 
 - let existingEmail = `<p>Thank you for confirming your role as a judge for the ${programName}.\n\n<p>This is a system-generated email to advise you that your user account has been configured to begin judging your allocated entries.\n\n<p>Please visit the User Portal at ${portalAddress} and log in using your existing username and password. If you have forgotten your username and password, please click 'forgotten password' on the log-in screen to reset it.\n\n<p>Full information on how to complete the online judging is available once you have logged into the User Portal.`
 

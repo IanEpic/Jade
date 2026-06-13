@@ -254,7 +254,9 @@ export async function handleAdminAction(action, req, res, program, user) {
 
     if (action === 'emailjudges') {
         const judges = await getEnabledJudgesForProgram({ programId: program.programid, useSimplejudging: program.usesimplejudging });
-        return { view: 'home/emailjudges', judges, program };
+        const host = program.fqdn || req.get('host');
+        const loginUrl = `${req.protocol}://${host}/${program.slug}/login`;
+        return { view: 'home/emailjudges', judges, program, loginUrl };
     }
 
     if (action === 'judgecheck') {
