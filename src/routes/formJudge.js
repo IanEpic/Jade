@@ -151,6 +151,7 @@ router.post('/', async (req, res, next) => {
                 email: email,
                 firstname: body.firstname || '',
                 lastname:  body.lastname  || '',
+                cats: submittedCatIds.join(','),
             });
             return res.redirect('/home?' + qs.toString());
         }

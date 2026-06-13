@@ -338,18 +338,21 @@ export async function handleAdminAction(action, req, res, program, user) {
             };
         }
 
-        // Conflict redirect from POST: ?conflict=1&existinguserid=X&email=…&firstname=…&lastname=…
+        // Conflict redirect from POST: ?conflict=1&existinguserid=X&email=…&firstname=…&lastname=…&cats=1,2,3
         const existingUser = req.query.conflict && req.query.existinguserid
             ? (await User.findByPk(parseInt(req.query.existinguserid)))?.toJSON() ?? null
             : null;
         const prefill = req.query.conflict
             ? { firstname: req.query.firstname || '', lastname: req.query.lastname || '', email: req.query.email || '' }
             : null;
+        const preselectedCats = req.query.cats
+            ? new Set(req.query.cats.split(',').map(Number).filter(Boolean))
+            : new Set();
 
         return {
             view: 'home/formJudge',
             judge: null,
-            categories: categories.map(c => ({ ...c.toJSON(), linked: false, headjudge: false })),
+            categories: categories.map(c => ({ ...c.toJSON(), linked: preselectedCats.has(c.categoryid), headjudge: false })),
             isNew: true, existingUser, prefill,
         };
     }
