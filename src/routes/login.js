@@ -4,8 +4,7 @@ import { Router }                          from 'express';
 import { login, recordLogon, getLinkedPrograms } from '../services/auth.js';
 import User                                from '../models/User.js';
 import UserCredential                      from '../models/UserCredential.js';
-import { encryptPassword, randomPassword, validatePassword, PASSWORD_RULES } from '../services/helpers.js';
-import crypto from 'crypto';
+import { encryptPassword, randomPassword, PASSWORD_RULES } from '../services/helpers.js';
 import { mail, parseSmtp }                 from '../services/mailer.js';
 
 const router = Router();
@@ -87,15 +86,11 @@ router.post('/check-email', async (req, res, next) => {
 router.post('/signup', async (req, res, next) => {
   try {
     const { program } = req;
-    const { email, firstname, lastname, mobile, password, password2 } = req.body;
+    const { email, firstname, lastname, mobile } = req.body;
 
     if (!email || !firstname || !lastname) {
       return res.json({ ok: false, error: 'Please fill in all required fields.' });
     }
-
-    const pwError = validatePassword(password);
-    if (pwError) return res.json({ ok: false, error: pwError });
-    if (password !== password2) return res.json({ ok: false, error: 'Passwords do not match.' });
 
     // Check again — someone else may have registered between steps
     const existingCredential = await UserCredential.findOne({ where: { email } });
@@ -106,14 +101,13 @@ router.post('/signup', async (req, res, next) => {
       return res.json({ ok: false, error: 'An account with this email address already exists. Please use the login form or reset your password.' });
     }
 
-    const encryptedPassword = await encryptPassword(password);
-    const activationtoken   = crypto.randomBytes(32).toString('hex');
+    const tempPassword      = randomPassword();
+    const encryptedPassword = await encryptPassword(tempPassword);
 
     const credential = await UserCredential.create({
       email,
-      password:        encryptedPassword,
-      activated:       0,
-      activationtoken,
+      password:  encryptedPassword,
+      activated: 1,
     });
 
     const newUser = await User.create({
@@ -136,20 +130,21 @@ router.post('/signup', async (req, res, next) => {
       admin:        0,
     });
 
-    const activateUrl = req.protocol + '://' + req.get('host') + '/' + program.slug + '/activate?token=' + activationtoken;
+    const loginUrl = req.protocol + '://' + (req.get('x-forwarded-host') || req.get('host')) + '/' + program.slug + '/login';
 
     mail({
       to:      email,
-      subject: program.name + ' — Please activate your account',
+      subject: program.name + ' — Your Login Details',
       text:    'Dear ' + newUser.firstname + ',\n\n'
              + 'Thank you for registering with the ' + program.name + ' portal.\n\n'
-             + 'Please click the link below to activate your account:\n\n'
-             + activateUrl + '\n\n'
-             + 'This link will remain valid until you use it.\n\n'
+             + 'Your login details are:\n\n'
+             + 'Email:    ' + email + '\n'
+             + 'Password: ' + tempPassword + '\n\n'
+             + 'Please log in at ' + loginUrl + ' and change your password via My Profile.\n\n'
              + 'If you did not register for this account, please ignore this email.\n',
       from:    program.emailfromaddress,
       ...parseSmtp(program.smtpserver),
-    }).catch(err => console.warn('Activation email failed:', err.message));
+    }).catch(err => console.warn('Welcome email failed:', err.message));
 
     // Log them straight in — no need to go through POST /login
     const { recordLogon, getLinkedPrograms } = await import('../services/auth.js');
@@ -194,14 +189,6 @@ router.post('/', async (req, res, next) => {
     }
 
     const { user, credential } = result;
-
-    if (credential && !credential.activated) {
-      return res.renderInShell('login', {
-        program, message: null, form: true, passwordRules: PASSWORD_RULES,
-        loginEmail: email,
-        errors: ['Please activate your account by clicking the link in the email we sent you when you registered.'],
-      }, { useLoginShell: true });
-    }
 
     await recordLogon(user.userid);
 

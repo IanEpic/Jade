@@ -103,7 +103,7 @@
             if (result.ok && result.redirect) {
                 window.location.href = result.redirect;
             } else if (result.ok) {
-                document.getElementById('done-message').textContent = 'Account created! Please check your email to activate your account before logging in.';
+                document.getElementById('done-message').textContent = 'Account created! Check your email for your login details.';
                 show('done');
             } else {
                 setError('signup-error', result.error || 'Something went wrong. Please try again.');
