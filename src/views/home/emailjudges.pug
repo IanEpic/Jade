@@ -35,7 +35,6 @@ form(method='POST' action='/judgeEmail')
 
     p Click below to send emails:
     br
-    center
-        a(href='/home') Cancel
-        |  &nbsp;
-        button(type='submit') Send Emails
+    div(style='display:flex; gap:10px; justify-content:center; margin-top:10px;')
+        a.btn-secondary(href='/home?action=judges') Cancel
+        button.btn(type='submit') Send Emails
