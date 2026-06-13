@@ -99,7 +99,14 @@ app.use(session({
     );
 })().catch(err => console.error('Failed to copy vendor JS:', err));
 
-app.use(express.static(path.join(__dirname, '../public')));
+app.use(express.static(path.join(__dirname, '../public'), {
+    setHeaders: (res, filePath) => {
+        // JS and CSS change on every deploy — tell CF/browsers not to cache them.
+        if (/\.(js|css)$/.test(filePath)) {
+            res.setHeader('Cache-Control', 'no-cache');
+        }
+    },
+}));
 
 // Legacy per-program assets (CSS, images) — served from the existing Apache htdocs folder.
 // Replaces Apache serving /htdocs/jade/htdocs/wwwref directly.
