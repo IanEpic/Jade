@@ -40,7 +40,7 @@ router.post('/', async (req, res, next) => {
 
         if (credentialId) {
             await UserCredential.update(
-                { password: hashed, mustchangepassword: 0 },
+                { password: hashed, mustchangepassword: 0, activationtoken: null },
                 { where: { credentialid: credentialId } },
             );
         } else {
