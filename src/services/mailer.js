@@ -17,9 +17,9 @@ export function parseSmtp(smtpserver) {
     if (!smtpserver) return {};
     try {
         const parsed = JSON.parse(smtpserver);
-        return { host: parsed.host || undefined, port: parsed.port || undefined };
+        return { smtpHost: parsed.host || undefined, smtpPort: parsed.port || undefined };
     } catch {
-        return { host: smtpserver }; // plain string — legacy format
+        return { smtpHost: smtpserver }; // plain string — legacy format
     }
 }
 
@@ -81,11 +81,12 @@ export async function mailHtml({
                                    html,
                                    from,
                                    smtpHost,
+                                   smtpPort,
                                    cc,           // string or array
                                    bcc,          // string or array
                                    attachments,  // array of file paths, equiv of $attachmentfilepath arrayref
                                } = {}) {
-    const transport = createTransport(smtpHost);
+    const transport = createTransport(smtpHost, smtpPort);
     const message = {
         from:    from || mailConfig.senderAddress,
         to:      Array.isArray(to) ? to.join(', ') : to,
