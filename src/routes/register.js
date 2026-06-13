@@ -8,6 +8,7 @@ import UserCredential                   from '../models/UserCredential.js';
 import Address                          from '../models/Address.js';
 import { encryptPassword, randomPassword } from '../services/helpers.js';
 import { mail, parseSmtp }              from '../services/mailer.js';
+import crypto                           from 'crypto';
 
 const router = Router();
 
@@ -64,16 +65,21 @@ router.post('/', async (req, res, next) => {
             return renderError('An account with this email address already exists. Use the password reset function if you have forgotten your password.');
         }
 
-        // Generate password
+        // Generate a temp password and a setup token for the welcome email link.
         const password          = randomPassword();
         const encryptedPassword = await encryptPassword(password);
+        const setupToken        = crypto.randomBytes(32).toString('hex');
 
         // Find or create a UserCredential for this email.
         // If the person is already in another program, reuse their existing credential.
-        let [credential] = await UserCredential.findOrCreate({
+        let [credential, credentialCreated] = await UserCredential.findOrCreate({
             where:    { email: body.email.trim() },
-            defaults: { email: body.email.trim(), password: encryptedPassword },
+            defaults: { email: body.email.trim(), password: encryptedPassword, activationtoken: setupToken },
         });
+        // If credential already existed, attach a fresh setup token so they can still set a password.
+        if (!credentialCreated) {
+            await credential.update({ activationtoken: setupToken });
+        }
 
         // Create user first (address needs a valid userid due to FK constraint)
         const newUser = await User.create({
@@ -111,10 +117,13 @@ router.post('/', async (req, res, next) => {
         await newUser.update({ postaladdressid: newAddress.addressid });
 
         // Fire-and-forget — don't block the response on email delivery
+        const proto    = req.get('x-forwarded-proto') || req.protocol;
+        const host     = req.get('x-forwarded-host')  || req.get('host');
+        const setupUrl = `${proto}://${host}/${program.slug}/set-password?token=${setupToken}`;
         mail({
             to:       newUser.email,
-            subject:  `${program.name} — Your Login Details`,
-            text:     `Dear ${newUser.firstname},\n\nThank you for registering with the ${program.name} portal.\n\nYour login details are:\n\nEmail:    ${newUser.email}\nPassword: ${password}\n\nPlease log in immediately and change your password by clicking "My Profile" on your home screen.\n`,
+            subject:  `${program.name} — Set Your Password`,
+            text:     `Dear ${newUser.firstname},\n\nThank you for registering with the ${program.name} portal.\n\nPlease click the link below to set your password:\n\n${setupUrl}\n\nIf you did not register for this account, please ignore this email.\n`,
             from:     program.emailfromaddress,
             ...parseSmtp(program.smtpserver),
         }).catch(err => console.warn('Welcome email failed:', err.message));

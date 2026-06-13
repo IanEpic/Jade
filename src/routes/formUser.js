@@ -17,6 +17,7 @@ import Score               from '../models/Score.js';
 import { getPool, sql }    from '../config/database.js';
 import { encryptPassword, randomPassword, validatePassword, PASSWORD_RULES } from '../services/helpers.js';
 import { mail, parseSmtp } from '../services/mailer.js';
+import crypto from 'crypto';
 
 const router = Router();
 router.use(requireAuth);
@@ -82,6 +83,26 @@ router.get('/', async (req, res, next) => {
                 return res.json({ ok: true });
             }
             return res.redirect('/formUser?edituserid=' + targetUser.userid);
+        }
+
+        if (action === 'resend-setup' && operator.admin && targetUser.credentialid) {
+            const setupToken = crypto.randomBytes(32).toString('hex');
+            await UserCredential.update(
+                { activationtoken: setupToken },
+                { where: { credentialid: targetUser.credentialid } },
+            );
+            const program  = req.program;
+            const proto    = req.get('x-forwarded-proto') || req.protocol;
+            const host     = req.get('x-forwarded-host')  || req.get('host');
+            const setupUrl = `${proto}://${host}/${program.slug}/set-password?token=${setupToken}`;
+            mail({
+                to:      targetUser.email,
+                subject: `${program.name} — Set Your Password`,
+                text:    `Dear ${targetUser.firstname},\n\nA password setup link has been generated for your account.\n\nPlease click the link below to set your password:\n\n${setupUrl}\n\nIf you did not request this, please contact the program administrator.\n`,
+                from:    program.emailfromaddress,
+                ...parseSmtp(program.smtpserver),
+            }).catch(err => console.warn('Resend setup email failed:', err.message));
+            return res.redirect('/home?action=users&edituserid=' + targetUser.userid + '&sent=1');
         }
 
         if (action === 'demote' && operator.admin) {

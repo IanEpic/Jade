@@ -23,6 +23,9 @@ style.
 if content.saved
     p(style='color:#4caf50; text-align:center; margin-bottom:12px') Saved.
 
+if content.sent
+    p(style='background:#1a4a1a; color:#fff; padding:8px 12px; border-left:4px solid #4caf50; margin-bottom:14px') Setup email sent.
+
 form.user-form(method='POST' action='/formUser')
     input(type='hidden' name='edituserid' value=content.targetUser.userid)
 
@@ -41,6 +44,8 @@ form.user-form(method='POST' action='/formUser')
                 a(href='/formUser?action=enable&edituserid=' + content.targetUser.userid) Enable
             if !content.targetActivated
                 a(href='/formUser?action=activate&edituserid=' + content.targetUser.userid) Activate Account
+            if content.hasSetupToken
+                a(href='/formUser?action=resend-setup&edituserid=' + content.targetUser.userid) Resend Setup Email
             if content.targetUser.judge
                 a(href='/formUser?action=demote&edituserid=' + content.targetUser.userid onclick='return confirm("Remove all judging data?")') Demote from Judge
 

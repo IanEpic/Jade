@@ -308,9 +308,11 @@ export async function handleAdminAction(action, req, res, program, user) {
                 categories,
                 passwordRules:   PASSWORD_RULES,
                 targetActivated: !credential || credential.activated,
+                hasSetupToken:   !!(credential && credential.activationtoken),
                 isAdmin:         true,
                 error:           req.query.error || null,
                 saved:           req.query.saved === '1',
+                sent:            req.query.sent  === '1',
             };
         }
         const users = await getAllUsersForProgram({ programId: program.programid });
