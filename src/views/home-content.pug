@@ -11,11 +11,6 @@ div(style='width: 780px; margin-left: auto; margin-right: auto;')
         each btn in menuButtons
             li: a(href=btn.url target=(btn.newwindow ? '_blank' : null))!= btn.text || '&nbsp;'
 
-//- ── Pending setup banner ────────────────────────────────────────────────────
-if pendingSetup
-    div(style='width:780px; margin: 0 auto 12px; background:#4a1a1a; border-left:4px solid #c44; color:#fdd; padding:10px 14px; font-size:13px; box-sizing:border-box;')
-        | We've emailed you a link to set your password and secure your account. Please check your email and click on the link.
-
 //- ── Two-column layout: sidebar + content ─────────────────────────────────────
 //- Equiv of table(width=780, id='home', ...) with Tr(td sidebar, td content)
 table(width='780' id='home' style='margin-left: auto; margin-right: auto; display:block;')
@@ -49,6 +44,9 @@ table(width='780' id='home' style='margin-left: auto; margin-right: auto; displa
 
         //- ── Main content area ────────────────────────────────────────────────
         td(style='padding: 10px; min-width: 600px;')
+            if pendingSetup
+                div(style='background:#4a1a1a; border-left:4px solid #c44; color:#fdd; padding:10px 14px; font-size:13px; margin-bottom:14px;')
+                    | We've emailed you a link to set your password and secure your account. Please check your email and click on the link.
             case content.view
 
                 //- ── Welcome / default text ──────────────────────────────────
