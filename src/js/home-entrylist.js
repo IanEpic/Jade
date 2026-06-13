@@ -322,16 +322,15 @@
         var cell = statusBadge ? statusBadge.parentElement : null;
         if (!cell) return;
         var existing = cell.querySelector('.entry-open-flag');
-        if (entryOpen === catOpen) {
-            if (existing) existing.remove();
-        } else {
+        if (entryOpen && !catOpen) {
             if (!existing) {
                 existing = document.createElement('span');
-                existing.className = 'entry-open-flag badge';
+                existing.className = 'entry-open-flag badge badge-open-override';
+                existing.textContent = 'open';
                 cell.appendChild(existing);
             }
-            existing.className = 'entry-open-flag badge ' + (entryOpen ? 'badge-open-override' : 'badge-closed-override');
-            existing.textContent = entryOpen ? 'open' : 'closed';
+        } else {
+            if (existing) existing.remove();
         }
     }
 

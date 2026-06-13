@@ -42,8 +42,7 @@ style.
     .batch-bar { display: none; align-items: center; gap: 10px; background: #1a1a00; border: 1px solid #554400; border-radius: 4px; padding: 6px 12px; margin-bottom: 10px; font-size: 13px; }
     .batch-bar.active { display: flex; }
     .batch-bar span { color: #c48f06; }
-    .badge-open-override   { background: #1a3a1a; color: #81c784; margin-left: 5px; }
-    .badge-closed-override { background: #2a1a1a; color: #e57373; margin-left: 5px; }
+    .badge-open-override { background: #1a3a1a; color: #81c784; margin-left: 5px; }
 
 .el-wrap
     h3 All Entries
@@ -146,10 +145,8 @@ form(data-nosubmit)
                             span.cat-overridden (overridden)
                     td
                         span.badge(class=badgeClass)= pmt
-                        - var catOpenVal = !!(currentCat && currentCat.entriesopen)
-                        - var entryOpenVal = !!entry.entryopen
-                        if catOpenVal !== entryOpenVal
-                            span.entry-open-flag.badge(class=entryOpenVal ? 'badge-open-override' : 'badge-closed-override')= entryOpenVal ? 'open' : 'closed'
+                        if !(currentCat && currentCat.entriesopen) && entry.entryopen
+                            span.entry-open-flag.badge.badge-open-override open
                     td(style='white-space:nowrap')
                         a(href='/viewEntry?entryid=' + entry.entryid title='View') 👁
                         if user && user.admin
