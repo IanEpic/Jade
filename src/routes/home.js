@@ -17,6 +17,7 @@ import { getCatsOpenForJudgingByJudge } from '../queries/homeQueries.js';
 import { buildSidebar }                                   from './home/sidebar.js';
 import { buildMenuButtons, loadCommonData }   from './home/homeHelpers.js';
 import { getLinkedPrograms }                  from '../services/auth.js';
+import UserCredential                         from '../models/UserCredential.js';
 import { handleSharedAction } from './home/sharedActions.js';
 import { handleAdminAction }  from './home/adminActions.js';
 import { handleJudgeAction }  from './home/judgeActions.js';
@@ -63,7 +64,11 @@ router.get('/', async (req, res, next) => {
         const program = req.program;
         const action  = req.query.action || '';
 
-        const data = await loadCommonData(user);
+        const [data, credential] = await Promise.all([
+            loadCommonData(user),
+            user.credentialid ? UserCredential.findByPk(user.credentialid) : null,
+        ]);
+        const pendingSetup = !!(credential && credential.activationtoken);
 
         // ── Top menu buttons ────────────────────────────────────────────────
         const menuButtons = buildMenuButtons(user, program.slug);
@@ -95,6 +100,7 @@ router.get('/', async (req, res, next) => {
             menuButtons,
             sidebarMenus,
             content,
+            pendingSetup,
             isEmulating:      !!req.session.emulateUserId,
             action,
             linkedPrograms:   req.session.emulateUserId
