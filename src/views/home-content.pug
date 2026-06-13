@@ -227,6 +227,10 @@ table(width='780' id='home' style='margin-left: auto; margin-right: auto; displa
                     include home/statsconfig.pug
 
                 //- ── Active users report download ─────────────────────────────
+                //- ── Admin: Calculate Final Scores ───────────────────────────
+                when 'home/calcfinalscores'
+                    include home/calcfinalscores.pug
+
                 when 'home/activeusers'
                     include home/activeusers.pug
 

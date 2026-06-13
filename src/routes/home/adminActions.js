@@ -7,6 +7,9 @@
 //   undefined       → action not matched here
 
 import Category                from '../../models/Category.js';
+import FinalScore              from '../../models/FinalScore.js';
+import { calcFinalScores }     from '../../services/finalScores.js';
+import sequelize               from '../../config/sequelize.js';
 import User                    from '../../models/User.js';
 import ProgramDiscount         from '../../models/ProgramDiscount.js';
 import Question                from '../../models/Question.js';
@@ -365,6 +368,49 @@ export async function handleAdminAction(action, req, res, program, user) {
     if (action === 'activeusers')      return { view: 'home/activeusers' };
     if (action === 'paidnotfinalised') return { view: 'home/paidnotfinalised' };
     if (action === 'finalisednotpaid') return { view: 'home/finalisednotpaid' };
+
+    if (action === 'calcfinalscores') {
+        const programId      = program.programid;
+        const ignoreReady    = req.query.ignoreScoreReady === '1';
+        const confirm        = req.query.confirm === '1';
+        const wrote          = req.query.wrote === '1';
+
+        if (confirm && req.method === 'POST') {
+            const rows = await calcFinalScores(programId, { ignoreScoreReady: ignoreReady });
+            // Delete existing rows for this program (join through Category)
+            await sequelize.query(`
+                DELETE fs FROM FinalScore fs
+                JOIN Category cat ON cat.categoryid = fs.categoryid
+                WHERE cat.programid = ${programId}
+            `);
+            // Bulk insert
+            if (rows.length) {
+                await FinalScore.bulkCreate(rows);
+            }
+            res.redirect(`/${program.slug}/home?action=calcfinalscores&wrote=1`);
+            return null;
+        }
+
+        // Dry run — compute and preview
+        const rows = await calcFinalScores(programId, { ignoreScoreReady: ignoreReady });
+        // Compare to existing FinalScore rows
+        const [existing] = await sequelize.query(`
+            SELECT fs.categoryid, fs.entryid, fs.finalscore
+            FROM FinalScore fs
+            JOIN Category cat ON cat.categoryid = fs.categoryid
+            WHERE cat.programid = ${programId}
+        `);
+        const existingMap = {};
+        for (const r of existing) existingMap[`${r.categoryid}:${r.entryid}`] = Number(r.finalscore);
+
+        const preview = rows.map(r => {
+            const key   = `${r.categoryid}:${r.entryid}`;
+            const prev  = existingMap[key];
+            return { ...r, existingScore: prev ?? null, diff: prev != null ? r.finalscore - prev : null };
+        });
+
+        return { view: 'home/calcfinalscores', preview, ignoreReady, wrote, rowCount: rows.length };
+    }
 
     if (action === 'stats') {
         const stats = await getEntryStats();

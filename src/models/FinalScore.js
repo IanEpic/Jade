@@ -1,12 +1,16 @@
 import { DataTypes, Model } from 'sequelize';
 import sequelize from '../config/sequelize.js';
 
-// TODO: replace stub columns with full definition from EPIC::JADE::FinalScore Perl model
 class FinalScore extends Model {}
 
 FinalScore.init(
   {
-    // Stub — add real columns when converting the Perl model
+    finalscoreid: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+    categoryid:   { type: DataTypes.INTEGER, allowNull: true },
+    entryid:      { type: DataTypes.INTEGER, allowNull: true },
+    categoryname: { type: DataTypes.STRING,  allowNull: true },
+    entrantname:  { type: DataTypes.STRING,  allowNull: true },
+    finalscore:   { type: DataTypes.FLOAT,   allowNull: true },
   },
   {
     sequelize,
