@@ -28,7 +28,7 @@ export async function requireAuth(req, res, next) {
                 req.session.emulateUserId = null;
                 return req.session.save(err => {
                     if (err) return next(err);
-                    res.redirect(`/${req.program.slug}/home`);
+                    res.redirect(req.originalUrl);
                 });
             }
         }
