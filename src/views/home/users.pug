@@ -21,12 +21,26 @@ style.
     #user-search { flex: 1; max-width: 320px; padding: 6px 10px; background: #111; color: #fff; border: 1px solid #555; font-size: 14px; }
     #user-search:focus { border-color: #c48f06; outline: none; }
     .users-table tr.hidden { display: none; }
+    .u-check-col { width: 32px; text-align: center; }
+    .u-check-col input[type=checkbox] { accent-color: #c48f06; width: 14px; height: 14px; cursor: pointer; }
+    .u-batch-bar { display: none; align-items: center; gap: 10px; background: #1a1a00; border: 1px solid #554400; border-radius: 4px; padding: 6px 12px; margin-bottom: 10px; font-size: 13px; }
+    .u-batch-bar.active { display: flex; }
+    .u-batch-bar span { color: #c48f06; }
+    .badge-pay-override { background: #1a2a3a; color: #90caf9; margin-left: 5px; font-size: 11px; padding: 1px 5px; border-radius: 2px; }
+
+- var payDefault = content.payDefault
 
 .users-wrap
     h3 Manage Users
 
 if content.success
     p(style='background:#1a4a1a; color:#fff; padding:8px 12px; border-left:4px solid #4caf50; margin-bottom:14px') Saved.
+
+.u-batch-bar#u-batch-bar
+    span#u-batch-count 0 selected
+    button.btn(type='button' id='u-batch-pay-open') Payments Open
+    button.btn-secondary(type='button' id='u-batch-pay-close') Payments Closed
+    button.btn-secondary(type='button' id='u-batch-clear' style='margin-left:4px') Clear
 
 form(data-nosubmit)
     .users-toolbar
@@ -36,12 +50,14 @@ form(data-nosubmit)
     table.users-table
         thead
             tr
+                th.u-check-col: input#u-select-all(type='checkbox' title='Select all visible')
                 th Name
                 th Email
                 th(style='width:160px')
         tbody
             each u in content.users
-                tr
+                tr(data-userid=u.userid data-paymentsopen=u.paymentsopen ? '1' : '0' data-paydefault=payDefault ? '1' : '0')
+                    td.u-check-col: input.u-checkbox(type='checkbox' value=u.userid)
                     td
                         a(href='/home?action=users&edituserid=' + u.userid)= u.firstname + ' ' + u.lastname
                         if u.admin
@@ -52,6 +68,8 @@ form(data-nosubmit)
                             span.badge.badge-disabled Disabled
                         if !u.activated
                             span.badge.badge-unactivated Not activated
+                        if (u.paymentsopen ? true : false) !== payDefault
+                            span.pay-override-flag.badge-pay-override= u.paymentsopen ? 'pay: open' : 'pay: closed'
                     td= u.email
                     td.actions
                         a(href='/home?action=users&edituserid=' + u.userid title='Edit') ✏️

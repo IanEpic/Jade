@@ -3,6 +3,7 @@
 // Handles both self-service profile editing and admin editing of other users.
 // New user registration (no session) is handled by /register — not here.
 
+import { Op }              from 'sequelize';
 import { Router }          from 'express';
 import { requireAuth }     from '../middleware/auth.js';
 import User                from '../models/User.js';
@@ -275,6 +276,29 @@ router.post('/', async (req, res, next) => {
 
         return res.redirect(operator.admin ? '/home?action=users&success=1' : '/home');
 
+    } catch (err) { next(err); }
+});
+
+// ── POST /formUser/batch-payments ─────────────────────────────────────────────
+// Set paymentsopen on multiple users at once.
+
+router.post('/batch-payments', async (req, res, next) => {
+    try {
+        const user = req.user;
+        if (!user.admin) return res.status(403).send('Forbidden');
+
+        const raw = req.body.userids;
+        const ids = (Array.isArray(raw) ? raw : [raw])
+            .map(Number).filter(n => n > 0);
+        if (!ids.length) return res.json({ ok: false, error: 'no users' });
+
+        const paymentsopen = req.body.paymentsopen === '1' ? 1 : 0;
+        await User.update(
+            { paymentsopen },
+            { where: { userid: { [Op.in]: ids }, programid: user.programid } },
+        );
+
+        res.json({ ok: true, count: ids.length, paymentsopen });
     } catch (err) { next(err); }
 });
 

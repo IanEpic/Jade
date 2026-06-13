@@ -311,7 +311,7 @@ export async function handleAdminAction(action, req, res, program, user) {
             };
         }
         const users = await getAllUsersForProgram({ programId: program.programid });
-        return { view: 'home/users', users, success: req.query.success === '1' };
+        return { view: 'home/users', users, payDefault: !!program.paymentsopendefault, success: req.query.success === '1' };
     }
 
     if (action === 'activeusers')      return { view: 'home/activeusers' };
