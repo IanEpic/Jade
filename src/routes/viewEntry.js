@@ -9,6 +9,8 @@
 
 import { Router } from 'express';
 import { requireAuth } from '../middleware/auth.js';
+import fs           from 'fs/promises';
+import path         from 'path';
 import Entry        from '../models/Entry.js';
 import Entrant      from '../models/Entrant.js';
 import Address      from '../models/Address.js';
@@ -16,6 +18,20 @@ import Category     from '../models/Category.js';
 import Response     from '../models/Response.js';
 import { getPool, sql } from '../config/database.js';
 import { getCriteria } from '../queries/categoryQueries.js';
+
+const FILESTORE_ROOT        = process.env.FILESTORE_ROOT || 'C:/Data/LocalJadeFilestore';
+const ORIGINAL_IMAGES_DIR   = path.join(FILESTORE_ROOT, 'originalImages');
+const CONVERTED_IMAGES_DIR  = path.join(FILESTORE_ROOT, 'convertedImageStore');
+const ORIGINAL_VIDEOS_DIR   = path.join(FILESTORE_ROOT, 'originalVideos');
+const CONVERTED_VIDEOS_DIR  = path.join(FILESTORE_ROOT, 'convertedVideoStore');
+const ORIGINAL_FILES_DIR    = path.join(FILESTORE_ROOT, 'originalFiles');
+
+async function fileExists(...candidates) {
+    for (const p of candidates) {
+        try { await fs.access(p); return true; } catch {}
+    }
+    return false;
+}
 
 const router = Router();
 router.use(requireAuth);
@@ -194,6 +210,32 @@ router.get('/', async (req, res, next) => {
         const responses = {};
         for (const r of rawResponses) {
             responses[r.questionid] = r;
+        }
+
+        // Check file existence for media responses so the template can distinguish
+        // "not uploaded" from "uploaded but file missing from disk"
+        for (const q of questions) {
+            const resp = responses[q.questionid];
+            if (!resp || !resp.value) continue;
+            const base = path.parse(resp.value).name;
+            if (q.inputtype === 'image') {
+                resp.fileExists = await fileExists(
+                    path.join(CONVERTED_IMAGES_DIR, base + '.jpg'),
+                    path.join(ORIGINAL_IMAGES_DIR,  resp.value),
+                    path.join(ORIGINAL_IMAGES_DIR,  base)
+                );
+            } else if (q.inputtype === 'video') {
+                resp.fileExists = await fileExists(
+                    path.join(CONVERTED_VIDEOS_DIR, base + '.mp4'),
+                    path.join(ORIGINAL_VIDEOS_DIR,  resp.value),
+                    path.join(ORIGINAL_VIDEOS_DIR,  base)
+                );
+            } else if (q.inputtype === 'upload') {
+                resp.fileExists = await fileExists(
+                    path.join(ORIGINAL_FILES_DIR, resp.value),
+                    path.join(ORIGINAL_FILES_DIR, base)
+                );
+            }
         }
 
         // Filter out omitforjudging if judge view — always hidden for any judge, regardless of judging state
