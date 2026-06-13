@@ -134,16 +134,23 @@
     if (search) {
         search.addEventListener('input', function () {
             var q = this.value.trim();
+            var rows = document.querySelectorAll('.users-table tbody tr');
             if (q === ':pay') {
-                document.querySelectorAll('.users-table tbody tr').forEach(function (row) {
+                rows.forEach(function (row) {
                     var payOpen    = row.getAttribute('data-paymentsopen') === '1';
                     var payDefault = row.getAttribute('data-paydefault')   === '1';
                     row.classList.toggle('hidden', payOpen === payDefault);
                 });
-            } else if (q.charAt(0) === ':') {
-                document.querySelectorAll('.users-table tbody tr').forEach(function (row) {
-                    row.classList.remove('hidden');
+            } else if (q === ':admin') {
+                rows.forEach(function (row) {
+                    row.classList.toggle('hidden', !row.querySelector('.badge-admin'));
                 });
+            } else if (q === ':judge') {
+                rows.forEach(function (row) {
+                    row.classList.toggle('hidden', !row.querySelector('.badge-judge'));
+                });
+            } else if (q.charAt(0) === ':') {
+                rows.forEach(function (row) { row.classList.remove('hidden'); });
             }
             // else: jade.js handles normal text queries
         });
