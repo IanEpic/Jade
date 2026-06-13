@@ -16,8 +16,15 @@ p
 
 div(style='margin-bottom:12px;')
     label
-        input(type='checkbox' id='ignoreReady' onchange="location.href='"+baseUrl+"'+(this.checked?'&ignoreScoreReady=1':'')")
+        input(type='checkbox' id='ignoreReady' data-action='toggle-ignore-ready' data-base-url=baseUrl checked=ignoreReady)
         |  Include categories where Score Ready is not set (for validation)
+
+script.
+    document.addEventListener('change', function(e) {
+        var cb = e.target.closest('[data-action="toggle-ignore-ready"]');
+        if (!cb) return;
+        location.href = cb.dataset.baseUrl + (cb.checked ? '&ignoreScoreReady=1' : '');
+    });
 
 if !content.preview.length
     p(style='color:#aaa;') No scored entries found for this program#{ ignoreReady ? '' : ' with Score Ready categories' }.
