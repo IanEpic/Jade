@@ -248,7 +248,8 @@ app.use('/:slug', resolveProgram, programRouter);
 // TODO: Replace with public marketing site (features, pricing, signup).
 app.get('/', (req, res) => {
   res.send(`
-    <html><body style="font-family:sans-serif; max-width:600px; margin:80px auto; text-align:center;">
+    <html><head><link rel="icon" type="image/svg+xml" href="/favicon.svg"><link rel="icon" type="image/x-icon" href="/favicon.ico"></head>
+    <body style="font-family:sans-serif; max-width:600px; margin:80px auto; text-align:center;">
       <h1>JADE Awards Platform</h1>
       <p>Public marketing site coming soon.</p>
       <p><a href="/login">Log in</a></p>
