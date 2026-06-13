@@ -1,0 +1,70 @@
+//- home/formJudge.pug
+
+- var judge        = content.judge
+- var categories   = content.categories
+- var isNew        = content.isNew
+- var existingUser = content.existingUser
+- var prefill      = content.prefill
+
+style.
+    .jf-wrap { max-width: 780px; margin: 0 auto; }
+    .jf-wrap h3 { color: #c48f06; font-size: 18px; text-align: center; margin-bottom: 20px; }
+    .jf-wrap fieldset { border: 1px solid #666; border-radius: 4px; margin-bottom: 18px; padding: 12px 18px; }
+    .jf-wrap legend { font-weight: bold; padding: 0 6px; color: #ccc; }
+    .jf-wrap table { border-collapse: collapse; width: 100%; }
+    .jf-wrap td { padding: 5px 8px; vertical-align: middle; }
+    .jf-wrap td:first-child { white-space: nowrap; width: 1%; text-align: right; padding-right: 12px; color: #aaa; font-size: 13px; }
+    .jf-wrap input[type=text] { background: #111; color: #fff; border: 1px solid #555; border-radius: 3px; padding: 5px 8px; font-size: 14px; width: 100%; box-sizing: border-box; }
+    .jf-wrap input[type=text]:focus { border-color: #c48f06; outline: none; }
+    .jf-wrap .cat-grid { display: flex; flex-wrap: wrap; gap: 6px 20px; }
+    .jf-wrap .cat-grid label { font-size: 13px; color: #ccc; display: flex; align-items: center; gap: 5px; cursor: pointer; }
+    .jf-wrap .cat-grid input[type=checkbox] { accent-color: #c48f06; }
+    .jf-wrap .form-actions { text-align: center; margin-top: 10px; display: flex; gap: 10px; justify-content: center; }
+    .conflict-notice { background: #2a1a00; border-left: 4px solid #c48f06; padding: 10px 14px; margin-bottom: 14px; font-size: 13px; color: #e0b060; border-radius: 2px; }
+
+.jf-wrap
+    h3= isNew ? 'New Judge' : 'Edit Judge — ' + judge.firstname + ' ' + judge.lastname
+
+    if existingUser
+        .conflict-notice
+            | A user with this email already exists. Tick the box below to upgrade them to a judge instead.
+
+    form(method='POST' action='/formJudge')
+        if judge
+            input(type='hidden' name='judgeid' value=judge.userid)
+
+        if existingUser
+            input(type='hidden' name='email' value=existingUser.email)
+
+        fieldset
+            legend Details
+            table
+                tr
+                    td First Name
+                    td: input(type='text' name='firstname' value=(judge ? judge.firstname : (prefill ? prefill.firstname : '')) maxlength='300')
+                tr
+                    td Last Name
+                    td: input(type='text' name='lastname' value=(judge ? judge.lastname : (prefill ? prefill.lastname : '')) maxlength='300')
+                tr
+                    td Email
+                    td: input(type='text' name='email' value=(judge ? judge.email : (prefill ? prefill.email : '')) maxlength='300')
+
+        if existingUser
+            fieldset
+                legend Upgrade Existing User
+                label(style='font-size:13px;color:#ccc;display:flex;align-items:center;gap:8px;cursor:pointer')
+                    input(type='checkbox' name='upgrade' value=existingUser.userid style='accent-color:#c48f06')
+                    | Upgrade #{existingUser.firstname} #{existingUser.lastname} (#{existingUser.email}) to judge
+
+        if !program.usesimplejudging
+            fieldset
+                legend Judge Categories
+                .cat-grid
+                    each cat in categories
+                        label
+                            input(type='checkbox' name=`cat~${cat.categoryid}` value='1' checked=cat.linked)
+                            = cat.name
+
+        .form-actions
+            a.btn-secondary(href='/home') Cancel
+            button.btn(type='submit')= isNew ? 'Create Judge' : 'Save Judge'

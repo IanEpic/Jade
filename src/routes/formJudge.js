@@ -35,44 +35,11 @@ async function getHeadJudgeCategoryIds(userid, programid) {
 }
 
 // ── GET /formJudge ────────────────────────────────────────────────────────────
+// Now served through the home sidebar layout at /home?action=judge.
 
-router.get('/', async (req, res, next) => {
-    try {
-        const user    = req.user;
-        const program = req.program;
-        const judgeid = req.query.judgeid ? parseInt(req.query.judgeid) : null;
-
-        const categories = await getCategories(program.programid);
-
-        if (judgeid) {
-            const judge = await User.findByPk(judgeid);
-            if (!judge) return next(Object.assign(new Error('Judge not found'), { status: 404 }));
-
-            const [linkedCatIds, hjCatIds] = await Promise.all([
-                getLinkedCategoryIds(judgeid),
-                getHeadJudgeCategoryIds(judgeid, program.programid),
-            ]);
-
-            return res.renderInShell('formJudge', {
-                user, program, judge,
-                categories: categories.map(c => ({
-                    ...c.toJSON(),
-                    linked:    linkedCatIds.has(c.categoryid),
-                    headjudge: hjCatIds.has(c.categoryid),
-                })),
-                existingUser: null,
-                isNew: false,
-            });
-        }
-
-        return res.renderInShell('formJudge', {
-            user, program, judge: null,
-            categories: categories.map(c => ({ ...c.toJSON(), linked: false, headjudge: false })),
-            existingUser: null,
-            isNew: true,
-        });
-
-    } catch (err) { next(err); }
+router.get('/', (req, res) => {
+    const judgeid = req.query.judgeid ? `&judgeid=${req.query.judgeid}` : '';
+    res.redirect('/home?action=judge' + judgeid);
 });
 
 // ── POST /formJudge ───────────────────────────────────────────────────────────
@@ -178,15 +145,14 @@ router.post('/', async (req, res, next) => {
             where: { programid: program.programid, email, deleted: false },
         });
         if (existing) {
-            // Re-render form with upgrade prompt
-            const categories = await getCategories(program.programid);
-            return res.renderInShell('formJudge', {
-                user, program, judge: null,
-                categories: categories.map(c => ({ ...c.toJSON(), linked: false, headjudge: false })),
-                existingUser: existing,
-                isNew: true,
-                prefill: { firstname: body.firstname, lastname: body.lastname, email },
+            const qs = new URLSearchParams({
+                action: 'judge', conflict: '1',
+                existinguserid: existing.userid,
+                email: email,
+                firstname: body.firstname || '',
+                lastname:  body.lastname  || '',
             });
+            return res.redirect('/home?' + qs.toString());
         }
 
         // ── Create new judge user ─────────────────────────────────────────────

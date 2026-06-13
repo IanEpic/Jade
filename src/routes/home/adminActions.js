@@ -314,6 +314,46 @@ export async function handleAdminAction(action, req, res, program, user) {
         return { view: 'home/users', users, payDefault: !!program.paymentsopendefault, success: req.query.success === '1' };
     }
 
+    if (action === 'judge') {
+        const judgeid  = req.query.judgeid  ? parseInt(req.query.judgeid)  : null;
+        const categories = await Category.findAll({
+            where: { programid: program.programid, deleted: false },
+            order: [['orda', 'ASC'], ['categoryid', 'ASC']],
+        });
+
+        if (judgeid) {
+            const judge = await User.findByPk(judgeid);
+            if (!judge) { res.redirect('/home?action=judge'); return null; }
+            const [linkedLinks, hjCats] = await Promise.all([
+                JudgeCategoryLink.findAll({ where: { userid: judgeid } }),
+                Category.findAll({ where: { userid: judgeid, programid: program.programid, deleted: false } }),
+            ]);
+            const linkedSet = new Set(linkedLinks.map(l => l.categoryid));
+            const hjSet     = new Set(hjCats.map(c => c.categoryid));
+            return {
+                view: 'home/formJudge',
+                judge: judge.toJSON(),
+                categories: categories.map(c => ({ ...c.toJSON(), linked: linkedSet.has(c.categoryid), headjudge: hjSet.has(c.categoryid) })),
+                isNew: false, existingUser: null, prefill: null,
+            };
+        }
+
+        // Conflict redirect from POST: ?conflict=1&existinguserid=X&email=…&firstname=…&lastname=…
+        const existingUser = req.query.conflict && req.query.existinguserid
+            ? (await User.findByPk(parseInt(req.query.existinguserid)))?.toJSON() ?? null
+            : null;
+        const prefill = req.query.conflict
+            ? { firstname: req.query.firstname || '', lastname: req.query.lastname || '', email: req.query.email || '' }
+            : null;
+
+        return {
+            view: 'home/formJudge',
+            judge: null,
+            categories: categories.map(c => ({ ...c.toJSON(), linked: false, headjudge: false })),
+            isNew: true, existingUser, prefill,
+        };
+    }
+
     if (action === 'activeusers')      return { view: 'home/activeusers' };
     if (action === 'paidnotfinalised') return { view: 'home/paidnotfinalised' };
     if (action === 'finalisednotpaid') return { view: 'home/finalisednotpaid' };
