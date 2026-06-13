@@ -313,4 +313,86 @@
             idFld.value = '';
         });
     }
+
+    // ── Batch selection ───────────────────────────────────────────────────────
+    var batchBar     = document.getElementById('batch-bar');
+    var batchCount   = document.getElementById('batch-count');
+    var batchOpen    = document.getElementById('batch-open');
+    var batchClose   = document.getElementById('batch-close');
+    var batchClear   = document.getElementById('batch-clear');
+    var selectAllChk = document.getElementById('select-all');
+
+    function getChecked() {
+        return Array.from(document.querySelectorAll('.entry-checkbox:checked'));
+    }
+
+    function updateBatchBar() {
+        var checked = getChecked();
+        if (!batchBar) return;
+        if (checked.length > 0) {
+            batchBar.classList.add('active');
+            batchCount.textContent = checked.length + ' selected';
+        } else {
+            batchBar.classList.remove('active');
+        }
+        if (selectAllChk) {
+            var visible = Array.from(document.querySelectorAll('.entry-checkbox')).filter(function (cb) {
+                return cb.closest('tr') && cb.closest('tr').style.display !== 'none';
+            });
+            selectAllChk.checked = visible.length > 0 && visible.every(function (cb) { return cb.checked; });
+            selectAllChk.indeterminate = checked.length > 0 && !selectAllChk.checked;
+        }
+    }
+
+    document.addEventListener('change', function (e) {
+        if (e.target.classList.contains('entry-checkbox') || e.target.id === 'select-all') {
+            if (e.target.id === 'select-all') {
+                var visible = Array.from(document.querySelectorAll('.entry-checkbox')).filter(function (cb) {
+                    return cb.closest('tr') && cb.closest('tr').style.display !== 'none';
+                });
+                visible.forEach(function (cb) { cb.checked = e.target.checked; });
+            }
+            updateBatchBar();
+        }
+    });
+
+    function doBatch(entryopen) {
+        var ids = getChecked().map(function (cb) { return cb.value; });
+        if (!ids.length) return;
+        var btn = entryopen ? batchOpen : batchClose;
+        if (btn) { btn.disabled = true; btn.textContent = 'Saving…'; }
+
+        var fd = new FormData();
+        ids.forEach(function (id) { fd.append('entryids', id); });
+        fd.append('entryopen', entryopen ? '1' : '0');
+
+        fetch(window.JADE_BASE + '/formEntryFlags/batch', {
+            method: 'POST',
+            headers: { 'X-Requested-With': 'XMLHttpRequest' },
+            body: fd,
+        })
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+            if (!data.ok) { if (btn) { btn.disabled = false; btn.textContent = entryopen ? 'Set Open' : 'Set Closed'; } return; }
+            // Update row data attributes
+            ids.forEach(function (id) {
+                var row = document.querySelector('tr[data-entryid="' + id + '"]');
+                if (row) row.setAttribute('data-entryopen', entryopen ? '1' : '0');
+            });
+            // Clear selection
+            document.querySelectorAll('.entry-checkbox:checked').forEach(function (cb) { cb.checked = false; });
+            if (selectAllChk) selectAllChk.checked = false;
+            batchBar.classList.remove('active');
+            if (btn) { btn.disabled = false; btn.textContent = entryopen ? 'Set Open' : 'Set Closed'; }
+        })
+        .catch(function () { if (btn) { btn.disabled = false; btn.textContent = entryopen ? 'Set Open' : 'Set Closed'; } });
+    }
+
+    if (batchOpen)  batchOpen.addEventListener('click',  function () { doBatch(true); });
+    if (batchClose) batchClose.addEventListener('click', function () { doBatch(false); });
+    if (batchClear) batchClear.addEventListener('click', function () {
+        document.querySelectorAll('.entry-checkbox:checked').forEach(function (cb) { cb.checked = false; });
+        if (selectAllChk) { selectAllChk.checked = false; selectAllChk.indeterminate = false; }
+        batchBar.classList.remove('active');
+    });
 }());

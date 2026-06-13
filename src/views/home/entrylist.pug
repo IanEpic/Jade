@@ -37,6 +37,11 @@ style.
     #transfer-suggestions div:hover, #transfer-suggestions div.active { background: rgba(196,143,6,0.2); color: #fff; }
     .flags-actions { border-top: 1px solid #333; padding-top: 12px; display: flex; gap: 10px; }
     .cat-overridden { color: #888; font-size: 11px; margin-left: 6px; }
+    .el-check-col { width: 32px; text-align: center; }
+    .el-check-col input[type=checkbox] { accent-color: #c48f06; width: 14px; height: 14px; cursor: pointer; }
+    .batch-bar { display: none; align-items: center; gap: 10px; background: #1a1a00; border: 1px solid #554400; border-radius: 4px; padding: 6px 12px; margin-bottom: 10px; font-size: 13px; }
+    .batch-bar.active { display: flex; }
+    .batch-bar span { color: #c48f06; }
 
 .el-wrap
     h3 All Entries
@@ -90,6 +95,13 @@ if user && user.admin
                 .flags-actions(style='margin-top:12px; padding-top:12px; border-top:1px solid #333;')
                     button.btn-danger(type='submit' data-confirm='Transfer the invoice and payment to the selected entry? This cannot be undone.') Transfer Payment
 
+if user && user.admin
+    .batch-bar#batch-bar
+        span#batch-count 0 selected
+        button.btn(type='button' id='batch-open') Set Open
+        button.btn-secondary(type='button' id='batch-close') Set Closed
+        button.btn-secondary(type='button' id='batch-clear' style='margin-left:4px') Clear
+
 form(data-nosubmit)
     .el-toolbar
         input#entry-search(type='text' placeholder='Search entries…' data-filter='.el-table tbody tr')
@@ -97,6 +109,8 @@ form(data-nosubmit)
     table.el-table
         thead
             tr
+                if user && user.admin
+                    th.el-check-col: input#select-all(type='checkbox' title='Select all visible')
                 th #
                 th Entrant
                 th.el-col-category Category
@@ -120,6 +134,8 @@ form(data-nosubmit)
                     data-entryname=entry.finalisttext || entry.entrantname
                     data-catopen=(currentCat && currentCat.entriesopen) ? '1' : '0'
                 )
+                    if user && user.admin
+                        td.el-check-col: input.entry-checkbox(type='checkbox' value=entry.entryid)
                     td(style='color:#888; width:50px')= entry.entryid
                     td= entry.finalisttext || entry.entrantname
                     td

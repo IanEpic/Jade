@@ -10,6 +10,7 @@
 // Supports AJAX: send X-Requested-With: XMLHttpRequest to receive JSON instead of redirect.
 
 import { Router }      from 'express';
+import { Op }          from 'sequelize';
 import { requireAuth } from '../middleware/auth.js';
 import Entry           from '../models/Entry.js';
 
@@ -65,6 +66,30 @@ router.post('/', async (req, res, next) => {
             });
         }
         res.redirect('/home?action=entrylist');
+    } catch (err) { next(err); }
+});
+
+// ── POST /formEntryFlags/batch ────────────────────────────────────────────────
+// Set entryopen flag on multiple entries at once.
+
+router.post('/batch', async (req, res, next) => {
+    try {
+        const user = req.user;
+        if (!user.admin) return res.status(403).send('Forbidden');
+
+        const raw = req.body.entryids;
+        const ids = (Array.isArray(raw) ? raw : [raw])
+            .map(Number).filter(n => n > 0);
+        if (!ids.length) return res.json({ ok: false, error: 'no entries' });
+
+        const entryopen = req.body.entryopen === '1' ? 1 : 0;
+
+        await Entry.update(
+            { entryopen },
+            { where: { entryid: { [Op.in]: ids }, programid: user.programid } },
+        );
+
+        res.json({ ok: true, count: ids.length, entryopen });
     } catch (err) { next(err); }
 });
 
