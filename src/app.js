@@ -204,9 +204,11 @@ window.JADE_BASE='/${slug}';
         // Inject nonce into any inline <script> tags in the legacy shell that
         // don't already have a src= or nonce= attribute (shell is a static file
         // we can't edit, so we patch it at serve time).
-        const faviconLinks = '<link rel="icon" type="image/svg+xml" href="/favicon.svg"><link rel="icon" type="image/x-icon" href="/favicon.ico">';
+        const programFavicon = program.faviconfile
+            ? `<link rel="icon" href="/${program.slug}/admin/favicon">`
+            : '<link rel="icon" type="image/svg+xml" href="/favicon.svg"><link rel="icon" type="image/x-icon" href="/favicon.ico">';
         const assembled = shell
-            .replace('</head>', faviconLinks + '</head>')
+            .replace('</head>', programFavicon + '</head>')
             .replace('<CGIINSERT>', content + rewriterScript);
         const withNonces = assembled.replace(/<script(\b[^>]*)>/gi, (match, attrs) => {
             if (/\bsrc=/i.test(attrs) || /\bnonce=/i.test(attrs)) return match;

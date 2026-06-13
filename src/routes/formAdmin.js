@@ -7,6 +7,32 @@ import { requireAuth, requireAdmin } from '../middleware/auth.js';
 import { bustProgramCache } from '../services/auth.js';
 import Program  from '../models/Program.js';
 import { getPool, sql } from '../config/database.js';
+import multer   from 'multer';
+import path     from 'path';
+import fs       from 'fs/promises';
+
+const FILESTORE_ROOT  = process.env.FILESTORE_ROOT || 'C:/Data/LocalJadeFilestore';
+const FAVICONS_DIR    = path.join(FILESTORE_ROOT, 'favicons');
+
+const faviconUpload = multer({
+    storage: multer.diskStorage({
+        destination: async (req, file, cb) => {
+            const dir = path.join(FAVICONS_DIR, String(req.user.programid));
+            await fs.mkdir(dir, { recursive: true });
+            cb(null, dir);
+        },
+        filename: (req, file, cb) => {
+            const ext = path.extname(file.originalname).toLowerCase() || '.png';
+            cb(null, 'favicon' + ext);
+        },
+    }),
+    limits: { fileSize: 512 * 1024 }, // 512 KB max
+    fileFilter: (req, file, cb) => {
+        const allowed = ['.svg', '.png', '.ico'];
+        const ext = path.extname(file.originalname).toLowerCase();
+        cb(null, allowed.includes(ext));
+    },
+});
 
 
 const router = Router();
@@ -110,6 +136,29 @@ router.post('/', async (req, res, next) => {
     } catch (err) {
         next(err);
     }
+});
+
+// ── POST /admin/upload-favicon ────────────────────────────────────────────────
+
+router.post('/upload-favicon', faviconUpload.single('favicon'), async (req, res, next) => {
+    try {
+        if (!req.file) return res.json({ status: 'E_NOFILE' });
+        const program = await Program.findByPk(req.user.programid);
+        await program.update({ faviconfile: req.file.filename });
+        bustProgramCache(program.slug, program.fqdn);
+        res.json({ status: 'OK', filename: req.file.filename });
+    } catch (err) { next(err); }
+});
+
+// ── GET /admin/favicon ────────────────────────────────────────────────────────
+
+router.get('/favicon', async (req, res, next) => {
+    try {
+        const program = await Program.findByPk(req.user.programid);
+        if (!program.faviconfile) return res.status(404).end();
+        const filePath = path.join(FAVICONS_DIR, String(program.programid), program.faviconfile);
+        res.sendFile(filePath, err => { if (err && !res.headersSent) next(err); });
+    } catch (err) { next(err); }
 });
 
 export default router;

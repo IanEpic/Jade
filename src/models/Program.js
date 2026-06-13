@@ -69,6 +69,7 @@ Program.init(
     newusernotification:        { type: DataTypes.STRING },
     judgingmodelid:             { type: DataTypes.INTEGER },
     ccdpaymentonly:             { type: DataTypes.BOOLEAN },
+    faviconfile:                { type: DataTypes.STRING },
   },
   {
     sequelize,

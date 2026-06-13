@@ -27,3 +27,34 @@ document.addEventListener('click', function(e) {
     legend.classList.toggle('collapsed', !collapsed);
     if (collapsed) initEditorsIn(body);
 });
+
+// ── Favicon upload ────────────────────────────────────────────────────────────
+var faviconBtn    = document.getElementById('favicon-btn');
+var faviconInput  = document.getElementById('favicon-input');
+var faviconStatus = document.getElementById('favicon-status');
+
+if (faviconBtn && faviconInput) {
+    faviconBtn.addEventListener('click', function () { faviconInput.click(); });
+    faviconInput.addEventListener('change', function () {
+        var file = faviconInput.files[0];
+        if (!file) return;
+        faviconStatus.textContent = 'Uploading…';
+        var fd = new FormData();
+        fd.append('favicon', file);
+        fetch(window.JADE_BASE + '/admin/upload-favicon', { method: 'POST', body: fd })
+            .then(function (r) { return r.json(); })
+            .then(function (r) {
+                if (r.status === 'OK') {
+                    faviconStatus.style.color = '#4caf50';
+                    faviconStatus.textContent = '✓ Saved — reload to see updated icon';
+                } else {
+                    faviconStatus.style.color = '#c44';
+                    faviconStatus.textContent = '✗ Upload failed (' + r.status + ')';
+                }
+            })
+            .catch(function () {
+                faviconStatus.style.color = '#c44';
+                faviconStatus.textContent = '✗ Network error';
+            });
+    });
+}

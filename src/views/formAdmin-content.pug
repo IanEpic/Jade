@@ -38,6 +38,17 @@ else
                 tr
                     td Program Name
                     td: input(type='text' name='name' value=program.name size='50' maxlength='300')
+                tr
+                    td Favicon
+                    td
+                        if program.faviconfile
+                            img(src='/admin/favicon' style='width:32px;height:32px;vertical-align:middle;margin-right:10px;')
+                            span(style='font-size:13px;color:#aaa;margin-right:12px;')= program.faviconfile
+                        else
+                            span(style='font-size:13px;color:#666;margin-right:12px;') Using JADE default
+                        input(type='file' id='favicon-input' accept='.svg,.png,.ico' style='display:none')
+                        button.btn(type='button' id='favicon-btn') Upload Icon
+                        span#favicon-status(style='margin-left:10px;font-size:13px;')
 
         //- ── Portal Flags ─────────────────────────────────────────────────────
         fieldset
