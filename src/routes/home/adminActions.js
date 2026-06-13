@@ -257,7 +257,7 @@ export async function handleAdminAction(action, req, res, program, user) {
         const host = req.get('host') || program.fqdn;
         const proto = req.get('x-forwarded-proto') || req.protocol;
         const loginUrl = `${proto}://${host}/${program.slug}/login`;
-        return { view: 'home/emailjudges', judges, program, loginUrl };
+        return { view: 'home/emailjudges', judges, program, loginUrl, sent: req.query.sent === '1' };
     }
 
     if (action === 'judgecheck') {

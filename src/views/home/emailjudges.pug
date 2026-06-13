@@ -8,6 +8,9 @@
 
 - let newEmail = `<p>Thank you for confirming your role as a judge for the ${programName}.</p>\n\n<p>This is a system-generated email to advise you that your user account has now been set-up and you can begin judging your allocated entries.</p>\n\n<p>Full information on how to complete the online judging is available once you have logged into the User Portal.</p>\n\n<p>Please visit the User Portal at ${portalAddress} and log in using the following username and password:</p>`
 
+if content.sent
+    p(style='background:#1a4a1a; color:#fff; padding:8px 12px; border-left:4px solid #4caf50; margin-bottom:14px') Emails sent.
+
 center: b Send a Welcome Email to Judges
 
 p

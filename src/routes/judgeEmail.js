@@ -49,7 +49,7 @@ router.post('/', async (req, res, next) => {
             }).catch(err => console.warn(`Judge email failed for ${judge.email}:`, err.message));
         }
 
-        return res.redirect('/home');
+        return res.redirect('/home?action=emailjudges&sent=1');
 
     } catch (err) { next(err); }
 });
