@@ -71,7 +71,7 @@ else if q.inputtype === 'upload'
         .ve-q-label!= num + '. ' + q.questiontext
         if q.description
             .ve-q-desc!= q.description
-        if !resp
+        if !resp || !resp.value
             span.ve-q-noresp [No File Uploaded]
         else
             - let ext = (resp.value || '').split('.').pop().toLowerCase()
@@ -94,7 +94,7 @@ else if q.inputtype === 'image'
         .ve-q-label!= num + '. ' + q.questiontext
         if q.description
             .ve-q-desc!= q.description
-        if !resp
+        if !resp || !resp.value
             span.ve-q-noresp [No Image Uploaded]
         else
             .ve-media
@@ -107,7 +107,7 @@ else if q.inputtype === 'video'
         .ve-q-label!= num + '. ' + q.questiontext
         if q.description
             .ve-q-desc!= q.description
-        if !resp
+        if !resp || !resp.value
             span.ve-q-noresp [No Video Uploaded]
         else
             .ve-media
