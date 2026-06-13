@@ -1,26 +1,51 @@
 //- home/judges.pug
 
-h3(align='center') Judge Control
+style.
+    .judges-wrap { max-width: 900px; margin: 0 auto; }
+    .judges-wrap h3 { color: #c48f06; font-size: 18px; text-align: center; margin-bottom: 16px; }
+    .judges-table { width: 100%; border-collapse: collapse; }
+    .judges-table th { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1px solid #555; padding: 6px 10px; text-align: left; color: #c48f06; }
+    .judges-table td { padding: 7px 10px; border-bottom: 1px solid #2a2a2a; vertical-align: middle; font-size: 14px; }
+    .judges-table tr:hover td { background: rgba(255,255,255,0.04); }
+    .judges-table .badge { font-size: 11px; padding: 1px 5px; border-radius: 2px; margin-left: 3px; }
+    .judges-table .badge-disabled { background: #555; color: #ccc; }
+    .judges-table .actions a, .judges-table .actions button { margin-right: 6px; font-size: 16px; color: #aaa; text-decoration: none; background: none; border: none; cursor: pointer; padding: 0 2px; }
+    .judges-table .actions a:hover, .judges-table .actions button:hover { color: #c48f06; }
+    .judges-table .actions { white-space: nowrap; }
+    .judges-table tr.hidden { display: none; }
+    .judges-toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+    .judges-toolbar a { font-size: 13px; white-space: nowrap; margin-left: 12px; }
+    #judge-search { flex: 1; max-width: 320px; padding: 6px 10px; background: #111; color: #fff; border: 1px solid #555; font-size: 14px; }
+    #judge-search:focus { border-color: #c48f06; outline: none; }
 
-table(width='640')
-    tr(align='left' valign='top')
-        th User No
-        th Name
-        th Email
-        th
-        th
-        th
-        th
+.judges-wrap
+    h3 Manage Judges
 
-    each judge in content.judges
-        tr
-            td= judge.userid
-            td= judge.lastname + ', ' + judge.firstname
-            td= judge.email
-            td: a(href='/formJudge?judgeid=' + judge.userid) Edit
-            td: a(href='/formUser?edituserid=' + judge.userid + '&action=demote' data-confirm='Demote this judge?') Demote
-            td: a(href='/formUser?edituserid=' + judge.userid + '&action=delete' data-confirm='Delete this judge?') Delete
-            td: a(href='/formUser?edituserid=' + judge.userid + '&action=disable') Disable
+    .judges-toolbar
+        input#judge-search(type='text' placeholder='Search by name or email…' data-filter='.judges-table tbody tr')
+        a(href='/home?action=judge') + New Judge
 
-    tr
-        td(colspan='7'): a(href='/formJudge') New Judge
+    table.judges-table
+        thead
+            tr
+                th Name
+                th Email
+                th(style='width:120px')
+        tbody
+            each j in content.judges
+                tr
+                    td
+                        a(href='/home?action=judge&judgeid=' + j.userid)= j.firstname + ' ' + j.lastname
+                        if !j.enabled
+                            span.badge.badge-disabled Disabled
+                    td= j.email
+                    td.actions
+                        a(href='/home?action=judge&judgeid=' + j.userid title='Edit') ✏️
+                        if j.enabled
+                            a(href='/formUser?action=disable&edituserid=' + j.userid title='Disable') 🔒
+                        else
+                            a(href='/formUser?action=enable&edituserid=' + j.userid title='Enable') 🔓
+                        a(href='/formUser?action=demote&edituserid=' + j.userid title='Demote judge' data-confirm='Remove all judging data for this user?') ⬇️
+                        a(href='/formUser?action=delete&edituserid=' + j.userid title='Delete' data-confirm='Delete this judge?' style='color:#c44') ✕
+
+script(src='/js/jade.js')
