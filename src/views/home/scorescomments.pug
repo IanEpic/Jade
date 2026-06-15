@@ -64,7 +64,7 @@ style.
                             tbody
                                 each c in entry.criteriaScores
                                     tr
-                                        td= c.criterianame
+                                        td= (c.criterianame || '').replace(/<[^>]+>/g, '')
                                         td.r= parseFloat(c.score).toFixed(2)
                                         td.w= c.weight + '%'
 

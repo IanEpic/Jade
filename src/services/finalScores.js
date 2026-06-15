@@ -181,7 +181,8 @@ export async function calcFinalScores(programId, { ignoreScoreReady = false } = 
     `);
 
     const [weightRows] = await sequelize.query(`
-        SELECT cat.categoryid, cr.criteriaid, cr.weight, cr.name AS criterianame
+        SELECT cat.categoryid, cr.criteriaid, cr.weight,
+               ISNULL(cr.name, cr.description) AS criterianame
         FROM Category cat
         JOIN Criteria cr ON cr.categoryid = cat.categoryid
         WHERE cat.programid = ${programId}
