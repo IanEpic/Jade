@@ -104,7 +104,9 @@ input[type="submit"]
     btn-active()
 
 // Cancel / back / secondary actions — transparent, grey border, gold on hover
-.btn-secondary
+// a.btn-secondary listed explicitly to beat program-shell `a { color }` rules
+.btn-secondary,
+a.btn-secondary
   btn-base()
   background transparent
   color #bbb
@@ -119,7 +121,8 @@ input[type="submit"]
     box-shadow 0 1px 3px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.07)
 
 // Destructive actions — red border, red on hover
-.btn-danger
+.btn-danger,
+a.btn-danger
   btn-base()
   background transparent
   color #c44
