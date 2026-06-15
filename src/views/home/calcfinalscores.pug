@@ -63,9 +63,9 @@ style.
                         tr
                             th(style='width:30px;') #
                             th(style='width:auto;') Entrant
-                            th(style='width:65px;') Score
-                            th(style='width:65px;') Raw Avg
-                            th(style='width:70px;') Finalist
+                            th.r(style='width:65px;') Score
+                            th.r(style='width:65px;') Raw Avg
+                            th.c(style='width:70px;') Finalist
                     tbody
                         each r in cat.entries
                             tr(class=(r.meetsMin ? '' : 'below-min'))
