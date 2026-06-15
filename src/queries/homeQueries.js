@@ -864,8 +864,9 @@ export async function getCriteriaScoresForEntry({ entryId }) {
       SELECT fsc.criteriaid, fsc.criterianame, fsc.weight, fsc.score
       FROM FinalScoreCriteria fsc
       JOIN FinalScore fs ON fs.finalscoreid = fsc.finalscoreid
+      LEFT JOIN Criteria cr ON cr.criteriaid = fsc.criteriaid
       WHERE fs.entryid = @entryId
-      ORDER BY fsc.weight DESC, fsc.criterianame
+      ORDER BY ISNULL(cr.orda, 999), fsc.criterianame
     `);
     return result.recordset;
 }

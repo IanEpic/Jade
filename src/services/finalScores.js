@@ -181,7 +181,7 @@ export async function calcFinalScores(programId, { ignoreScoreReady = false } = 
     `);
 
     const [weightRows] = await sequelize.query(`
-        SELECT cat.categoryid, cr.criteriaid, cr.weight,
+        SELECT cat.categoryid, cr.criteriaid, cr.weight, cr.orda,
                ISNULL(cr.name, cr.description) AS criterianame
         FROM Category cat
         JOIN Criteria cr ON cr.categoryid = cat.categoryid
@@ -230,7 +230,7 @@ export async function calcFinalScores(programId, { ignoreScoreReady = false } = 
         const catId = r.categoryid, crid = r.criteriaid;
         const w = Number(r.weight) || 0;
         if (!allCriteria[catId]) allCriteria[catId] = {};
-        allCriteria[catId][crid] = { weight: w || null, criterianame: r.criterianame || '' };
+        allCriteria[catId][crid] = { weight: w || null, criterianame: r.criterianame || '', orda: r.orda ?? 999 };
         critToCategory[crid] = catId;
         if (w > 0) {
             if (!catWeights[catId]) catWeights[catId] = {};
@@ -296,25 +296,16 @@ export async function calcFinalScores(programId, { ignoreScoreReady = false } = 
 
         for (const [entryId, finalscore] of Object.entries(finalScores)) {
             const criteriaBreakdown = {};
-            // Weighted criteria with scores
-            for (const [criteriaId, scores] of Object.entries(critResults)) {
-                if (entryId in scores) {
-                    criteriaBreakdown[criteriaId] = {
-                        score:        scores[entryId],
-                        criterianame: weights[criteriaId].criterianame,
-                        weight:       weights[criteriaId].weight,
-                    };
-                }
-            }
-            // Unweighted criteria — display only, no score
-            for (const [criteriaId, info] of Object.entries(allCriteria[categoryId] || {})) {
-                if (!criteriaBreakdown[criteriaId]) {
-                    criteriaBreakdown[criteriaId] = {
-                        score:        null,
-                        criterianame: info.criterianame,
-                        weight:       null,
-                    };
-                }
+            // Build breakdown from allCriteria sorted by orda
+            const sortedCriteria = Object.entries(allCriteria[categoryId] || {})
+                .sort((a, b) => (a[1].orda ?? 999) - (b[1].orda ?? 999));
+            for (const [criteriaId, info] of sortedCriteria) {
+                const scores = critResults[criteriaId];
+                criteriaBreakdown[criteriaId] = {
+                    score:        (scores && entryId in scores) ? scores[entryId] : null,
+                    criterianame: info.criterianame,
+                    weight:       info.weight,
+                };
             }
             output.push({
                 categoryid:        Number(categoryId),
