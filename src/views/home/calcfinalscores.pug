@@ -45,8 +45,7 @@ else
                     td= r.entrantname
                     td= r.finalscore.toFixed(2)
 
-    div(style='margin-top:16px;')
+    div(style='margin-top:16px; display:flex; gap:8px; align-items:center;')
         form(method='POST' action=baseUrl+'&confirm=1'+ignoreQs style='display:inline;')
             button.btn(type='submit') Write Final Scores to Database
-        |
         a.btn-secondary(href='/' + slug + '/home?action=program') Cancel
