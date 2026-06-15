@@ -157,7 +157,7 @@ export async function buildSidebar(user, program, data) {
             back: 'admin', backLabel: '< Admin',
             items: [
                 { href: '#', label: 'Export PR Info' },
-                { href: '#', label: 'Calc Final Scores' },
+                { href: url('/home?action=calcfinalscores'), label: 'Calc Final Scores' },
                 { href: '#', label: 'Create Category' },
             ],
         };
