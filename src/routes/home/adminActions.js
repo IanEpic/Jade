@@ -371,42 +371,69 @@ export async function handleAdminAction(action, req, res, program, user) {
     if (action === 'finalisednotpaid') return { view: 'home/finalisednotpaid' };
 
     if (action === 'calcfinalscores') {
-        const programId      = program.programid;
-        const ignoreReady    = req.query.ignoreScoreReady === '1';
-        const confirm        = req.query.confirm === '1';
-        const wrote          = req.query.wrote === '1';
+        const programId   = program.programid;
+        const ignoreReady = req.query.ignoreScoreReady === '1';
+        const confirm     = req.query.confirm === '1';
+        const wrote       = req.query.wrote === '1';
+        const topN        = Math.max(1, parseInt(req.query.topN) || 5);
+
+        // Rank rows within each category by score descending, flag top N as finalists
+        function addRanks(rows, n) {
+            const byCat = {};
+            for (const r of rows) {
+                if (!byCat[r.categoryid]) byCat[r.categoryid] = [];
+                byCat[r.categoryid].push(r);
+            }
+            const result = [];
+            for (const group of Object.values(byCat)) {
+                group.sort((a, b) => b.finalscore - a.finalscore);
+                for (let i = 0; i < group.length; i++) {
+                    result.push({ ...group[i], rank: i + 1, finalist: i < n });
+                }
+            }
+            return result;
+        }
 
         if (confirm && req.method === 'POST') {
-            const rows = await calcFinalScores(programId, { ignoreScoreReady: ignoreReady });
-            // Delete existing rows for this program (CASCADE deletes FinalScoreCriteria too)
+            const rows  = await calcFinalScores(programId, { ignoreScoreReady: ignoreReady });
+            const ranked = addRanks(rows, topN);
+
+            // Delete existing FinalScore rows (CASCADE removes FinalScoreCriteria)
             await sequelize.query(`
                 DELETE fs FROM FinalScore fs
                 JOIN Category cat ON cat.categoryid = fs.categoryid
                 WHERE cat.programid = ${programId}
             `);
-            if (rows.length) {
-                const fsRows = rows.map(({ criteriaBreakdown: _, ...r }) => r);
+
+            if (ranked.length) {
+                const fsRows = ranked.map(({ criteriaBreakdown: _, rank: __, finalist: ___, ...r }) => r);
                 const created = await FinalScore.bulkCreate(fsRows, { returning: true });
                 const criteriaRows = [];
                 for (let i = 0; i < created.length; i++) {
                     const { finalscoreid } = created[i];
-                    for (const [criteriaid, { score, criterianame, weight }] of Object.entries(rows[i].criteriaBreakdown)) {
+                    for (const [criteriaid, { score, criterianame, weight }] of Object.entries(ranked[i].criteriaBreakdown)) {
                         criteriaRows.push({ finalscoreid, criteriaid: Number(criteriaid), criterianame, weight, score });
                     }
                 }
                 if (criteriaRows.length) await FinalScoreCriteria.bulkCreate(criteriaRows);
+
+                // Set finalist flag on Entry rows
+                const finalistIds    = ranked.filter(r => r.finalist).map(r => r.entryid).join(',');
+                const nonFinalistIds = ranked.filter(r => !r.finalist).map(r => r.entryid).join(',');
+                if (finalistIds)    await sequelize.query(`UPDATE Entry SET finalist = 1 WHERE entryid IN (${finalistIds})`);
+                if (nonFinalistIds) await sequelize.query(`UPDATE Entry SET finalist = 0 WHERE entryid IN (${nonFinalistIds})`);
             }
-            res.redirect(`/${program.slug}/home?action=calcfinalscores&wrote=1`);
+
+            res.redirect(`/${program.slug}/home?action=calcfinalscores&wrote=1&topN=${topN}`);
             return null;
         }
 
-        // Dry run — compute and preview
-        const rows = await calcFinalScores(programId, { ignoreScoreReady: ignoreReady });
-        const preview = rows.map(r => {
-            return { ...r };
-        });
+        // Dry run — compute, rank, and preview
+        const rows    = await calcFinalScores(programId, { ignoreScoreReady: ignoreReady });
+        const preview = addRanks(rows, topN);
+        const categoryCount = new Set(preview.map(r => r.categoryid)).size;
 
-        return { view: 'home/calcfinalscores', preview, ignoreReady, wrote, rowCount: rows.length };
+        return { view: 'home/calcfinalscores', preview, ignoreReady, wrote, topN, rowCount: rows.length, categoryCount };
     }
 
     if (action === 'stats') {
