@@ -377,6 +377,8 @@ export async function handleAdminAction(action, req, res, program, user) {
         const wrote        = req.query.wrote === '1';
         const topN         = Math.max(1, parseInt(req.query.topN) || 5);
         const minRawScore  = parseFloat(req.query.minRawScore ?? 2.85);
+        const wroteCount   = wrote ? parseInt(req.query.rowCount) || 0 : null;
+        const wroteCatCount = wrote ? parseInt(req.query.catCount) || 0 : null;
 
         // Rank rows within each category by score descending.
         // Top N are finalists, but only if their raw weighted score meets the minimum.
@@ -430,7 +432,9 @@ export async function handleAdminAction(action, req, res, program, user) {
                 if (nonFinalistIds) await sequelize.query(`UPDATE Entry SET finalist = 0 WHERE entryid IN (${nonFinalistIds})`);
             }
 
-            res.redirect(`/${program.slug}/home?action=calcfinalscores&wrote=1&topN=${topN}&minRawScore=${minRawScore}`);
+            const writtenCatCount = new Set(ranked.map(r => r.categoryid)).size;
+            const qs = `wrote=1&topN=${topN}&minRawScore=${minRawScore}&rowCount=${ranked.length}&catCount=${writtenCatCount}` + (ignoreReady ? '&ignoreScoreReady=1' : '');
+            res.redirect(`/${program.slug}/home?action=calcfinalscores&${qs}`);
             return null;
         }
 
@@ -449,7 +453,8 @@ export async function handleAdminAction(action, req, res, program, user) {
             catMap[r.categoryid].entries.push(r);
         }
 
-        return { view: 'home/calcfinalscores', categories, ignoreReady, wrote, topN, minRawScore, rowCount: rows.length, categoryCount: categories.length };
+        return { view: 'home/calcfinalscores', categories, ignoreReady, wrote, topN, minRawScore,
+            rowCount: wroteCount ?? rows.length, categoryCount: wroteCatCount ?? categories.length };
     }
 
     if (action === 'stats') {
