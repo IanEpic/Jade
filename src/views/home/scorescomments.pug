@@ -65,8 +65,8 @@ style.
                                 each c in entry.criteriaScores
                                     tr
                                         td= (c.criterianame || '').replace(/<[^>]+>/g, '')
-                                        td.r= parseFloat(c.score).toFixed(2)
-                                        td.w= c.weight + '%'
+                                        td.r= (c.score !== null && c.score !== undefined) ? parseFloat(c.score).toFixed(2) : ''
+                                        td.w= c.weight ? c.weight + '%' : ''
 
                 if excel.length
                     .sc-section

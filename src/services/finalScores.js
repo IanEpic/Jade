@@ -188,7 +188,6 @@ export async function calcFinalScores(programId, { ignoreScoreReady = false } = 
         WHERE cat.programid = ${programId}
           ${scoreReadyClause}
           AND cat.deleted = 0
-          AND cr.weight > 0
     `);
 
     const [entrantRows] = await sequelize.query(`
@@ -222,14 +221,21 @@ export async function calcFinalScores(programId, { ignoreScoreReady = false } = 
         byCriteria[cid][jid][eid] = Number(r.score);
     }
 
-    // { categoryId: { criteriaId: { weight, criterianame } } }
-    const catWeights = {};
+    // catWeights: weighted criteria only (used for scoring)
+    // allCriteria: all criteria per category (used for display breakdown)
+    const catWeights  = {};
+    const allCriteria = {};
     const critToCategory = {};
     for (const r of weightRows) {
         const catId = r.categoryid, crid = r.criteriaid;
-        if (!catWeights[catId]) catWeights[catId] = {};
-        catWeights[catId][crid] = { weight: Number(r.weight), criterianame: r.criterianame || '' };
+        const w = Number(r.weight) || 0;
+        if (!allCriteria[catId]) allCriteria[catId] = {};
+        allCriteria[catId][crid] = { weight: w || null, criterianame: r.criterianame || '' };
         critToCategory[crid] = catId;
+        if (w > 0) {
+            if (!catWeights[catId]) catWeights[catId] = {};
+            catWeights[catId][crid] = { weight: w, criterianame: r.criterianame || '' };
+        }
     }
 
     // ── Per-criteria moderation ────────────────────────────────────────────────
@@ -290,12 +296,23 @@ export async function calcFinalScores(programId, { ignoreScoreReady = false } = 
 
         for (const [entryId, finalscore] of Object.entries(finalScores)) {
             const criteriaBreakdown = {};
+            // Weighted criteria with scores
             for (const [criteriaId, scores] of Object.entries(critResults)) {
                 if (entryId in scores) {
                     criteriaBreakdown[criteriaId] = {
                         score:        scores[entryId],
                         criterianame: weights[criteriaId].criterianame,
                         weight:       weights[criteriaId].weight,
+                    };
+                }
+            }
+            // Unweighted criteria — display only, no score
+            for (const [criteriaId, info] of Object.entries(allCriteria[categoryId] || {})) {
+                if (!criteriaBreakdown[criteriaId]) {
+                    criteriaBreakdown[criteriaId] = {
+                        score:        null,
+                        criterianame: info.criterianame,
+                        weight:       null,
                     };
                 }
             }

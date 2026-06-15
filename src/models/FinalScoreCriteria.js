@@ -7,8 +7,8 @@ FinalScoreCriteria.init({
     finalscoreid: { type: DataTypes.INTEGER, primaryKey: true },
     criteriaid:   { type: DataTypes.INTEGER, primaryKey: true },
     criterianame: { type: DataTypes.STRING,  allowNull: true },
-    weight:       { type: DataTypes.FLOAT,   allowNull: false },
-    score:        { type: DataTypes.FLOAT,   allowNull: false },
+    weight:       { type: DataTypes.FLOAT,   allowNull: true },
+    score:        { type: DataTypes.FLOAT,   allowNull: true },
 }, {
     sequelize,
     modelName: 'FinalScoreCriteria',
