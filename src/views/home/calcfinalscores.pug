@@ -1,9 +1,10 @@
 -
-    var slug        = program.slug
-    var baseUrl     = '/' + slug + '/home?action=calcfinalscores'
-    var ignoreReady = content.ignoreReady
-    var topN        = content.topN
-    var ignoreQs    = (ignoreReady ? '&ignoreScoreReady=1' : '') + '&topN=' + topN
+    var slug         = program.slug
+    var baseUrl      = '/' + slug + '/home?action=calcfinalscores'
+    var ignoreReady  = content.ignoreReady
+    var topN         = content.topN
+    var minRawScore  = content.minRawScore
+    var ignoreQs     = (ignoreReady ? '&ignoreScoreReady=1' : '') + '&topN=' + topN + '&minRawScore=' + minRawScore
 
 style.
     .cfs-wrap { max-width: 900px; margin: 0 auto; }
@@ -26,12 +27,15 @@ style.
 
     .cfs-options
         label
-            input(type='checkbox' data-action='toggle-ignore-ready' data-base-url=baseUrl data-topn=topN checked=ignoreReady)
+            input(type='checkbox' id='ignoreReadyInput' data-action='toggle-ignore-ready' checked=ignoreReady)
             |  Include non-score-ready categories (validation only)
         label
             | Top
             input(type='number' id='topNInput' min='1' max='99' value=topN)
             | finalists per category
+        label
+            | Min raw score
+            input(type='number' id='minRawInput' min='0' max='10' step='0.01' value=minRawScore)
 
     if !content.preview.length
         p(style='color:#aaa;') No scored entries found for this program#{ ignoreReady ? '' : ' with Score Ready categories' }.
@@ -46,17 +50,21 @@ style.
                     th Category
                     th Entrant
                     th(style='width:80px;') Score
+                    th(style='width:80px;') Raw Avg
                     th(style='width:80px; text-align:center;') Finalist
             tbody
                 each r in content.preview
-                    tr
+                    tr(style=(!r.meetsMin ? 'opacity:0.5;' : ''))
                         td= r.rank
                         td= r.categoryname
                         td= r.entrantname
                         td= r.finalscore.toFixed(2)
+                        td(style=(r.rawScore !== null && !r.meetsMin ? 'color:#f88;' : ''))= r.rawScore !== null ? r.rawScore.toFixed(2) : '—'
                         td(style='text-align:center;')
                             if r.finalist
                                 span.finalist-badge Finalist
+                            else if !r.meetsMin
+                                span(style='color:#888; font-size:11px;') below min
 
         .form-actions
             form(method='POST' action=baseUrl+'&confirm=1'+ignoreQs)
@@ -65,13 +73,15 @@ style.
 
 script.
     function cfsNavigate() {
-        var checked = document.querySelector('[data-action="toggle-ignore-ready"]').checked;
-        var n = document.getElementById('topNInput').value || 5;
-        var base = (window.JADE_BASE || '') + '/home?action=calcfinalscores';
-        location.href = base + (checked ? '&ignoreScoreReady=1' : '') + '&topN=' + n;
+        var checked = document.getElementById('ignoreReadyInput').checked;
+        var n       = document.getElementById('topNInput').value || 5;
+        var minRaw  = document.getElementById('minRawInput').value || 2.85;
+        var base    = (window.JADE_BASE || '') + '/home?action=calcfinalscores';
+        location.href = base + (checked ? '&ignoreScoreReady=1' : '') + '&topN=' + n + '&minRawScore=' + minRaw;
     }
     document.addEventListener('change', function(e) {
-        if (e.target.closest('[data-action="toggle-ignore-ready"]') || e.target.id === 'topNInput') {
+        var t = e.target;
+        if (t.id === 'ignoreReadyInput' || t.id === 'topNInput' || t.id === 'minRawInput') {
             cfsNavigate();
         }
     });

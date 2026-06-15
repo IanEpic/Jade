@@ -238,6 +238,38 @@ export async function calcFinalScores(programId, { ignoreScoreReady = false } = 
         criteriaScores[criteriaId] = moderateAndCombine(judgeScores);
     }
 
+    // ── Raw weighted score per entry ───────────────────────────────────────────
+    // Simple weighted average of judges' raw scores (no moderation/scaling).
+    // Used to check entries meet a minimum quality threshold before finalist status.
+    // { entryId: rawWeightedScore }
+    const rawScoreByEntry = {};
+    for (const [criteriaId, judgeScores] of Object.entries(byCriteria)) {
+        const categoryId = critToCategory[criteriaId];
+        if (!categoryId || !catWeights[categoryId]) continue;
+        const weight = catWeights[categoryId][criteriaId]?.weight || 0;
+        if (!weight) continue;
+
+        // Per-entry mean raw score across all judges for this criteria
+        const entryTotals = {};
+        const entryCounts = {};
+        for (const judgeScore of Object.values(judgeScores)) {
+            for (const [entryId, score] of Object.entries(judgeScore)) {
+                entryTotals[entryId] = (entryTotals[entryId] || 0) + score;
+                entryCounts[entryId] = (entryCounts[entryId] || 0) + 1;
+            }
+        }
+        for (const [entryId, total] of Object.entries(entryTotals)) {
+            const meanRaw = total / entryCounts[entryId];
+            if (!rawScoreByEntry[entryId]) rawScoreByEntry[entryId] = { weightedSum: 0, totalWeight: 0 };
+            rawScoreByEntry[entryId].weightedSum  += meanRaw * weight;
+            rawScoreByEntry[entryId].totalWeight  += weight;
+        }
+    }
+    const rawScore = {};
+    for (const [entryId, { weightedSum, totalWeight }] of Object.entries(rawScoreByEntry)) {
+        rawScore[entryId] = totalWeight > 0 ? weightedSum / totalWeight : 0;
+    }
+
     // ── Combine weighted criteria per category ─────────────────────────────────
     // Final score = weighted average of per-criteria scores (no further rescaling).
     const output = [];
@@ -272,7 +304,8 @@ export async function calcFinalScores(programId, { ignoreScoreReady = false } = 
                 categoryname:      catName[categoryId] || '',
                 entrantname:       entrantByEntry[entryId] || '',
                 finalscore,
-                criteriaBreakdown, // { criteriaId: { score, criterianame, weight } }
+                rawScore:          rawScore[entryId] ?? null,
+                criteriaBreakdown,
             });
         }
     }

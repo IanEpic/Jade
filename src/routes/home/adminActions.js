@@ -371,14 +371,16 @@ export async function handleAdminAction(action, req, res, program, user) {
     if (action === 'finalisednotpaid') return { view: 'home/finalisednotpaid' };
 
     if (action === 'calcfinalscores') {
-        const programId   = program.programid;
-        const ignoreReady = req.query.ignoreScoreReady === '1';
-        const confirm     = req.query.confirm === '1';
-        const wrote       = req.query.wrote === '1';
-        const topN        = Math.max(1, parseInt(req.query.topN) || 5);
+        const programId    = program.programid;
+        const ignoreReady  = req.query.ignoreScoreReady === '1';
+        const confirm      = req.query.confirm === '1';
+        const wrote        = req.query.wrote === '1';
+        const topN         = Math.max(1, parseInt(req.query.topN) || 5);
+        const minRawScore  = parseFloat(req.query.minRawScore ?? 2.85);
 
-        // Rank rows within each category by score descending, flag top N as finalists
-        function addRanks(rows, n) {
+        // Rank rows within each category by score descending.
+        // Top N are finalists, but only if their raw weighted score meets the minimum.
+        function addRanks(rows, n, minRaw) {
             const byCat = {};
             for (const r of rows) {
                 if (!byCat[r.categoryid]) byCat[r.categoryid] = [];
@@ -387,8 +389,12 @@ export async function handleAdminAction(action, req, res, program, user) {
             const result = [];
             for (const group of Object.values(byCat)) {
                 group.sort((a, b) => b.finalscore - a.finalscore);
+                let finalistCount = 0;
                 for (let i = 0; i < group.length; i++) {
-                    result.push({ ...group[i], rank: i + 1, finalist: i < n });
+                    const meetsMin  = group[i].rawScore === null || group[i].rawScore >= minRaw;
+                    const isFinalist = meetsMin && finalistCount < n;
+                    if (isFinalist) finalistCount++;
+                    result.push({ ...group[i], rank: i + 1, finalist: isFinalist, meetsMin });
                 }
             }
             return result;
@@ -396,7 +402,7 @@ export async function handleAdminAction(action, req, res, program, user) {
 
         if (confirm && req.method === 'POST') {
             const rows  = await calcFinalScores(programId, { ignoreScoreReady: ignoreReady });
-            const ranked = addRanks(rows, topN);
+            const ranked = addRanks(rows, topN, minRawScore);
 
             // Delete existing FinalScore rows (CASCADE removes FinalScoreCriteria)
             await sequelize.query(`
@@ -424,16 +430,16 @@ export async function handleAdminAction(action, req, res, program, user) {
                 if (nonFinalistIds) await sequelize.query(`UPDATE Entry SET finalist = 0 WHERE entryid IN (${nonFinalistIds})`);
             }
 
-            res.redirect(`/${program.slug}/home?action=calcfinalscores&wrote=1&topN=${topN}`);
+            res.redirect(`/${program.slug}/home?action=calcfinalscores&wrote=1&topN=${topN}&minRawScore=${minRawScore}`);
             return null;
         }
 
         // Dry run — compute, rank, and preview
         const rows    = await calcFinalScores(programId, { ignoreScoreReady: ignoreReady });
-        const preview = addRanks(rows, topN);
+        const preview = addRanks(rows, topN, minRawScore);
         const categoryCount = new Set(preview.map(r => r.categoryid)).size;
 
-        return { view: 'home/calcfinalscores', preview, ignoreReady, wrote, topN, rowCount: rows.length, categoryCount };
+        return { view: 'home/calcfinalscores', preview, ignoreReady, wrote, topN, minRawScore, rowCount: rows.length, categoryCount };
     }
 
     if (action === 'stats') {
