@@ -1,34 +1,54 @@
 -
-    var slug         = program.slug
-    var baseUrl      = '/' + slug + '/home?action=calcfinalscores'
-    var ignoreReady  = content.ignoreReady
-    var topN         = content.topN
-    var minRawScore  = content.minRawScore
-    var ignoreQs     = (ignoreReady ? '&ignoreScoreReady=1' : '') + '&topN=' + topN + '&minRawScore=' + minRawScore
+    var slug        = program.slug
+    var baseUrl     = '/' + slug + '/home?action=calcfinalscores'
+    var ignoreReady = content.ignoreReady
+    var topN        = content.topN
+    var minRawScore = content.minRawScore
+    var ignoreQs    = (ignoreReady ? '&ignoreScoreReady=1' : '') + '&topN=' + topN + '&minRawScore=' + minRawScore
+
+    //- Group preview rows by category
+    var categories = []
+    var catMap = {}
+    each r in content.preview
+        if (!catMap[r.categoryid])
+            - catMap[r.categoryid] = { categoryid: r.categoryid, categoryname: r.categoryname, entries: [] }
+            - categories.push(catMap[r.categoryid])
+        - catMap[r.categoryid].entries.push(r)
 
 style.
     .cfs-wrap { max-width: 900px; margin: 0 auto; }
     .cfs-wrap h2 { text-align: center; color: #c48f06; margin-bottom: 20px; }
-    .cfs-options { display: flex; align-items: center; gap: 24px; margin-bottom: 16px; flex-wrap: wrap; }
+    .cfs-options { display: flex; align-items: center; gap: 24px; margin-bottom: 20px; flex-wrap: wrap; padding: 10px 14px; background: #1a1a1a; border: 1px solid #444; border-radius: 4px; }
     .cfs-options label { display: flex; align-items: center; gap: 6px; font-size: 13px; color: #bbb; }
-    .cfs-options input[type=number] { width: 60px; background: #111; color: #fff; border: 1px solid #555; border-radius: 4px; padding: 4px 8px; font-size: 13px; }
+    .cfs-options input[type=number] { width: 64px; background: #111; color: #fff; border: 1px solid #555; border-radius: 4px; padding: 4px 8px; font-size: 13px; }
     .cfs-options input[type=number]:focus { border-color: #c48f06; outline: none; }
-    .finalist-badge { display: inline-block; font-size: 11px; padding: 1px 6px; border-radius: 2px; font-weight: 600; background: #1a3a4a; color: #64b5f6; }
-    .form-actions { margin-top: 16px; display: flex; gap: 8px; align-items: center; }
+    .cfs-card { border: 1px solid #444; border-radius: 4px; margin-bottom: 14px; overflow: hidden; }
+    .cfs-card-header { background: #1e1e1e; padding: 8px 14px; display: flex; align-items: center; justify-content: space-between; }
+    .cfs-card-header .cat-name { font-size: 13px; font-weight: 600; color: #c48f06; }
+    .cfs-card-header .cat-meta { font-size: 11px; color: #888; }
+    .cfs-card table { width: 100%; border-collapse: collapse; }
+    .cfs-card th { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: #c48f06; padding: 5px 10px; border-bottom: 1px solid #333; text-align: left; }
+    .cfs-card td { padding: 6px 10px; font-size: 13px; border-bottom: 1px solid #222; }
+    .cfs-card tr:last-child td { border-bottom: none; }
+    .cfs-card tr.below-min td { opacity: 0.45; }
+    .cfs-card .r { text-align: right; }
+    .cfs-card .c { text-align: center; }
+    .finalist-badge { display: inline-block; font-size: 11px; padding: 1px 7px; border-radius: 2px; font-weight: 600; background: #1a3a4a; color: #64b5f6; }
+    .below-min-label { font-size: 11px; color: #666; }
+    .raw-fail { color: #f88; }
+    .form-actions { margin-top: 20px; display: flex; gap: 8px; align-items: center; }
 
 .cfs-wrap
     h2 Calculate Final Scores
 
     if content.wrote
-        div(style='background:#1a4a1a; border-left:4px solid #4c4; color:#cfc; padding:10px 14px; font-size:13px; margin-bottom:14px;')
-            | Final scores written to database (#{content.rowCount} entries). Top #{topN} per category flagged as finalists.
-
-    p This page calculates final scores for all score-ready categories and marks the top #{topN} entries per category as finalists.
+        div(style='background:#1a4a1a; border-left:4px solid #4c4; color:#cfc; padding:10px 14px; font-size:13px; margin-bottom:16px;')
+            | Final scores written to database (#{content.rowCount} entries across #{content.categoryCount} categories). Top #{topN} per category flagged as finalists.
 
     .cfs-options
         label
-            input(type='checkbox' id='ignoreReadyInput' data-action='toggle-ignore-ready' checked=ignoreReady)
-            |  Include non-score-ready categories (validation only)
+            input(type='checkbox' id='ignoreReadyInput' checked=ignoreReady)
+            |  Include non-score-ready categories
         label
             | Top
             input(type='number' id='topNInput' min='1' max='99' value=topN)
@@ -41,30 +61,31 @@ style.
         p(style='color:#aaa;') No scored entries found for this program#{ ignoreReady ? '' : ' with Score Ready categories' }.
 
     else
-        p(style='color:#aaa; font-size:12px;') #{content.preview.length} entries across #{content.categoryCount} categories.
-
-        table.data-table(style='width:100%;')
-            thead
-                tr
-                    th(style='width:40px;') Rank
-                    th Category
-                    th Entrant
-                    th(style='width:80px;') Score
-                    th(style='width:80px;') Raw Avg
-                    th(style='width:80px; text-align:center;') Finalist
-            tbody
-                each r in content.preview
-                    tr(style=(!r.meetsMin ? 'opacity:0.5;' : ''))
-                        td= r.rank
-                        td= r.categoryname
-                        td= r.entrantname
-                        td= r.finalscore.toFixed(2)
-                        td(style=(r.rawScore !== null && !r.meetsMin ? 'color:#f88;' : ''))= r.rawScore !== null ? r.rawScore.toFixed(2) : '—'
-                        td(style='text-align:center;')
-                            if r.finalist
-                                span.finalist-badge Finalist
-                            else if !r.meetsMin
-                                span(style='color:#888; font-size:11px;') below min
+        each cat in categories
+            .cfs-card
+                .cfs-card-header
+                    span.cat-name= cat.categoryname
+                    span.cat-meta #{cat.entries.filter(function(e){return e.finalist}).length} finalist#{cat.entries.filter(function(e){return e.finalist}).length !== 1 ? 's' : ''} of #{cat.entries.length} entries
+                table
+                    thead
+                        tr
+                            th(style='width:36px;') #
+                            th Entrant
+                            th.r Score
+                            th.r Raw Avg
+                            th.c Finalist
+                    tbody
+                        each r in cat.entries
+                            tr(class=(r.meetsMin ? '' : 'below-min'))
+                                td= r.rank
+                                td= r.entrantname
+                                td.r= r.finalscore.toFixed(2)
+                                td.r(class=(r.meetsMin ? '' : 'raw-fail'))= r.rawScore !== null ? r.rawScore.toFixed(2) : '—'
+                                td.c
+                                    if r.finalist
+                                        span.finalist-badge Finalist
+                                    else if !r.meetsMin
+                                        span.below-min-label below min
 
         .form-actions
             form(method='POST' action=baseUrl+'&confirm=1'+ignoreQs)
