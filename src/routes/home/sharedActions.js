@@ -15,6 +15,7 @@ import {
     getEntriesOpenByOverride,
     getPaymentsForInvoice,
     getFinalScoreForEntry,
+    getCriteriaScoresForEntry,
     getJudgeCommentsForEntry,
     getAllCategories,
     getUserPageById,
@@ -134,9 +135,10 @@ export async function handleSharedAction(action, req, res, program, user, data) 
         if (program.nonfinalistscoresavailable) scoredEntries.push(...data.nonFinalistsNotOpen);
         const entriesWithData = await Promise.all(
             scoredEntries.map(async e => {
-                const finalScore = await getFinalScoreForEntry({ entryId: e.entryid });
-                const comments   = await getJudgeCommentsForEntry({ entryId: e.entryid });
-                return { ...e, finalScore, comments };
+                const finalScore      = await getFinalScoreForEntry({ entryId: e.entryid });
+                const criteriaScores  = finalScore ? await getCriteriaScoresForEntry({ entryId: e.entryid }) : [];
+                const comments        = await getJudgeCommentsForEntry({ entryId: e.entryid });
+                return { ...e, finalScore, criteriaScores, comments };
             })
         );
         return { view: 'home/scorescomments', entries: entriesWithData, program, currency };

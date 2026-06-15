@@ -1,54 +1,93 @@
 //- home/scorescomments.pug
-//- Equiv of $scorescomments in home.cgi.
 
-table(width='640')
-    tr
-        td(align='center' colspan='2'): b Scores and Comments
+style.
+    .sc-wrap { max-width: 700px; margin: 0 auto; }
+    .sc-wrap h2 { text-align: center; color: #c48f06; margin-bottom: 20px; }
+    .sc-card { border: 1px solid #444; border-radius: 4px; margin-bottom: 20px; overflow: hidden; }
+    .sc-card-header { background: #1e1e1e; padding: 10px 16px; border-bottom: 1px solid #333; }
+    .sc-card-header .cat { font-size: 13px; font-weight: 600; color: #c48f06; }
+    .sc-card-header .meta { font-size: 12px; color: #888; margin-top: 2px; }
+    .sc-body { padding: 14px 16px; }
+    .sc-score-row { display: flex; align-items: baseline; gap: 16px; margin-bottom: 14px; flex-wrap: wrap; }
+    .sc-final-score { font-size: 28px; font-weight: 700; color: #fff; }
+    .sc-final-label { font-size: 12px; color: #888; }
+    .sc-explain { font-size: 12px; color: #c48f06; }
+    .sc-criteria { margin-bottom: 14px; }
+    .sc-criteria table { width: 100%; border-collapse: collapse; }
+    .sc-criteria th { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: #888; padding: 4px 8px; border-bottom: 1px solid #2a2a2a; text-align: left; }
+    .sc-criteria th.r { text-align: right; }
+    .sc-criteria td { font-size: 13px; padding: 5px 8px; border-bottom: 1px solid #1e1e1e; color: #ccc; }
+    .sc-criteria td.r { text-align: right; color: #fff; font-weight: 600; }
+    .sc-criteria td.w { text-align: right; color: #666; font-size: 12px; }
+    .sc-criteria tr:last-child td { border-bottom: none; }
+    .sc-section { margin-bottom: 14px; }
+    .sc-section-title { font-size: 12px; font-weight: 600; color: #c48f06; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px; }
+    .sc-comment { font-size: 13px; color: #ccc; padding: 6px 0; border-bottom: 1px solid #1e1e1e; }
+    .sc-comment:last-child { border-bottom: none; }
+    .sc-divider { border: none; border-top: 1px solid #333; margin: 0; }
+    .sc-home { text-align: center; margin-top: 20px; }
+
+.sc-wrap
+    h2 Scores &amp; Comments
 
     each entry in content.entries
-        - let excel   = entry.comments.filter(c => c.type === 'excel')
-        - let improve = entry.comments.filter(c => c.type === 'improve')
-        - let other   = entry.comments.filter(c => c.type === 'other')
-        - let score   = entry.finalScore ? parseFloat(entry.finalScore.finalscore).toFixed(2) : null
+        - var excel   = entry.comments.filter(function(c){ return c.type === 'excel' })
+        - var improve = entry.comments.filter(function(c){ return c.type === 'improve' })
+        - var other   = entry.comments.filter(function(c){ return c.type === 'other' })
+        - var score   = entry.finalScore ? parseFloat(entry.finalScore.finalscore).toFixed(2) : null
+        - var hasCriteria = entry.criteriaScores && entry.criteriaScores.length > 0
 
-        tr
-            td Entry No:
-            td= entry.entryid
-        tr
-            td Category:
-            td= entry.categoryname
-        tr
-            td Your Reference:
-            td= entry.userref
-        if score
-            tr
-                td Round 1 Score:
-                td
-                    = score + '  '
-                    a(href='/explainscores' target='_new') scores explained
-        tr
-            td &nbsp;
+        .sc-card
+            .sc-card-header
+                div.cat= entry.categoryname
+                div.meta
+                    | Entry ##{entry.entryid}
+                    if entry.userref
+                        |  &nbsp;·&nbsp; Ref: #{entry.userref}
 
-        if excel.length
-            tr
-                td(colspan='2'): b We asked the judges to provide a message to you highlighting areas in which this entry has excelled. Here's what they said:
-            each c in excel
-                tr: td(colspan='2')= c.comment
+            .sc-body
+                if score
+                    .sc-score-row
+                        div
+                            div.sc-final-score= score
+                            div.sc-final-label Final Score
+                        a.sc-explain(href='/explainscores' target='_blank') How is my score calculated?
 
-        if improve.length
-            tr
-                td(colspan='2'): b We asked the judges to provide a message to you highlighting areas in which you could improve next year. Here's what they said:
-            each c in improve
-                tr: td(colspan='2')= c.comment
+                if hasCriteria
+                    .sc-criteria
+                        table
+                            thead
+                                tr
+                                    th Criteria
+                                    th.r(style='width:60px;') Score
+                                    th.w(style='width:50px;') Weight
+                            tbody
+                                each c in entry.criteriaScores
+                                    tr
+                                        td= c.criterianame
+                                        td.r= parseFloat(c.score).toFixed(2)
+                                        td.w= c.weight + '%'
 
-        if other.length
-            tr
-                td(colspan='2'): b Other judge comments on this entry:
-            each c in other
-                tr: td(colspan='2')= c.comment
+                if excel.length
+                    .sc-section
+                        div.sc-section-title Areas of Excellence
+                        each c in excel
+                            div.sc-comment= c.comment
 
-        tr
-            td(colspan='2'): hr
+                if improve.length
+                    .sc-section
+                        div.sc-section-title Areas for Improvement
+                        each c in improve
+                            div.sc-comment= c.comment
 
-    tr
-        td(align='center' colspan='2'): a(href='/home') Home
+                if other.length
+                    .sc-section
+                        div.sc-section-title Other Comments
+                        each c in other
+                            div.sc-comment= c.comment
+
+                if !excel.length && !improve.length && !other.length && !score
+                    p(style='color:#666; font-size:13px;') No scores or comments are available for this entry yet.
+
+    .sc-home
+        a(href='/' + content.program.slug + '/home') &larr; Home

@@ -855,6 +855,21 @@ export async function getFinalScoreForEntry({ entryId }) {
     return result.recordset[0] || null;
 }
 
+// Per-criteria scores for an entry (null if not yet calculated with criteria breakdown)
+export async function getCriteriaScoresForEntry({ entryId }) {
+    const pool = await getPool();
+    const result = await pool.request()
+        .input('entryId', sql.Int, entryId)
+        .query(`
+      SELECT fsc.criteriaid, fsc.criterianame, fsc.weight, fsc.score
+      FROM FinalScoreCriteria fsc
+      JOIN FinalScore fs ON fs.finalscoreid = fsc.finalscoreid
+      WHERE fs.entryid = @entryId
+      ORDER BY fsc.weight DESC, fsc.criterianame
+    `);
+    return result.recordset;
+}
+
 // Wildcard nominations made by a judge
 export async function getWildcardNominationsByJudge({ userId }) {
     const pool = await getPool();
