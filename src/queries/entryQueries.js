@@ -134,7 +134,7 @@ export async function getFinalistsNotOpenByUser({ userId }) {
         AND Entry.userid          = @userId
         AND Entry.deleted         = 0
         AND Entry.entryaccepted   = 1
-        AND Entry.finalist        = 1 OR Entry.statefinalist IS NOT NULL
+        AND (Entry.finalist = 1 OR Entry.statefinalist IS NOT NULL)
     `);
     return result.recordset;
 }
