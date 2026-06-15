@@ -32,28 +32,18 @@ if !content.preview.length
 else
     p Found #{content.preview.length} entries across score-ready categories.
 
-    - var maxDiff = content.preview.reduce((m,r) => r.diff !== null ? Math.max(m, Math.abs(r.diff)) : m, 0)
-
-    if content.preview.some(r => r.existingScore !== null)
-        p(style='color:#aaa; font-size:12px;')
-            | Max difference from existing scores: #{maxDiff.toFixed(4)}
-
     table.data-table(style='width:100%; font-size:12px;')
         thead
             tr
                 th Category
                 th Entrant
-                th New Score
-                th Existing Score
-                th Diff
+                th Score
         tbody
             each r in content.preview
                 tr
                     td= r.categoryname
                     td= r.entrantname
-                    td= r.finalscore.toFixed(4)
-                    td= r.existingScore !== null ? r.existingScore.toFixed(4) : '—'
-                    td(style=(r.diff !== null && Math.abs(r.diff) > 0.001 ? 'color:#f88;' : ''))= r.diff !== null ? r.diff.toFixed(4) : '—'
+                    td= r.finalscore.toFixed(2)
 
     div(style='margin-top:16px;')
         form(method='POST' action=baseUrl+'&confirm=1'+ignoreQs style='display:inline;')

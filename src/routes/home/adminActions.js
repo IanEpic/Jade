@@ -402,20 +402,8 @@ export async function handleAdminAction(action, req, res, program, user) {
 
         // Dry run — compute and preview
         const rows = await calcFinalScores(programId, { ignoreScoreReady: ignoreReady });
-        // Compare to existing FinalScore rows
-        const [existing] = await sequelize.query(`
-            SELECT fs.categoryid, fs.entryid, fs.finalscore
-            FROM FinalScore fs
-            JOIN Category cat ON cat.categoryid = fs.categoryid
-            WHERE cat.programid = ${programId}
-        `);
-        const existingMap = {};
-        for (const r of existing) existingMap[`${r.categoryid}:${r.entryid}`] = Number(r.finalscore);
-
         const preview = rows.map(r => {
-            const key   = `${r.categoryid}:${r.entryid}`;
-            const prev  = existingMap[key];
-            return { ...r, existingScore: prev ?? null, diff: prev != null ? r.finalscore - prev : null };
+            return { ...r };
         });
 
         return { view: 'home/calcfinalscores', preview, ignoreReady, wrote, rowCount: rows.length };
