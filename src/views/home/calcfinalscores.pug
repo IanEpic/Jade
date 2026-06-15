@@ -18,9 +18,9 @@ style.
     .cfs-card-header { background: #1e1e1e; padding: 8px 14px; display: flex; align-items: center; justify-content: space-between; }
     .cfs-card-header .cat-name { font-size: 13px; font-weight: 600; color: #c48f06; }
     .cfs-card-header .cat-meta { font-size: 11px; color: #888; }
-    .cfs-card table { width: 100%; border-collapse: collapse; }
+    .cfs-card table { width: 100%; border-collapse: collapse; table-layout: fixed; }
     .cfs-card th { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: #c48f06; padding: 5px 10px; border-bottom: 1px solid #333; text-align: left; }
-    .cfs-card td { padding: 6px 10px; font-size: 13px; border-bottom: 1px solid #222; }
+    .cfs-card td { padding: 6px 10px; font-size: 13px; border-bottom: 1px solid #222; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .cfs-card tr:last-child td { border-bottom: none; }
     .cfs-card tr.below-min td { opacity: 0.45; }
     .cfs-card .r { text-align: right; }
@@ -62,10 +62,10 @@ style.
                     thead
                         tr
                             th(style='width:36px;') #
-                            th Entrant
-                            th.r Score
-                            th.r Raw Avg
-                            th.c Finalist
+                            th(style='width:auto;') Entrant
+                            th(style='width:80px;') Score
+                            th(style='width:80px;') Raw Avg
+                            th(style='width:90px;') Finalist
                     tbody
                         each r in cat.entries
                             tr(class=(r.meetsMin ? '' : 'below-min'))
