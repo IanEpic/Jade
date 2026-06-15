@@ -5,15 +5,7 @@
     var topN        = content.topN
     var minRawScore = content.minRawScore
     var ignoreQs    = (ignoreReady ? '&ignoreScoreReady=1' : '') + '&topN=' + topN + '&minRawScore=' + minRawScore
-
-    //- Group preview rows by category
-    var categories = []
-    var catMap = {}
-    each r in content.preview
-        if (!catMap[r.categoryid])
-            - catMap[r.categoryid] = { categoryid: r.categoryid, categoryname: r.categoryname, entries: [] }
-            - categories.push(catMap[r.categoryid])
-        - catMap[r.categoryid].entries.push(r)
+    var categories  = content.categories
 
 style.
     .cfs-wrap { max-width: 900px; margin: 0 auto; }
@@ -57,7 +49,7 @@ style.
             | Min raw score
             input(type='number' id='minRawInput' min='0' max='10' step='0.01' value=minRawScore)
 
-    if !content.preview.length
+    if !categories || !categories.length
         p(style='color:#aaa;') No scored entries found for this program#{ ignoreReady ? '' : ' with Score Ready categories' }.
 
     else

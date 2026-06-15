@@ -437,9 +437,19 @@ export async function handleAdminAction(action, req, res, program, user) {
         // Dry run — compute, rank, and preview
         const rows    = await calcFinalScores(programId, { ignoreScoreReady: ignoreReady });
         const preview = addRanks(rows, topN, minRawScore);
-        const categoryCount = new Set(preview.map(r => r.categoryid)).size;
 
-        return { view: 'home/calcfinalscores', preview, ignoreReady, wrote, topN, minRawScore, rowCount: rows.length, categoryCount };
+        // Group by category for card layout
+        const catMap = {};
+        const categories = [];
+        for (const r of preview) {
+            if (!catMap[r.categoryid]) {
+                catMap[r.categoryid] = { categoryid: r.categoryid, categoryname: r.categoryname, entries: [] };
+                categories.push(catMap[r.categoryid]);
+            }
+            catMap[r.categoryid].entries.push(r);
+        }
+
+        return { view: 'home/calcfinalscores', categories, ignoreReady, wrote, topN, minRawScore, rowCount: rows.length, categoryCount: categories.length };
     }
 
     if (action === 'stats') {
