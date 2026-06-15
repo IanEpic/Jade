@@ -8,6 +8,7 @@
 
 import Category                from '../../models/Category.js';
 import FinalScore              from '../../models/FinalScore.js';
+import FinalScoreCriteria      from '../../models/FinalScoreCriteria.js';
 import { calcFinalScores }     from '../../services/finalScores.js';
 import sequelize               from '../../config/sequelize.js';
 import User                    from '../../models/User.js';
@@ -377,15 +378,23 @@ export async function handleAdminAction(action, req, res, program, user) {
 
         if (confirm && req.method === 'POST') {
             const rows = await calcFinalScores(programId, { ignoreScoreReady: ignoreReady });
-            // Delete existing rows for this program (join through Category)
+            // Delete existing rows for this program (CASCADE deletes FinalScoreCriteria too)
             await sequelize.query(`
                 DELETE fs FROM FinalScore fs
                 JOIN Category cat ON cat.categoryid = fs.categoryid
                 WHERE cat.programid = ${programId}
             `);
-            // Bulk insert
             if (rows.length) {
-                await FinalScore.bulkCreate(rows);
+                const fsRows = rows.map(({ criteriaBreakdown: _, ...r }) => r);
+                const created = await FinalScore.bulkCreate(fsRows, { returning: true });
+                const criteriaRows = [];
+                for (let i = 0; i < created.length; i++) {
+                    const { finalscoreid } = created[i];
+                    for (const [criteriaid, { score, criterianame, weight }] of Object.entries(rows[i].criteriaBreakdown)) {
+                        criteriaRows.push({ finalscoreid, criteriaid: Number(criteriaid), criterianame, weight, score });
+                    }
+                }
+                if (criteriaRows.length) await FinalScoreCriteria.bulkCreate(criteriaRows);
             }
             res.redirect(`/${program.slug}/home?action=calcfinalscores&wrote=1`);
             return null;
