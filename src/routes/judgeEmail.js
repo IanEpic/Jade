@@ -28,15 +28,16 @@ router.post('/', async (req, res, next) => {
             const judge = await User.findByPk(judgeid);
             if (!judge) continue;
 
-            const salutation = `Dear ${judge.firstname}\n\n`;
-            let msg;
-
             // Use UserCredential to determine if this judge already has a working login.
             // A judge added from another program will have a credential but no awareness
             // of their password in this program — check the credential, not User.password.
             const credential = judge.credentialid
                 ? await UserCredential.findByPk(judge.credentialid)
                 : await UserCredential.findOne({ where: { email: judge.email } });
+
+            const firstname = credential?.firstname || judge.firstname;
+            const salutation = `Dear ${firstname}\n\n`;
+            let msg;
 
             if (!credential || !credential.password) {
                 const plain     = randomPassword();

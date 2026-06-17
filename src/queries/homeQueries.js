@@ -337,12 +337,18 @@ export async function getJudgesForProgram({ programId, useSimplejudging }) {
     const result = await pool.request()
         .input('programId', sql.Int, programId)
         .query(`
-      SELECT *
-      FROM [User]
-      WHERE programid  = @programId
-        AND ${judgeCol} = 1
-        AND deleted    = 0
-      ORDER BY lastname
+      SELECT u.*,
+             ISNULL(uc.firstname,    u.firstname)    AS firstname,
+             ISNULL(uc.lastname,     u.lastname)     AS lastname,
+             ISNULL(uc.organisation, u.organisation) AS organisation,
+             ISNULL(uc.telephone,    u.telephone)    AS telephone,
+             ISNULL(uc.mobile,       u.mobile)       AS mobile
+      FROM [User] u
+      LEFT JOIN UserCredential uc ON uc.credentialid = u.credentialid
+      WHERE u.programid  = @programId
+        AND u.${judgeCol} = 1
+        AND u.deleted    = 0
+      ORDER BY ISNULL(uc.lastname, u.lastname)
     `);
     return result.recordset;
 }
@@ -353,12 +359,18 @@ export async function getAllUsersForProgram({ programId }) {
     const result = await pool.request()
         .input('programId', sql.Int, programId)
         .query(`
-      SELECT u.*, ISNULL(uc.activated, 1) AS activated
+      SELECT u.*,
+             ISNULL(uc.firstname,    u.firstname)    AS firstname,
+             ISNULL(uc.lastname,     u.lastname)     AS lastname,
+             ISNULL(uc.organisation, u.organisation) AS organisation,
+             ISNULL(uc.telephone,    u.telephone)    AS telephone,
+             ISNULL(uc.mobile,       u.mobile)       AS mobile,
+             ISNULL(uc.activated, 1)                 AS activated
       FROM [User] u
       LEFT JOIN UserCredential uc ON uc.credentialid = u.credentialid
       WHERE u.programid = @programId
         AND u.deleted   = 0
-      ORDER BY u.enabled DESC, u.lastname ASC
+      ORDER BY u.enabled DESC, ISNULL(uc.lastname, u.lastname) ASC
     `);
     return result.recordset;
 }
@@ -370,13 +382,19 @@ export async function getEnabledJudgesForProgram({ programId, useSimplejudging }
     const result = await pool.request()
         .input('programId', sql.Int, programId)
         .query(`
-      SELECT *
-      FROM [User]
-      WHERE programid  = @programId
-        AND ${judgeCol} = 1
-        AND deleted    = 0
-        AND enabled    = 1
-      ORDER BY lastname
+      SELECT u.*,
+             ISNULL(uc.firstname,    u.firstname)    AS firstname,
+             ISNULL(uc.lastname,     u.lastname)     AS lastname,
+             ISNULL(uc.organisation, u.organisation) AS organisation,
+             ISNULL(uc.telephone,    u.telephone)    AS telephone,
+             ISNULL(uc.mobile,       u.mobile)       AS mobile
+      FROM [User] u
+      LEFT JOIN UserCredential uc ON uc.credentialid = u.credentialid
+      WHERE u.programid   = @programId
+        AND u.${judgeCol} = 1
+        AND u.deleted     = 0
+        AND u.enabled     = 1
+      ORDER BY ISNULL(uc.lastname, u.lastname)
     `);
     return result.recordset;
 }
@@ -724,44 +742,45 @@ export async function getActiveUsersReport({ programId }) {
         .input('programId', sql.Int, programId)
         .query(`
             SELECT
-                [User].userid,
-                [User].email,
-                [User].firstname,
-                [User].lastname,
-                [User].organisation,
-                [User].telephone,
-                [User].mobile,
+                u.userid,
+                u.email,
+                ISNULL(uc.firstname,    u.firstname)    AS firstname,
+                ISNULL(uc.lastname,     u.lastname)     AS lastname,
+                ISNULL(uc.organisation, u.organisation) AS organisation,
+                ISNULL(uc.telephone,    u.telephone)    AS telephone,
+                ISNULL(uc.mobile,       u.mobile)       AS mobile,
                 Logons.LastLogon,
                 ISNULL(EntriesStarted.entries, 0) AS started,
                 ISNULL(EntriesPaid.entries,    0) AS paid,
                 ISNULL(EntriesFinalised.entries,0) AS finalised
-            FROM [User]
+            FROM [User] u
+            LEFT JOIN UserCredential uc ON uc.credentialid = u.credentialid
             LEFT JOIN (
                 SELECT userid, MAX(timestamp) AS LastLogon
                 FROM LogOnRecord
                 GROUP BY userid
-            ) AS Logons ON Logons.userid = [User].userid
+            ) AS Logons ON Logons.userid = u.userid
             LEFT JOIN (
                 SELECT userid, COUNT(entryid) AS entries
                 FROM Entry
                 WHERE deleted = 0 AND programid = @programId
                 GROUP BY userid
-            ) AS EntriesStarted ON EntriesStarted.userid = [User].userid
+            ) AS EntriesStarted ON EntriesStarted.userid = u.userid
             LEFT JOIN (
                 SELECT userid, COUNT(entryid) AS entries
                 FROM Entry
                 WHERE entryaccepted = 1 AND deleted = 0 AND programid = @programId
                 GROUP BY userid
-            ) AS EntriesPaid ON EntriesPaid.userid = [User].userid
+            ) AS EntriesPaid ON EntriesPaid.userid = u.userid
             LEFT JOIN (
                 SELECT userid, COUNT(entryid) AS entries
                 FROM Entry
                 WHERE finalised = 1 AND deleted = 0 AND programid = @programId
                 GROUP BY userid
-            ) AS EntriesFinalised ON EntriesFinalised.userid = [User].userid
-            WHERE [User].programid = @programId
-              AND [User].exclude = 0
-              AND [User].deleted = 0
+            ) AS EntriesFinalised ON EntriesFinalised.userid = u.userid
+            WHERE u.programid = @programId
+              AND u.exclude = 0
+              AND u.deleted = 0
             ORDER BY started, paid, finalised, LastLogon
         `);
     return result.recordset;
@@ -777,9 +796,9 @@ export async function getPaidNotFinalisedReport({ programId }) {
                 e.entryid,
                 e.userid,
                 u.email,
-                u.firstname,
-                u.lastname,
-                u.organisation,
+                ISNULL(uc.firstname,    u.firstname)    AS firstname,
+                ISNULL(uc.lastname,     u.lastname)     AS lastname,
+                ISNULL(uc.organisation, u.organisation) AS organisation,
                 e.userref,
                 e.entryaccepted,
                 e.entryopen,
@@ -787,6 +806,7 @@ export async function getPaidNotFinalisedReport({ programId }) {
                 e.timestamp
             FROM Entry e
             INNER JOIN [User] u ON e.userid = u.userid
+            LEFT JOIN UserCredential uc ON uc.credentialid = u.credentialid
             WHERE e.programid    = @programId
               AND e.entryaccepted = 1
               AND (e.finalised IS NULL OR e.finalised = 0)
@@ -807,9 +827,9 @@ export async function getFinalisedNotPaidReport({ programId }) {
                 e.entryid,
                 e.userid,
                 u.email,
-                u.firstname,
-                u.lastname,
-                u.organisation,
+                ISNULL(uc.firstname,    u.firstname)    AS firstname,
+                ISNULL(uc.lastname,     u.lastname)     AS lastname,
+                ISNULL(uc.organisation, u.organisation) AS organisation,
                 e.userref,
                 e.entryaccepted,
                 e.entryopen,
@@ -817,6 +837,7 @@ export async function getFinalisedNotPaidReport({ programId }) {
                 e.timestamp
             FROM Entry e
             INNER JOIN [User] u ON e.userid = u.userid
+            LEFT JOIN UserCredential uc ON uc.credentialid = u.credentialid
             WHERE e.programid  = @programId
               AND e.finalised   = 1
               AND (e.entryaccepted IS NULL OR e.entryaccepted = 0)
