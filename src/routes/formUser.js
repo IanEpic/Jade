@@ -116,33 +116,11 @@ router.get('/', async (req, res, next) => {
             return res.redirect('/home?action=users');
         }
 
-        // Redirect admin edits into home framework
+        // Route all users through the home framework
         if (operator.admin) {
             return res.redirect('/home?action=users&edituserid=' + targetUser.userid);
         }
-
-        // Self-service — keep standalone shell
-        const [addresses, credential] = await Promise.all([
-            getAddresses(targetUser.userid),
-            targetUser.credentialid ? UserCredential.findByPk(targetUser.credentialid) : null,
-        ]);
-
-        // Build a plain object for the template — Sequelize instance no longer has
-        // profile fields defined (dropped in migration 036), so we must spread into a POJO.
-        const targetUserData = {
-            ...targetUser.toJSON(),
-            firstname:    credential?.firstname    || '',
-            lastname:     credential?.lastname     || '',
-            organisation: credential?.organisation || '',
-            telephone:    credential?.telephone    || '',
-            mobile:       credential?.mobile       || '',
-        };
-
-        return res.renderInShell('formUser', {
-            user: operator, program, targetUser: targetUserData, addresses, categories: [], passwordRules: PASSWORD_RULES,
-            targetActivated: !credential || credential.activated,
-            error: null, isAdmin: false,
-        });
+        return res.redirect('/home?action=profile');
 
     } catch (err) { next(err); }
 });

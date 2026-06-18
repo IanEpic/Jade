@@ -7,9 +7,10 @@
 //   undefined       → action not matched here
 
 import { translate }        from '../../services/translate.js';
-import { currency }         from '../../services/helpers.js';
+import { currency, PASSWORD_RULES } from '../../services/helpers.js';
 import { getLinkedPrograms } from '../../services/auth.js';
-import Address       from '../../models/Address.js';
+import Address          from '../../models/Address.js';
+import UserCredential   from '../../models/UserCredential.js';
 import {
     getAllEntriesForProgram,
     getEntriesOpenByOverride,
@@ -179,6 +180,35 @@ export async function handleSharedAction(action, req, res, program, user, data) 
             judgeComments,
             user,
             translate,
+        };
+    }
+
+    if (action === 'profile') {
+        const [addresses, credential] = await Promise.all([
+            Address.findAll({ where: { userid: user.userid }, order: [['addressid', 'ASC']] }),
+            user.credentialid ? UserCredential.findByPk(user.credentialid) : null,
+        ]);
+        const targetUser = {
+            ...user.toJSON ? user.toJSON() : { ...user },
+            firstname:    credential?.firstname    || '',
+            lastname:     credential?.lastname     || '',
+            organisation: credential?.organisation || '',
+            telephone:    credential?.telephone    || '',
+            mobile:       credential?.mobile       || '',
+        };
+        return {
+            view:            'home/user-edit',
+            targetUser,
+            operator:        user,
+            addresses:       addresses.map(a => a.toJSON()),
+            categories:      [],
+            passwordRules:   PASSWORD_RULES,
+            targetActivated: true,
+            hasSetupToken:   false,
+            isAdmin:         false,
+            error:           req.query.error || null,
+            saved:           req.query.saved === '1',
+            sent:            false,
         };
     }
 
