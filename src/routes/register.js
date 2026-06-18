@@ -74,11 +74,27 @@ router.post('/', async (req, res, next) => {
         // If the person is already in another program, reuse their existing credential.
         let [credential, credentialCreated] = await UserCredential.findOrCreate({
             where:    { email: body.email.trim() },
-            defaults: { email: body.email.trim(), password: encryptedPassword, activationtoken: setupToken },
+            defaults: {
+                email:        body.email.trim(),
+                password:     encryptedPassword,
+                activationtoken: setupToken,
+                firstname:    body.firstname.trim(),
+                lastname:     body.lastname.trim(),
+                organisation: body.organisation?.trim() || '',
+                telephone:    body.telephone?.trim()    || '',
+                mobile:       body.mobile.trim(),
+            },
         });
-        // If credential already existed, attach a fresh setup token so they can still set a password.
+        // If credential already existed, update profile + attach a fresh setup token.
         if (!credentialCreated) {
-            await credential.update({ activationtoken: setupToken });
+            await credential.update({
+                activationtoken: setupToken,
+                firstname:    body.firstname.trim(),
+                lastname:     body.lastname.trim(),
+                organisation: body.organisation?.trim() || '',
+                telephone:    body.telephone?.trim()    || '',
+                mobile:       body.mobile.trim(),
+            });
         }
 
         // Create user first (address needs a valid userid due to FK constraint)
@@ -89,12 +105,7 @@ router.post('/', async (req, res, next) => {
             password:        encryptedPassword,
             question:        body.question?.trim() || '',
             answer:          body.answer?.trim() || '',
-            firstname:       body.firstname.trim(),
-            lastname:        body.lastname.trim(),
-            organisation:    body.organisation?.trim() || '',
             postaladdressid: null, // set after address is created
-            telephone:       body.telephone?.trim() || '',
-            mobile:          body.mobile.trim(),
             paymentsopen:    program.paymentsopendefault ? 1 : 0,
             judge:           isAdmin && body.isjudge ? 1 : 0,
             admin:           isAdmin && body.isadmin ? 1 : 0,

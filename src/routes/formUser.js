@@ -87,18 +87,17 @@ router.get('/', async (req, res, next) => {
 
         if (action === 'resend-setup' && operator.admin && targetUser.credentialid) {
             const setupToken = crypto.randomBytes(32).toString('hex');
-            await UserCredential.update(
-                { activationtoken: setupToken },
-                { where: { credentialid: targetUser.credentialid } },
-            );
+            const cred = await UserCredential.findByPk(targetUser.credentialid);
+            await cred.update({ activationtoken: setupToken });
             const program  = req.program;
             const proto    = req.get('x-forwarded-proto') || req.protocol;
             const host     = req.get('x-forwarded-host')  || req.get('host');
             const setupUrl = `${proto}://${host}/${program.slug}/set-password?token=${setupToken}`;
+            const firstname = cred.firstname || targetUser.firstname;
             mail({
-                to:      targetUser.email,
+                to:      cred.email,
                 subject: `${program.name} — Set Your Password`,
-                text:    `Dear ${targetUser.firstname},\n\nA password setup link has been generated for your account.\n\nPlease click the link below to set your password:\n\n${setupUrl}\n\nIf you did not request this, please contact the program administrator.\n`,
+                text:    `Dear ${firstname},\n\nA password setup link has been generated for your account.\n\nPlease click the link below to set your password:\n\n${setupUrl}\n\nIf you did not request this, please contact the program administrator.\n`,
                 from:    program.emailfromaddress,
                 ...parseSmtp(program.smtpserver),
             }).catch(err => console.warn('Resend setup email failed:', err.message));
@@ -228,17 +227,21 @@ router.post('/', async (req, res, next) => {
             });
         }
 
-        // Core profile fields
+        // Profile fields — write to UserCredential only (source of truth post-migration 036)
+        if (targetUser.credentialid) {
+            await UserCredential.update({
+                firstname:    body.firstname,
+                lastname:     body.lastname,
+                organisation: body.organisation || '',
+                telephone:    body.telephone    || '',
+                mobile:       body.mobile       || '',
+            }, { where: { credentialid: targetUser.credentialid } });
+        }
         await targetUser.update({
             email:           body.email.trim(),
             question:        body.question,
             answer:          body.answer,
-            firstname:       body.firstname,
-            lastname:        body.lastname,
-            organisation:    body.organisation || '',
             postaladdressid: postaladdressid,
-            telephone:       body.telephone || '',
-            mobile:          body.mobile,
         });
 
         // Judge category links (admin only, only if judge)

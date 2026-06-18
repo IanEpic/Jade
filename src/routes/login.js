@@ -61,10 +61,10 @@ router.post('/check-email', async (req, res, next) => {
       if (!user) {
         // Credential exists but no User record for this program — add them
         user = await addCredentialToProgram(credential, program);
-        return res.json({ status: 'added', name: user.firstname });
+        return res.json({ status: 'added', name: credential.firstname || user.firstname });
       }
       if (!user.enabled) return res.json({ status: 'disabled' });
-      return res.json({ status: 'password', name: user.firstname });
+      return res.json({ status: 'password', name: credential.firstname || user.firstname });
     }
 
     // Legacy fallback: password stored on User row
@@ -111,6 +111,11 @@ router.post('/signup', async (req, res, next) => {
       password:        encryptedPassword,
       activated:       1,
       activationtoken: setupToken,
+      firstname:       firstname.trim(),
+      lastname:        lastname.trim(),
+      mobile:          (mobile || '').trim(),
+      organisation:    '',
+      telephone:       '',
     });
 
     const newUser = await User.create({
@@ -118,11 +123,6 @@ router.post('/signup', async (req, res, next) => {
       credentialid: credential.credentialid,
       email,
       password:     encryptedPassword,
-      firstname:    firstname.trim(),
-      lastname:     lastname.trim(),
-      organisation: '',
-      mobile:       (mobile || '').trim(),
-      telephone:    '',
       question:     '',
       answer:       '',
       paymentsopen: program.paymentsopendefault ? 1 : 0,
@@ -230,24 +230,13 @@ router.get('/logout', (req, res, next) => {
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 async function addCredentialToProgram(credential, program) {
-  // Copy personal details from their existing user record in another program
-  const source = await User.findOne({
-    where:  { credentialid: credential.credentialid, deleted: 0 },
-    order:  [['userid', 'ASC']],
-  });
-
   return User.create({
     programid:    program.programid,
     credentialid: credential.credentialid,
     email:        credential.email,
     password:     credential.password,
-    firstname:    source?.firstname    || '',
-    lastname:     source?.lastname     || '',
-    organisation: source?.organisation || '',
-    telephone:    source?.telephone    || '',
-    mobile:       source?.mobile       || '',
-    question:     source?.question     || '',
-    answer:       source?.answer       || '',
+    question:     '',
+    answer:       '',
     paymentsopen: program.paymentsopendefault ? 1 : 0,
     enabled:      1,
     exclude:      0,
