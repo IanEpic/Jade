@@ -127,6 +127,15 @@ router.get('/', async (req, res, next) => {
             targetUser.credentialid ? UserCredential.findByPk(targetUser.credentialid) : null,
         ]);
 
+        // Merge profile from UserCredential onto targetUser
+        if (credential) {
+            targetUser.firstname    = credential.firstname    || '';
+            targetUser.lastname     = credential.lastname     || '';
+            targetUser.organisation = credential.organisation || '';
+            targetUser.telephone    = credential.telephone    || '';
+            targetUser.mobile       = credential.mobile       || '';
+        }
+
         return res.renderInShell('formUser', {
             user: operator, program, targetUser, addresses, categories: [], passwordRules: PASSWORD_RULES,
             targetActivated: !credential || credential.activated,

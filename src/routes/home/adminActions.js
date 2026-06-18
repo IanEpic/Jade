@@ -304,9 +304,17 @@ export async function handleAdminAction(action, req, res, program, user) {
                 })(),
                 targetUser.credentialid ? UserCredential.findByPk(targetUser.credentialid) : null,
             ]);
+            const targetUserJson = targetUser.toJSON();
+            if (credential) {
+                targetUserJson.firstname    = credential.firstname    || '';
+                targetUserJson.lastname     = credential.lastname     || '';
+                targetUserJson.organisation = credential.organisation || '';
+                targetUserJson.telephone    = credential.telephone    || '';
+                targetUserJson.mobile       = credential.mobile       || '';
+            }
             return {
                 view:            'home/user-edit',
-                targetUser:      targetUser.toJSON(),
+                targetUser:      targetUserJson,
                 operator:        user,
                 addresses:       addresses.map(a => a.toJSON()),
                 categories,
