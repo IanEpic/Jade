@@ -169,8 +169,6 @@ router.post('/', async (req, res, next) => {
             const hashed = await encryptPassword(body.password);
             if (targetUser.credentialid) {
                 await UserCredential.update({ password: hashed }, { where: { credentialid: targetUser.credentialid } });
-            } else {
-                await targetUser.update({ password: hashed });
             }
         }
 
@@ -198,7 +196,11 @@ router.post('/', async (req, res, next) => {
             postaladdressid = newAddr.addressid;
         }
 
-        const oldemail = targetUser.email;
+        // Fetch current credential to get oldemail (email now lives in UserCredential)
+        const credential = targetUser.credentialid
+            ? await UserCredential.findByPk(targetUser.credentialid)
+            : null;
+        const oldemail = credential?.email || '';
 
         // Admin-only flags
         if (operator.admin) {
@@ -226,12 +228,8 @@ router.post('/', async (req, res, next) => {
                 mobile:       body.mobile       || '',
             }, { where: { credentialid: targetUser.credentialid } });
         }
-        await targetUser.update({
-            email:           body.email.trim(),
-            question:        body.question,
-            answer:          body.answer,
-            postaladdressid: postaladdressid,
-        });
+        // Only postaladdressid remains on the User table post-migration 036
+        await targetUser.update({ postaladdressid });
 
         // Judge category links (admin only, only if judge)
         if (operator.admin) {
@@ -270,8 +268,6 @@ router.post('/', async (req, res, next) => {
                     { email: body.email.trim(), password: hashed },
                     { where: { credentialid: targetUser.credentialid } }
                 );
-            } else {
-                await targetUser.update({ password: hashed });
             }
             mail({
                 to:       body.email.trim(),
