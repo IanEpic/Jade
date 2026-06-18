@@ -6,7 +6,6 @@ import { Router } from 'express';
 import { requireAuth } from '../middleware/auth.js';
 import { encryptPassword, validatePassword, PASSWORD_RULES } from '../services/helpers.js';
 import UserCredential from '../models/UserCredential.js';
-import User from '../models/User.js';
 
 const router = Router();
 router.use(requireAuth);
@@ -43,9 +42,6 @@ router.post('/', async (req, res, next) => {
                 { password: hashed, mustchangepassword: 0, activationtoken: null },
                 { where: { credentialid: credentialId } },
             );
-        } else {
-            // Legacy user with no credential row — update User.password directly
-            await User.update({ password: hashed }, { where: { userid: req.session.userId } });
         }
 
         res.redirect('/home');

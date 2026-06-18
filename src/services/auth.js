@@ -71,21 +71,8 @@ export async function login(email, password, programId, emulateUserId = null) {
       where: { credentialid: credential.credentialid, programid: programId, deleted: 0, enabled: 1 },
     });
   } else {
-    // Pre-migration fallback: check User.password directly
-    user = await User.findOne({
-      where: { email, programid: programId, deleted: 0, enabled: 1 },
-    });
-    if (!user) return null;
-    const valid = await checkPassword(password, user.password);
-    if (!valid) return null;
-
-    // Promote password to UserCredential on first successful legacy login
-    if (user.credentialid) {
-      UserCredential.update(
-        { password: user.password },
-        { where: { credentialid: user.credentialid } },
-      ).catch(err => console.warn('Password promotion to UserCredential failed:', err.message));
-    }
+    // No credential found — unknown user
+    return null;
   }
 
   if (!user) return null;

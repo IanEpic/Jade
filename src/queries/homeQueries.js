@@ -337,17 +337,13 @@ export async function getJudgesForProgram({ programId, useSimplejudging }) {
     const result = await pool.request()
         .input('programId', sql.Int, programId)
         .query(`
-      SELECT u.userid, u.programid, u.credentialid, u.email,
-             u.password, u.judge, u.simplejudge, u.admin, u.enabled, u.deleted,
+      SELECT u.userid, u.programid, u.credentialid,
+             uc.email, uc.password,
+             u.judge, u.simplejudge, u.admin, u.enabled, u.deleted,
              u.paymentsopen, u.judgingopen, u.exclude, u.chairperson, u.viewentries,
              u.reviewer, u.onlyjudgepostreview, u.judgetc, u.judgesuggestionid,
              u.feedbackleft, u.fax, u.postaladdressid,
-             u.question, u.answer,
-             ISNULL(uc.firstname,    u.firstname)    AS firstname,
-             ISNULL(uc.lastname,     u.lastname)     AS lastname,
-             ISNULL(uc.organisation, u.organisation) AS organisation,
-             ISNULL(uc.telephone,    u.telephone)    AS telephone,
-             ISNULL(uc.mobile,       u.mobile)       AS mobile
+             uc.firstname, uc.lastname, uc.organisation, uc.telephone, uc.mobile
       FROM [User] u
       LEFT JOIN UserCredential uc ON uc.credentialid = u.credentialid
       WHERE u.programid  = @programId
@@ -364,17 +360,13 @@ export async function getAllUsersForProgram({ programId }) {
     const result = await pool.request()
         .input('programId', sql.Int, programId)
         .query(`
-      SELECT u.userid, u.programid, u.credentialid, u.email,
-             u.password, u.judge, u.simplejudge, u.admin, u.enabled, u.deleted,
+      SELECT u.userid, u.programid, u.credentialid,
+             uc.email, uc.password,
+             u.judge, u.simplejudge, u.admin, u.enabled, u.deleted,
              u.paymentsopen, u.judgingopen, u.exclude, u.chairperson, u.viewentries,
              u.reviewer, u.onlyjudgepostreview, u.judgetc, u.judgesuggestionid,
              u.feedbackleft, u.fax, u.postaladdressid,
-             u.question, u.answer,
-             ISNULL(uc.firstname,    u.firstname)    AS firstname,
-             ISNULL(uc.lastname,     u.lastname)     AS lastname,
-             ISNULL(uc.organisation, u.organisation) AS organisation,
-             ISNULL(uc.telephone,    u.telephone)    AS telephone,
-             ISNULL(uc.mobile,       u.mobile)       AS mobile,
+             uc.firstname, uc.lastname, uc.organisation, uc.telephone, uc.mobile,
              ISNULL(uc.activated, 1)                 AS activated
       FROM [User] u
       LEFT JOIN UserCredential uc ON uc.credentialid = u.credentialid
@@ -392,17 +384,13 @@ export async function getEnabledJudgesForProgram({ programId, useSimplejudging }
     const result = await pool.request()
         .input('programId', sql.Int, programId)
         .query(`
-      SELECT u.userid, u.programid, u.credentialid, u.email,
-             u.password, u.judge, u.simplejudge, u.admin, u.enabled, u.deleted,
+      SELECT u.userid, u.programid, u.credentialid,
+             uc.email, uc.password,
+             u.judge, u.simplejudge, u.admin, u.enabled, u.deleted,
              u.paymentsopen, u.judgingopen, u.exclude, u.chairperson, u.viewentries,
              u.reviewer, u.onlyjudgepostreview, u.judgetc, u.judgesuggestionid,
              u.feedbackleft, u.fax, u.postaladdressid,
-             u.question, u.answer,
-             ISNULL(uc.firstname,    u.firstname)    AS firstname,
-             ISNULL(uc.lastname,     u.lastname)     AS lastname,
-             ISNULL(uc.organisation, u.organisation) AS organisation,
-             ISNULL(uc.telephone,    u.telephone)    AS telephone,
-             ISNULL(uc.mobile,       u.mobile)       AS mobile
+             uc.firstname, uc.lastname, uc.organisation, uc.telephone, uc.mobile
       FROM [User] u
       LEFT JOIN UserCredential uc ON uc.credentialid = u.credentialid
       WHERE u.programid   = @programId
@@ -663,8 +651,10 @@ export async function getEntryStats() {
         const datePart = (!isClosed && p.compDate)
             ? ` AND LogOnRecord.timestamp < '${p.compDate}'`
             : '';
-        return `SELECT ${p.year} AS Year, COUNT(DISTINCT [User].email) AS ActiveUsers
-FROM LogOnRecord INNER JOIN [User] ON LogOnRecord.userid = [User].userid
+        return `SELECT ${p.year} AS Year, COUNT(DISTINCT uc.email) AS ActiveUsers
+FROM LogOnRecord
+INNER JOIN [User] ON LogOnRecord.userid = [User].userid
+LEFT JOIN UserCredential uc ON uc.credentialid = [User].credentialid
 WHERE [User].exclude = 0 AND [User].deleted = 0
   AND [User].programid = ${p.progid}
   AND LogOnRecord.timestamp > '${p.opendate}'${datePart}`;
@@ -758,12 +748,8 @@ export async function getActiveUsersReport({ programId }) {
         .query(`
             SELECT
                 u.userid,
-                u.email,
-                ISNULL(uc.firstname,    u.firstname)    AS firstname,
-                ISNULL(uc.lastname,     u.lastname)     AS lastname,
-                ISNULL(uc.organisation, u.organisation) AS organisation,
-                ISNULL(uc.telephone,    u.telephone)    AS telephone,
-                ISNULL(uc.mobile,       u.mobile)       AS mobile,
+                uc.email,
+                uc.firstname, uc.lastname, uc.organisation, uc.telephone, uc.mobile,
                 Logons.LastLogon,
                 ISNULL(EntriesStarted.entries, 0) AS started,
                 ISNULL(EntriesPaid.entries,    0) AS paid,
@@ -810,10 +796,8 @@ export async function getPaidNotFinalisedReport({ programId }) {
             SELECT
                 e.entryid,
                 e.userid,
-                u.email,
-                ISNULL(uc.firstname,    u.firstname)    AS firstname,
-                ISNULL(uc.lastname,     u.lastname)     AS lastname,
-                ISNULL(uc.organisation, u.organisation) AS organisation,
+                uc.email,
+                uc.firstname, uc.lastname, uc.organisation,
                 e.userref,
                 e.entryaccepted,
                 e.entryopen,
@@ -827,7 +811,7 @@ export async function getPaidNotFinalisedReport({ programId }) {
               AND (e.finalised IS NULL OR e.finalised = 0)
               AND e.deleted      = 0
               AND u.exclude      = 0
-            ORDER BY u.email, e.entryid
+            ORDER BY uc.email, e.entryid
         `);
     return result.recordset;
 }
@@ -841,10 +825,8 @@ export async function getFinalisedNotPaidReport({ programId }) {
             SELECT
                 e.entryid,
                 e.userid,
-                u.email,
-                ISNULL(uc.firstname,    u.firstname)    AS firstname,
-                ISNULL(uc.lastname,     u.lastname)     AS lastname,
-                ISNULL(uc.organisation, u.organisation) AS organisation,
+                uc.email,
+                uc.firstname, uc.lastname, uc.organisation,
                 e.userref,
                 e.entryaccepted,
                 e.entryopen,
@@ -858,7 +840,7 @@ export async function getFinalisedNotPaidReport({ programId }) {
               AND (e.entryaccepted IS NULL OR e.entryaccepted = 0)
               AND e.deleted     = 0
               AND u.exclude     = 0
-            ORDER BY u.email, e.entryid
+            ORDER BY uc.email, e.entryid
         `);
     return result.recordset;
 }
