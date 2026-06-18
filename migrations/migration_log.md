@@ -908,3 +908,34 @@ FROM JudgingModel
 WHERE commentguidelines IS NOT NULL;
 ```
 
+
+---
+
+## 033–034 — (reserved / not recorded)
+
+Applied to UAT during earlier sessions. Check git log for context.
+
+---
+
+## 035 — Add profile fields to UserCredential; backfill from User
+
+**Date applied to UAT:** 2026-06-14
+**Purpose:** Move personal profile fields (firstname, lastname, organisation, telephone, mobile, fax) and platform-level superadmin flag from User to UserCredential, making them cross-program. Migration adds columns, backfills from User using ROW_NUMBER to pick the best profile per credential, then links any unlinked User rows.
+
+See `migrations/035_usercredential_profile.sql` and `run035.js` (temporary runner, now deleted).
+
+**Status:** Applied to UAT. Must be run on PROD before go-live.
+
+---
+
+## 036 — Drop profile and auth columns from User table
+
+**Date applied to UAT:** 2026-06-18 (in two parts)
+**Purpose:** Remove columns from User that are now owned by UserCredential.
+
+Part A — profile columns (firstname, lastname, organisation, telephone, mobile, fax)
+Part B — auth columns (email, password, question, answer)
+
+See `migrations/036_user_drop_profile_columns.sql` for the full script (covers both parts).
+
+**Status:** Applied to UAT. Must be run on PROD before go-live (after migration 035).
