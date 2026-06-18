@@ -167,7 +167,7 @@ form.user-form(method='POST' action='/formUser')
                             = cat.name
 
     .form-actions
-        a.btn-secondary(href='/home?action=users') < Users
+        a.btn-secondary(href=content.isAdmin ? '/home?action=users' : '/home') #{content.isAdmin ? '< Users' : 'Cancel'}
         button.btn(type='submit') Save Changes
 
 script(src='/js/user-edit.js')
