@@ -306,6 +306,7 @@ export async function handleAdminAction(action, req, res, program, user) {
             ]);
             const targetUserJson = targetUser.toJSON();
             if (credential) {
+                targetUserJson.email        = credential.email        || '';
                 targetUserJson.firstname    = credential.firstname    || '';
                 targetUserJson.lastname     = credential.lastname     || '';
                 targetUserJson.organisation = credential.organisation || '';

@@ -190,6 +190,7 @@ export async function handleSharedAction(action, req, res, program, user, data) 
         ]);
         const targetUser = {
             ...user.toJSON ? user.toJSON() : { ...user },
+            email:        credential?.email        || '',
             firstname:    credential?.firstname    || '',
             lastname:     credential?.lastname     || '',
             organisation: credential?.organisation || '',
