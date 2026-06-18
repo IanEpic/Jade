@@ -71,6 +71,14 @@ export async function login(email, password, programId, emulateUserId = null) {
     if (!user) return null;
     const valid = await checkPassword(password, user.password);
     if (!valid) return null;
+
+    // Promote password to UserCredential on first successful legacy login
+    if (user.credentialid) {
+      UserCredential.update(
+        { password: user.password },
+        { where: { credentialid: user.credentialid } },
+      ).catch(err => console.warn('Password promotion to UserCredential failed:', err.message));
+    }
   }
 
   if (!user) return null;
