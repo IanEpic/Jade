@@ -137,7 +137,6 @@ router.get('/', async (req, res, next) => {
             telephone:    credential?.telephone    || '',
             mobile:       credential?.mobile       || '',
         };
-        console.log('DEBUG formUser targetUserData:', JSON.stringify({ credentialid: targetUserData.credentialid, firstname: targetUserData.firstname, credential: credential?.credentialid }));
 
         return res.renderInShell('formUser', {
             user: operator, program, targetUser: targetUserData, addresses, categories: [], passwordRules: PASSWORD_RULES,

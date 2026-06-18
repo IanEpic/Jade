@@ -1,6 +1,7 @@
 // middleware/auth.js
 
-import User from '../models/User.js';
+import User           from '../models/User.js';
+import UserCredential from '../models/UserCredential.js';
 
 export async function requireAuth(req, res, next) {
     if (!req.session?.userId) {
@@ -46,10 +47,15 @@ export async function requireAuth(req, res, next) {
         // rather than re-loading it via the association (saves a JOIN per request).
         if (req.program) user.program = req.program;
 
+        // Merge profile fields from UserCredential (source of truth post-migration).
+        // Falls back gracefully to User fields for legacy rows without a credential.
+        await mergeCredentialProfile(user);
+
         if (req.session.emulateUserId) {
             req.realUser = user;
             const emulated = await User.findByPk(req.session.emulateUserId);
             if (emulated && req.program) emulated.program = req.program;
+            await mergeCredentialProfile(emulated);
             req.user = emulated;
         } else {
             req.user = user;
@@ -59,6 +65,19 @@ export async function requireAuth(req, res, next) {
     } catch (err) {
         next(err);
     }
+}
+
+async function mergeCredentialProfile(user) {
+    if (!user?.credentialid) return;
+    const cred = await UserCredential.findByPk(user.credentialid);
+    if (!cred) return;
+    if (cred.firstname)    user.firstname    = cred.firstname;
+    if (cred.lastname)     user.lastname     = cred.lastname;
+    if (cred.organisation) user.organisation = cred.organisation;
+    if (cred.telephone)    user.telephone    = cred.telephone;
+    if (cred.mobile)       user.mobile       = cred.mobile;
+    if (cred.fax)          user.fax          = cred.fax;
+    user.superadmin = !!cred.superadmin;
 }
 
 export function requireAdmin(req, res, next) {
