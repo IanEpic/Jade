@@ -3,7 +3,7 @@
 import Program from '../models/Program.js';
 import User from '../models/User.js';
 import UserCredential from '../models/UserCredential.js';
-import { checkPassword } from './helpers.js';
+import { checkPassword, encryptPassword } from './helpers.js';
 
 // ── Program cache ─────────────────────────────────────────────────────────────
 // Programs are looked up on every request but almost never change at runtime.
@@ -59,6 +59,13 @@ export async function login(email, password, programId, emulateUserId = null) {
   if (credential) {
     const valid = await checkPassword(password, credential.password);
     if (!valid) return null;
+
+    // Upgrade legacy DES hash to bcrypt on successful login
+    if (credential.password && !credential.password.startsWith('$2b$') && !credential.password.startsWith('$2a$')) {
+      encryptPassword(password)
+        .then(hashed => UserCredential.update({ password: hashed }, { where: { credentialid: credential.credentialid } }))
+        .catch(err => console.warn('Password upgrade to bcrypt failed:', err.message));
+    }
 
     user = await User.findOne({
       where: { credentialid: credential.credentialid, programid: programId, deleted: 0, enabled: 1 },
