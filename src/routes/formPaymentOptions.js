@@ -22,6 +22,10 @@ async function getAllInvoices(userId) {
         .input('userId', sql.Int, userId)
         .query(`
             SELECT i.*,
+                   (i.totalex + i.gst
+                    - ISNULL(i.partnerdiscount,0)
+                    - ISNULL(i.ebdiscount,0)
+                    + ISNULL(i.multientryadjustment,0)) AS totalamt,
                    ISNULL((SELECT SUM(pa.amount) FROM PaymentAllocation pa WHERE pa.invoiceid = i.invoiceid), 0) AS paid
             FROM Invoice i
             WHERE i.userid  = @userId
@@ -32,10 +36,7 @@ async function getAllInvoices(userId) {
 
 async function getUnpaidInvoices(userId) {
     const invoices = await getAllInvoices(userId);
-    return invoices.filter(inv => {
-        const total = (parseFloat(inv.totalex)||0) + (parseFloat(inv.gst)||0) - (parseFloat(inv.partnerdiscount)||0);
-        return total > (parseFloat(inv.paid)||0);
-    });
+    return invoices.filter(inv => (parseFloat(inv.totalamt)||0) > (parseFloat(inv.paid)||0));
 }
 
 const ENTRY_COLS = `
