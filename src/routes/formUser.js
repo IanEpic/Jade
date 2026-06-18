@@ -127,17 +127,19 @@ router.get('/', async (req, res, next) => {
             targetUser.credentialid ? UserCredential.findByPk(targetUser.credentialid) : null,
         ]);
 
-        // Merge profile from UserCredential onto targetUser
-        if (credential) {
-            targetUser.firstname    = credential.firstname    || '';
-            targetUser.lastname     = credential.lastname     || '';
-            targetUser.organisation = credential.organisation || '';
-            targetUser.telephone    = credential.telephone    || '';
-            targetUser.mobile       = credential.mobile       || '';
-        }
+        // Build a plain object for the template — Sequelize instance no longer has
+        // profile fields defined (dropped in migration 036), so we must spread into a POJO.
+        const targetUserData = {
+            ...targetUser.toJSON(),
+            firstname:    credential?.firstname    || '',
+            lastname:     credential?.lastname     || '',
+            organisation: credential?.organisation || '',
+            telephone:    credential?.telephone    || '',
+            mobile:       credential?.mobile       || '',
+        };
 
         return res.renderInShell('formUser', {
-            user: operator, program, targetUser, addresses, categories: [], passwordRules: PASSWORD_RULES,
+            user: operator, program, targetUser: targetUserData, addresses, categories: [], passwordRules: PASSWORD_RULES,
             targetActivated: !credential || credential.activated,
             error: null, isAdmin: false,
         });
