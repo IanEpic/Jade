@@ -337,7 +337,12 @@ export async function getJudgesForProgram({ programId, useSimplejudging }) {
     const result = await pool.request()
         .input('programId', sql.Int, programId)
         .query(`
-      SELECT u.*,
+      SELECT u.userid, u.programid, u.credentialid, u.email,
+             u.password, u.judge, u.simplejudge, u.admin, u.enabled, u.deleted,
+             u.paymentsopen, u.judgingopen, u.exclude, u.chairperson, u.viewentries,
+             u.reviewer, u.onlyjudgepostreview, u.judgetc, u.judgesuggestionid,
+             u.feedbackleft, u.fax, u.postaladdressid,
+             u.question, u.answer, u.logoncount, u.lastlogon,
              ISNULL(uc.firstname,    u.firstname)    AS firstname,
              ISNULL(uc.lastname,     u.lastname)     AS lastname,
              ISNULL(uc.organisation, u.organisation) AS organisation,
@@ -359,7 +364,12 @@ export async function getAllUsersForProgram({ programId }) {
     const result = await pool.request()
         .input('programId', sql.Int, programId)
         .query(`
-      SELECT u.*,
+      SELECT u.userid, u.programid, u.credentialid, u.email,
+             u.password, u.judge, u.simplejudge, u.admin, u.enabled, u.deleted,
+             u.paymentsopen, u.judgingopen, u.exclude, u.chairperson, u.viewentries,
+             u.reviewer, u.onlyjudgepostreview, u.judgetc, u.judgesuggestionid,
+             u.feedbackleft, u.fax, u.postaladdressid,
+             u.question, u.answer, u.logoncount, u.lastlogon,
              ISNULL(uc.firstname,    u.firstname)    AS firstname,
              ISNULL(uc.lastname,     u.lastname)     AS lastname,
              ISNULL(uc.organisation, u.organisation) AS organisation,
@@ -382,7 +392,12 @@ export async function getEnabledJudgesForProgram({ programId, useSimplejudging }
     const result = await pool.request()
         .input('programId', sql.Int, programId)
         .query(`
-      SELECT u.*,
+      SELECT u.userid, u.programid, u.credentialid, u.email,
+             u.password, u.judge, u.simplejudge, u.admin, u.enabled, u.deleted,
+             u.paymentsopen, u.judgingopen, u.exclude, u.chairperson, u.viewentries,
+             u.reviewer, u.onlyjudgepostreview, u.judgetc, u.judgesuggestionid,
+             u.feedbackleft, u.fax, u.postaladdressid,
+             u.question, u.answer, u.logoncount, u.lastlogon,
              ISNULL(uc.firstname,    u.firstname)    AS firstname,
              ISNULL(uc.lastname,     u.lastname)     AS lastname,
              ISNULL(uc.organisation, u.organisation) AS organisation,
