@@ -52,6 +52,9 @@ else
             tr(align='left' valign='top')
                 td(colspan='2' align='center')
                     input(type='submit' name='submit' value='Save Eligibility')
+                    |
+                    a(href='/home?action=eligibility') Cancel
+
 script(nonce=nonce).
     (function () {
         var sel = document.getElementById('allcats-sel');
@@ -61,5 +64,3 @@ script(nonce=nonce).
             document.querySelectorAll('input[type=checkbox][name=categories]').forEach(function (cb) { cb.checked = checked; });
         });
     })();
-                    |
-                    a(href='/home?action=eligibility') Cancel
