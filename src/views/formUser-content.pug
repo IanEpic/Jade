@@ -35,7 +35,7 @@ form.user-form(method='POST' action='/formUser')
     //- Admin quick-actions
     if isAdmin && user.userid !== targetUser.userid
         .action-links
-            a(href='/formUser?action=delete&edituserid=' + targetUser.userid onclick='return confirm("Delete this user?")') Delete
+            a(href='/formUser?action=delete&edituserid=' + targetUser.userid data-confirm='Delete this user?') Delete
             if targetUser.enabled
                 a(href='/formUser?action=disable&edituserid=' + targetUser.userid) Disable
             else
@@ -43,7 +43,7 @@ form.user-form(method='POST' action='/formUser')
             if !targetActivated
                 a(href='/formUser?action=activate&edituserid=' + targetUser.userid) Activate Account
             if targetUser.judge
-                a(href='/formUser?action=demote&edituserid=' + targetUser.userid onclick='return confirm("Remove all judging data?")') Demote from Judge
+                a(href='/formUser?action=demote&edituserid=' + targetUser.userid data-confirm='Remove all judging data?') Demote from Judge
 
     //- ── Login details ────────────────────────────────────────────────────────
     fieldset

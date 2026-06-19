@@ -81,7 +81,7 @@ form(name='entryform' method='POST' action='/formEntry')
             tr
                 td: b Select an Entrant
                 td
-                    select(name='entrantid' onchange='checkEntrant(document.entryform)')
+                    select(name='entrantid')
                         if !isEdit
                             option(value='a') ------Please Select------
                         option(value='b') New Entrant Below
@@ -117,7 +117,7 @@ form(name='entryform' method='POST' action='/formEntry')
                         tr
                             td Select a Street Address
                             td
-                                select(name='streetaddressid' onchange='checkAddress(this)')
+                                select(name='streetaddressid')
                                     option(value='a') ------Please Select------
                                     option(value='b') New Address Below
                                     each addr in addresses
@@ -149,7 +149,7 @@ form(name='entryform' method='POST' action='/formEntry')
                         tr
                             td Select a Postal Address
                             td
-                                select(name='postaladdressid' onchange='checkAddress(this)')
+                                select(name='postaladdressid')
                                     option(value='a') ------Please Select------
                                     option(value='b') New Address Below
                                     option(value='c') Same as above

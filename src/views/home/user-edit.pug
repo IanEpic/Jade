@@ -37,7 +37,7 @@ form.user-form(method='POST' action='/formUser')
     //- Admin quick-actions
     if content.isAdmin && content.operator.userid !== content.targetUser.userid
         .action-links
-            a(href='/formUser?action=delete&edituserid=' + content.targetUser.userid onclick='return confirm("Delete this user?")' style='color:#c44') Delete
+            a(href='/formUser?action=delete&edituserid=' + content.targetUser.userid data-confirm='Delete this user?' style='color:#c44') Delete
             if content.targetUser.enabled
                 a(href='/formUser?action=disable&edituserid=' + content.targetUser.userid) Disable
             else
@@ -47,7 +47,7 @@ form.user-form(method='POST' action='/formUser')
             if content.hasSetupToken
                 a(href='/formUser?action=resend-setup&edituserid=' + content.targetUser.userid) Resend Setup Email
             if content.targetUser.judge
-                a(href='/formUser?action=demote&edituserid=' + content.targetUser.userid onclick='return confirm("Remove all judging data?")') Demote from Judge
+                a(href='/formUser?action=demote&edituserid=' + content.targetUser.userid data-confirm='Remove all judging data?') Demote from Judge
 
     //- ── Login details ────────────────────────────────────────────────────────
     fieldset

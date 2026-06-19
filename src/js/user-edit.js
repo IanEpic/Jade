@@ -1,4 +1,10 @@
-// user-edit.js — address dropdown show/hide + judge category fieldset toggle
+// user-edit.js — address dropdown show/hide + judge category fieldset toggle + confirm dialogs
+
+document.addEventListener('click', function (e) {
+    var el = e.target.closest('[data-confirm]');
+    if (!el) return;
+    if (!confirm(el.dataset.confirm)) e.preventDefault();
+});
 // Shared by: home/user-edit.pug, formUser-content.pug
 
 (function () {

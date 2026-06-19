@@ -66,8 +66,18 @@ form(name='nominationform' method='POST' action='/nominatewinner')
                 tr
                     td(colspan='4') &nbsp;
                     td(align='center')
-                        input(type='button' value='Reset' onclick=`setCheckedValue(document.forms['nominationform'].elements['but~${cat.categoryid}'], '')`)
+                        input.js-reset-radio(type='button' value='Reset' data-form='nominationform' data-radio=`but~${cat.categoryid}`)
 
         tr
             td(colspan='5' align='center')
                 button(type='submit') Record Nominations
+script(nonce=nonce).
+    document.addEventListener('click', function (e) {
+        var btn = e.target.closest('.js-reset-radio');
+        if (!btn) return;
+        var form = document.forms[btn.dataset.form];
+        if (!form) return;
+        var els = form.elements[btn.dataset.radio];
+        if (!els) return;
+        Array.from(els).forEach(function (r) { r.checked = false; });
+    });

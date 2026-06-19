@@ -21,7 +21,7 @@ else
             tr(align='left' valign='top')
                 td Apply to new cats
                 td
-                    select(name='allcats' onchange='checkAll(document.eligibilityform)')
+                    select(name='allcats' id='allcats-sel')
                         option(value='1' selected=(eligibility && eligibility.allcats == 1)) Yes
                         option(value='0' selected=(!eligibility || eligibility.allcats != 1)) No
 
@@ -52,5 +52,14 @@ else
             tr(align='left' valign='top')
                 td(colspan='2' align='center')
                     input(type='submit' name='submit' value='Save Eligibility')
+script(nonce=nonce).
+    (function () {
+        var sel = document.getElementById('allcats-sel');
+        if (!sel) return;
+        sel.addEventListener('change', function () {
+            var checked = this.value === '1';
+            document.querySelectorAll('input[type=checkbox][name=categories]').forEach(function (cb) { cb.checked = checked; });
+        });
+    })();
                     |
                     a(href='/home?action=eligibility') Cancel

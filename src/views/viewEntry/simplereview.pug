@@ -48,7 +48,7 @@ form(name='reviewform' method='POST' action='/simpleReview')
                     input(type='radio' name='acceptreject' value='Rejected' checked=(currentStatus === 'Rejected'))
                     |  Rejected
                 | &nbsp;
-                input.btn-secondary(type='button' value='Reset' onclick="setCheckedValue(document.forms['reviewform'].elements['acceptreject'], '')")
+                input.btn-secondary.js-reset-radio(type='button' value='Reset' data-form='reviewform' data-radio='acceptreject')
 
             td(colspan='2'): hr
 

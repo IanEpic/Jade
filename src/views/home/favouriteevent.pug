@@ -12,8 +12,7 @@ else
         br
         | Promote Your Nomination
 
-    form(method='POST' action='/home?action=favouriteevent'
-        onsubmit="if(document.getElementById('afeeventid').selectedIndex==0){alert('Please select a nominee'); return false;} else {return confirm('This action will send\\nemails to all those listed.\\n\\nPlease confirm that\\nyou want to send emails\\nby clicking OK below.');}")
+    form#afeeventform(method='POST' action='/home?action=favouriteevent')
 
         input(type='hidden' name='action' value='favouriteevent')
 
@@ -44,3 +43,15 @@ else
             tr
                 td(colspan='2' style='text-align:center;')
                     button(type='submit') Send Voting Slips
+script(nonce=nonce).
+    document.getElementById('afeeventform').addEventListener('submit', function (e) {
+        var sel = document.getElementById('afeeventid');
+        if (!sel || sel.selectedIndex === 0) {
+            e.preventDefault();
+            alert('Please select a nominee');
+            return;
+        }
+        if (!confirm('This action will send\nemails to all those listed.\n\nPlease confirm that\nyou want to send emails\nby clicking OK below.')) {
+            e.preventDefault();
+        }
+    });

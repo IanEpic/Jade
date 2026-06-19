@@ -24,7 +24,7 @@ table
         tr
             td Select a Street Address
             td
-                select(name='streetaddressid' onchange='checkAddress(document.entryform)')
+                select(name='streetaddressid')
                     option(value='a') ------ Please Select ------
                     option(value='b') New Address Below
                     each addr in addresses
@@ -56,7 +56,7 @@ table
         tr
             td Select a Postal Address
             td
-                select(name='postaladdressid' onchange='checkAddress(document.entryform)')
+                select(name='postaladdressid')
                     option(value='a') ------ Please Select ------
                     option(value='b') New Address Below
                     option(value='c') Same as above

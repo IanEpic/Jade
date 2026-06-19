@@ -96,7 +96,7 @@ form(name='questionform' method='POST' action='/formQuestion')
         tr(align='left' valign='top')
             td Apply to new Cats
             td
-                select(name='allcats' onchange='checkAll(document.questionform)')
+                select(name='allcats' id='allcats-sel')
                     option(value='0' selected=!(question && question.allcats)) No
                     option(value='1' selected=(question && question.allcats)) Yes
 
@@ -135,3 +135,12 @@ form(name='questionform' method='POST' action='/formQuestion')
                 input(type='submit' name='submit' value='Save Question')
                 |
                 a(href='/home?action=questions&type=entry') Cancel
+script(nonce=nonce).
+    (function () {
+        var sel = document.getElementById('allcats-sel');
+        if (!sel) return;
+        sel.addEventListener('change', function () {
+            var checked = this.value === '1';
+            document.querySelectorAll('input[type=checkbox][name=categories]').forEach(function (cb) { cb.checked = checked; });
+        });
+    })();

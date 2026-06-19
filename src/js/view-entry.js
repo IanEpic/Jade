@@ -47,6 +47,17 @@ if (finaliseCheckbox && finaliseRecord && editEntryBtn) {
     });
 }
 
+// Reset radio buttons — data-form + data-radio attributes
+document.addEventListener('click', function (e) {
+    var btn = e.target.closest('.js-reset-radio');
+    if (!btn) return;
+    var form = document.forms[btn.dataset.form];
+    if (!form) return;
+    var els = form.elements[btn.dataset.radio];
+    if (!els) return;
+    Array.from(els).forEach(function (r) { r.checked = false; });
+});
+
 // Print buttons — onclick blocked by CSP script-src-attr 'none', wire up here
 document.querySelectorAll('button.btn-print').forEach(function (btn) {
     btn.addEventListener('click', function () { window.print(); });

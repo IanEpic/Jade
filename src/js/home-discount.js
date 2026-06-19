@@ -8,7 +8,10 @@ function toggleCodeField(type) {
 
 (function () {
     var typeSel = document.querySelector('select[name=type]');
-    if (typeSel) toggleCodeField(typeSel.value);
+    if (typeSel) {
+        toggleCodeField(typeSel.value);
+        typeSel.addEventListener('change', function () { toggleCodeField(this.value); });
+    }
 
     var btnNew  = document.getElementById('btn-new-disc');
     var wrap    = document.getElementById('disc-form-wrap');

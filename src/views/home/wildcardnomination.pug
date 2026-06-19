@@ -30,8 +30,7 @@ form(name='wildcardform' method='POST' action='/nominatewildcard')
                 tr
                     td(colspan='2') &nbsp;
                     td(align='center')
-                        input(type='button' value='Reset'
-                            onclick=`setCheckedValue(document.forms['wildcardform'].elements['but~${cat.categoryid}'], ''); emptyTextArea(document.forms['wildcardform'].elements['reason~${cat.categoryid}'])`)
+                        input.js-reset-group(type='button' value='Reset' data-form='wildcardform' data-radio=`but~${cat.categoryid}` data-textarea=`reason~${cat.categoryid}`)
 
                 tr
                     td(colspan='3')
@@ -44,3 +43,14 @@ form(name='wildcardform' method='POST' action='/nominatewildcard')
         tr
             td(colspan='3' align='center')
                 button(type='submit') Save Nominations
+script(nonce=nonce).
+    document.addEventListener('click', function (e) {
+        var btn = e.target.closest('.js-reset-group');
+        if (!btn) return;
+        var form = document.forms[btn.dataset.form];
+        if (!form) return;
+        var radios = form.elements[btn.dataset.radio];
+        if (radios) Array.from(radios).forEach(function (r) { r.checked = false; });
+        var ta = form.elements[btn.dataset.textarea];
+        if (ta) ta.value = '';
+    });

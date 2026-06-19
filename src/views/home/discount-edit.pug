@@ -30,7 +30,7 @@ form.disc-edit-form(method='POST' action='/formDiscount')
             tr
                 td Type
                 td
-                    select(name='type' onchange='toggleCodeField(this.value)')
+                    select(name='type')
                         option(value='earlybird' selected=(content.discount.type === 'earlybird')) Early Bird
                         option(value='code' selected=(content.discount.type === 'code')) Promo Code
             tr#code-row

@@ -329,7 +329,7 @@ form.cat-form(method='POST' action='/formCategory')
                         tr
                             td(style='padding-right:8px; padding-top:6px') Type
                             td(style='padding-top:6px')
-                                select#q-new-type(style='background:#1a1a1a; color:#eee; border:1px solid #555; padding:4px 6px' onchange='toggleCatQOptions(this.value)')
+                                select#q-new-type(style='background:#1a1a1a; color:#eee; border:1px solid #555; padding:4px 6px')
                                     option(value='text') Text field
                                     option(value='textarea') Text area
                                     option(value='select') Dropdown
@@ -421,6 +421,7 @@ form.cat-form(method='POST' action='/formCategory')
                             var row = document.getElementById('q-new-options-row');
                             if (row) row.style.display = (type === 'select' || type === 'radio' || type === 'checkbox') ? '' : 'none';
                         };
+                        if (newType) newType.addEventListener('change', function () { window.toggleCatQOptions(this.value); });
 
                         newCancel.addEventListener('click', function (e) {
                             e.preventDefault();
