@@ -23,6 +23,9 @@ router.post('/', async (req, res, next) => {
         const finalised = req.body.finalise ? true : false;
         await entry.update({ finalised });
 
+        if (req.headers['x-requested-with'] === 'XMLHttpRequest') {
+            return res.json({ ok: true, finalised });
+        }
         return res.redirect('/home?action=entries');
 
     } catch (err) { next(err); }

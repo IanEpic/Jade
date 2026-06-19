@@ -21,13 +21,27 @@ document.querySelectorAll('.ve-media video').forEach(function (vid) {
     vid.addEventListener('error', function () { uploadError(vid); });
 });
 
-// Finalise Record button — update Edit Entry visibility based on checkbox state when Record is clicked
+// Finalise form — submit via AJAX so the user stays on the entry page
 var finaliseCheckbox = document.getElementById('finalise-checkbox');
 var finaliseRecord   = document.getElementById('finalise-record');
 var editEntryBtn     = document.getElementById('edit-entry-btn');
 if (finaliseCheckbox && finaliseRecord && editEntryBtn) {
-    finaliseRecord.addEventListener('click', function () {
-        editEntryBtn.style.display = finaliseCheckbox.checked ? 'none' : '';
+    finaliseRecord.addEventListener('click', function (e) {
+        e.preventDefault();
+        var form = finaliseRecord.closest('form');
+        var fd   = new FormData(form);
+        fetch(form.action, {
+            method:  'POST',
+            headers: { 'X-Requested-With': 'XMLHttpRequest' },
+            body:    fd,
+        })
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+            if (data.ok) {
+                editEntryBtn.style.display = data.finalised ? 'none' : '';
+            }
+        })
+        .catch(function () {});
     });
 }
 
