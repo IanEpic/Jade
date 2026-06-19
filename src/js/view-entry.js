@@ -28,12 +28,12 @@ var editEntryBtn     = document.getElementById('edit-entry-btn');
 if (finaliseCheckbox && finaliseRecord && editEntryBtn) {
     finaliseRecord.addEventListener('click', function (e) {
         e.preventDefault();
-        var form = finaliseRecord.closest('form');
-        var fd   = new FormData(form);
+        var form   = finaliseRecord.closest('form');
+        var params = new URLSearchParams(new FormData(form));
         fetch(form.action, {
             method:  'POST',
-            headers: { 'X-Requested-With': 'XMLHttpRequest' },
-            body:    fd,
+            headers: { 'X-Requested-With': 'XMLHttpRequest', 'Content-Type': 'application/x-www-form-urlencoded' },
+            body:    params.toString(),
         })
         .then(function (r) { return r.json(); })
         .then(function (data) {
