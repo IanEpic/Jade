@@ -107,9 +107,10 @@ async function getAllJudgeComments(entryId) {
     const result = await pool.request()
         .input('entryId', sql.Int, entryId)
         .query(`
-            SELECT jc.*, u.firstname, u.lastname
+            SELECT jc.*, uc.firstname, uc.lastname
             FROM JudgeComment jc
             LEFT JOIN [User] u ON jc.userid = u.userid
+            LEFT JOIN UserCredential uc ON uc.credentialid = u.credentialid
             WHERE jc.entryid = @entryId AND jc.deleted = 0
         `);
     return result.recordset;

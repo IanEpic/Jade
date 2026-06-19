@@ -349,7 +349,7 @@ export async function getJudgesForProgram({ programId, useSimplejudging }) {
       WHERE u.programid  = @programId
         AND u.${judgeCol} = 1
         AND u.deleted    = 0
-      ORDER BY ISNULL(uc.lastname, u.lastname)
+      ORDER BY uc.lastname
     `);
     return result.recordset;
 }
@@ -372,7 +372,7 @@ export async function getAllUsersForProgram({ programId }) {
       LEFT JOIN UserCredential uc ON uc.credentialid = u.credentialid
       WHERE u.programid = @programId
         AND u.deleted   = 0
-      ORDER BY u.enabled DESC, ISNULL(uc.lastname, u.lastname) ASC
+      ORDER BY u.enabled DESC, uc.lastname ASC
     `);
     return result.recordset;
 }
@@ -397,7 +397,7 @@ export async function getEnabledJudgesForProgram({ programId, useSimplejudging }
         AND u.${judgeCol} = 1
         AND u.deleted     = 0
         AND u.enabled     = 1
-      ORDER BY ISNULL(uc.lastname, u.lastname)
+      ORDER BY uc.lastname
     `);
     return result.recordset;
 }
