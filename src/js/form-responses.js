@@ -132,7 +132,7 @@ document.querySelectorAll('.dropzone').forEach(function (dz) {
     });
 
     var MAX_FILE_BYTES = 2 * 1024 * 1024 * 1024; // 2 GB — must match server MAX_UPLOAD_BYTES
-    var CHUNK_SIZE     = 50 * 1024 * 1024;       // 50 MB — well under Cloudflare's 100 MB limit
+    var CHUNK_SIZE     = 10 * 1024 * 1024;       // 10 MB — balances retry cost vs timeout risk on slow connections
 
     function handleFile(file) {
         // ── Type guard ──────────────────────────────────────────────────────
