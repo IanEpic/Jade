@@ -22,14 +22,15 @@ document.querySelectorAll('.ve-media video').forEach(function (vid) {
 });
 
 // Finalise form — submit via AJAX so the user stays on the entry page
-var finaliseForm     = document.getElementById('finalise-form');
 var finaliseCheckbox = document.getElementById('finalise-checkbox');
 var finaliseRecord   = document.getElementById('finalise-record');
 var editEntryBtn     = document.getElementById('edit-entry-btn');
-if (finaliseForm && finaliseCheckbox && finaliseRecord && editEntryBtn) {
-    finaliseRecord.addEventListener('click', function () {
-        var fd = new FormData(finaliseForm);
-        fetch(finaliseForm.action, {
+if (finaliseCheckbox && finaliseRecord && editEntryBtn) {
+    finaliseRecord.addEventListener('click', function (e) {
+        e.preventDefault();
+        var form = finaliseRecord.closest('form');
+        var fd   = new FormData(form);
+        fetch(form.action, {
             method:  'POST',
             headers: { 'X-Requested-With': 'XMLHttpRequest' },
             body:    fd,
