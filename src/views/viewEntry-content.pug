@@ -33,6 +33,15 @@ style.
     .ve-doc-link:hover { color: #c48f06; }
     .ve-noinput { color: #c48f06; font-weight: 600; font-size: 13px; padding: 14px 0 8px; letter-spacing: 0.03em; }
     .ve-form-actions { display: flex; justify-content: center; gap: 12px; margin-top: 6px; }
+    @media print {
+        body, .ve-wrap { background: #fff !important; color: #000 !important; }
+        .ve-card { border-color: #ccc !important; box-shadow: none !important; background: #fff !important; }
+        .ve-card-title, .ve-q-label, h2 { color: #000 !important; }
+        .ve-q-answer, .ve-entrant-grid .val { color: #222 !important; }
+        .ve-entrant-grid .lbl, .ve-q-desc, .ve-meta { color: #555 !important; }
+        .sidebar, nav, .home-nav, .ve-form-actions, #score-panel { display: none !important; }
+        .ve-wrap { max-width: 100% !important; margin: 0 !important; }
+    }
 
 if error === 'noaccess'
     .ve-wrap
@@ -96,5 +105,6 @@ else
         if !scorePanel || scorePanel.type !== 'entrant'
             .ve-form-actions
                 a.btn-secondary(href='/home') Home
+                button.btn-secondary(type='button' onclick='window.print()') Print
 
 script(defer src='/js/view-entry.js')

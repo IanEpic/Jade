@@ -14,7 +14,9 @@ if scorePanel.canFinalise
                 button.btn(type='submit' name='submit' value='Record') Record
     tr: td(colspan='2' align='center')
         a.btn-secondary(href='/home') Home
-        a.btn-secondary(href='/' + slug + '/formResponses?entryid=' + entry.entryid) Edit Entry
+        button.btn-secondary(type='button' onclick='window.print()') Print
+        if !entry.finalised
+            a.btn-secondary(href='/' + slug + '/formResponses?entryid=' + entry.entryid) Edit Entry
 else
     tr: td(colspan='2')
         div(style='border:2px solid #c48f06; padding:10px; margin-bottom:10px;')
@@ -22,4 +24,6 @@ else
                 | This entry is complete and ready for judging
             else
                 | Entry not complete and ready for judging
-    tr: td(colspan='2' align='center'): a.btn-secondary(href='/home') Home
+    tr: td(colspan='2' align='center')
+        a.btn-secondary(href='/home') Home
+        button.btn-secondary(type='button' onclick='window.print()') Print
