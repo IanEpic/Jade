@@ -32,7 +32,7 @@ form.el-form(method='POST' action='/formEligibility')
             tr
                 td Applies to all categories
                 td
-                    select(name='allcats')
+                    select(name='allcats' id='allcats-sel')
                         option(value='0' selected=(!content.eligibility || content.eligibility.allcats != 1)) No
                         option(value='1' selected=(content.eligibility && content.eligibility.allcats == 1)) Yes
 
@@ -47,3 +47,13 @@ form.el-form(method='POST' action='/formEligibility')
     .form-actions
         a.btn-secondary(href='/home?action=eligibility') < Eligibility Rules
         button.btn(type='submit') Save Rule
+
+script(nonce=nonce).
+    (function () {
+        var sel = document.getElementById('allcats-sel');
+        if (!sel) return;
+        sel.addEventListener('change', function () {
+            var checked = this.value === '1';
+            document.querySelectorAll('input[type=checkbox][name=categories]').forEach(function (cb) { cb.checked = checked; });
+        });
+    })();
