@@ -7,11 +7,11 @@ if scorePanel.canFinalise
             form(method='POST' action='/finaliseEntry')
                 input(type='hidden' name='entryid' value=entry.entryid)
                 label
-                    input(type='checkbox' name='finalise' checked=entry.finalised)
+                    input#finalise-checkbox(type='checkbox' name='finalise' checked=entry.finalised)
                     |  This entry is complete and ready for judging
                 br
                 br
-                button.btn(type='submit' name='submit' value='Record') Record
+                button#finalise-record.btn(type='submit' name='submit' value='Record') Record
     tr: td(colspan='2' align='center')
         a.btn-secondary(href='/home') Home
         button.btn-secondary(type='button' onclick='window.print()') Print

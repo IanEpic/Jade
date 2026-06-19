@@ -21,6 +21,16 @@ document.querySelectorAll('.ve-media video').forEach(function (vid) {
     vid.addEventListener('error', function () { uploadError(vid); });
 });
 
+// Finalise Record button — update Edit Entry visibility based on checkbox state when Record is clicked
+var finaliseCheckbox = document.getElementById('finalise-checkbox');
+var finaliseRecord   = document.getElementById('finalise-record');
+var editEntryBtn     = document.getElementById('edit-entry-btn');
+if (finaliseCheckbox && finaliseRecord && editEntryBtn) {
+    finaliseRecord.addEventListener('click', function () {
+        editEntryBtn.style.display = finaliseCheckbox.checked ? 'none' : '';
+    });
+}
+
 // File download links — HEAD check, replace link with [Upload Error] on 404
 document.querySelectorAll('a.ve-doc-link').forEach(function (a) {
     fetch(a.href, { method: 'HEAD' })
