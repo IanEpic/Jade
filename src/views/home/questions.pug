@@ -28,7 +28,7 @@ form(method='POST' action='/formQuestion')
     input(type='hidden' name='task' value='reorder')
 
     .q-toolbar
-        input#q-list-search(type='text' placeholder='Search questionsâ€¦' data-filter='.q-table tbody tr')
+        input#q-list-search(type='text' placeholder='Search questions…' data-filter='.q-table tbody tr')
         a#btn-new-q(href='#') + New Question
 
     div#new-q-form(style='display:none; margin-bottom:16px; padding:12px; background:#111; border:1px solid #555; border-radius:4px; max-width:600px')
@@ -79,11 +79,11 @@ form(method='POST' action='/formQuestion')
                         div.q-text= q.questiontext
                         if q.description
                             div.q-desc= q.description
-                    td: span.q-type= q.questiontype || 'â€”'
+                    td: span.q-type= q.questiontype || '—'
                     td: input(type='text' name='#' + q.questionid value=i+1)
                     td.q-actions
-                        a(href='/home?action=questions&type=' + content.type + '&questionid=' + q.questionid title='Edit') âœï¸
-                        a(href='/formQuestion?questionid=' + q.questionid + '&action=delete' data-confirm='Delete question ' + q.questionid + '?' title='Delete' style='color:#c44') âœ•
+                        a(href='/home?action=questions&type=' + content.type + '&questionid=' + q.questionid title='Edit') ✏️
+                        a(href='/formQuestion?questionid=' + q.questionid + '&action=delete' data-confirm='Delete question ' + q.questionid + '?' title='Delete' style='color:#c44') ✕
 
     div(style='margin-top:12px')
         button.btn(type='submit') Reorder

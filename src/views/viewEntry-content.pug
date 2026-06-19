@@ -53,7 +53,7 @@ else
         if entry
             p.ve-meta Entry by #{entrant ? entrant.name : (entry.entrantid || '')}
 
-        //- â”€â”€ Judging Criteria â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        //- ── Judging Criteria ────────────────────────────────────────────────
         if criteria && criteria.length
             .ve-card
                 p.ve-card-title Judging Criteria
@@ -68,12 +68,12 @@ else
                                 td!= c.description
                                 td.r= c.weight ? c.weight + '%' : ''
 
-        //- â”€â”€ Entrant Details â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        //- ── Entrant Details ─────────────────────────────────────────────────
         .ve-card
             p.ve-card-title Entrant Details
             include viewEntry/entrantdetail.pug
 
-        //- â”€â”€ Questions / Responses â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        //- ── Questions / Responses ───────────────────────────────────────────
         .ve-card
             p.ve-card-title Entry Responses
 
@@ -82,7 +82,7 @@ else
                 - if (q.inputtype !== 'noinput') questionNum++
                 include viewEntry/question.pug
 
-        //- â”€â”€ Score / action panel â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        //- ── Score / action panel ────────────────────────────────────────────
         if scorePanel
             case scorePanel.type
                 when 'scoreform'
@@ -101,7 +101,7 @@ else
                     .ve-card
                         include viewEntry/entrantpanel.pug
 
-        //- â”€â”€ Bottom actions â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        //- ── Bottom actions ──────────────────────────────────────────────────
         if !scorePanel || scorePanel.type !== 'entrant'
             .ve-form-actions
                 a.btn-secondary(href='/home') Home

@@ -1,21 +1,21 @@
 ﻿//- home-content.pug
 //- Injected into the legacy per-program HTML shell via res.renderInShell.
 //- Equiv of readfile($standardhtml, [&$homepage]) in home.cgi.
-//- Mirrors the table layout: top text â†’ menu bar â†’ sidebar + content.
+//- Mirrors the table layout: top text → menu bar → sidebar + content.
 
-//- â”€â”€ Description text (above menu bar) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-//- â”€â”€ Top menu bar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+//- ── Description text (above menu bar) ───────────────────────────────────────
+//- ── Top menu bar ─────────────────────────────────────────────────────────────
 //- Equiv of &$adminmenulist / &$judgemenulist / &$usermenulist
 div(style='width: 780px; margin-left: auto; margin-right: auto;')
     ul#vertnav
         each btn in menuButtons
             li: a(href=btn.url target=(btn.newwindow ? '_blank' : null))!= btn.text || '&nbsp;'
 
-//- â”€â”€ Two-column layout: sidebar + content â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+//- ── Two-column layout: sidebar + content ─────────────────────────────────────
 //- Equiv of table(width=780, id='home', ...) with Tr(td sidebar, td content)
 table(width='780' id='home' style='margin-left: auto; margin-right: auto; display:block;')
     tr(align='left' valign='top')
-        //- â”€â”€ Sidebar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        //- ── Sidebar ──────────────────────────────────────────────────────────
         td(width='129' valign='top')
             br
             br
@@ -23,7 +23,7 @@ table(width='780' id='home' style='margin-left: auto; margin-right: auto; displa
                 ul#vertnav2
                     li(style='padding:7px 0px 7px 15px; font-weight:bold; background:red; position:relative;')
                         | Emulation Enabled
-                        a(href='/' + slug + '/emulate' title='Cease Emulation' style='position:absolute; bottom:4px; right:6px; color:#fff; font-size:16px; font-weight:bold; line-height:1; text-decoration:none; opacity:0.8;') Ã—
+                        a(href='/' + slug + '/emulate' title='Cease Emulation' style='position:absolute; bottom:4px; right:6px; color:#fff; font-size:16px; font-weight:bold; line-height:1; text-decoration:none; opacity:0.8;') ×
             //- Render all sidebar panels; JS shows the active one
             - const panelKeys = Object.keys(sidebarMenus)
             each panelKey in panelKeys
@@ -35,160 +35,160 @@ table(width='780' id='home' style='margin-left: auto; margin-right: auto; displa
                         li: a(href='/' + slug + '/home') Home
                     each item in panel.items
                         if item.submenu
-                            li: a(href='#' data-goto=item.submenu)= item.label + ' â€º'
+                            li: a(href='#' data-goto=item.submenu)= item.label + ' ›'
                         else
                             li: a(href=item.href)= item.label
                     if panelKey === 'main' && linkedPrograms && linkedPrograms.length > 1
                         li: a(href='/' + slug + '/home?action=switchProgram') Switch Program
             script(defer src='/js/sidebar.js?v=' + buildHash)
 
-        //- â”€â”€ Main content area â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        //- ── Main content area ────────────────────────────────────────────────
         td(style='padding: 10px; min-width: 600px;')
             if pendingSetup
                 div(style='background:#4a1a1a; border-left:4px solid #c44; color:#fdd; padding:10px 14px; font-size:13px; margin-bottom:14px;')
                     | We've emailed you a link to set your password and secure your account. Please check your email and click on the link.
             case content.view
 
-                //- â”€â”€ Welcome / default text â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+                //- ── Welcome / default text ──────────────────────────────────
                 when 'home/welcome'
                     .home-content
                         != content.text
 
-                //- â”€â”€ Finalist result text â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+                //- ── Finalist result text ─────────────────────────────────────
                 when 'home/finalisttext'
                     include home/finalisttext.pug
 
-                //- â”€â”€ My Entries â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+                //- ── My Entries ───────────────────────────────────────────────
                 when 'home/entries'
                     include home/entries.pug
 
-                //- â”€â”€ New Entry (category picker) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+                //- ── New Entry (category picker) ──────────────────────────────
                 when 'home/newentry'
                     include home/newentry.pug
 
-                //- â”€â”€ My Entrants â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+                //- ── My Entrants ──────────────────────────────────────────────
                 when 'home/entrants'
                     include home/entrants.pug
 
-                //- â”€â”€ Invoices â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+                //- ── Invoices ─────────────────────────────────────────────────
                 when 'home/invoices'
                     include home/invoices.pug
 
-                //- â”€â”€ Payments â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+                //- ── Payments ─────────────────────────────────────────────────
                 when 'home/payments'
                     include home/payments.pug
 
-                //- â”€â”€ Scores & Comments â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+                //- ── Scores & Comments ────────────────────────────────────────
                 when 'home/scorescomments'
                     include home/scorescomments.pug
 
-                //- â”€â”€ Feedback â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+                //- ── Feedback ─────────────────────────────────────────────────
                 when 'home/feedback'
                     include home/feedback.pug
 
-                //- â”€â”€ Downloads â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+                //- ── Downloads ────────────────────────────────────────────────
                 when 'home/downloads'
                     != content.html
 
-                //- â”€â”€ User page (custom HTML page) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+                //- ── User page (custom HTML page) ─────────────────────────────
                 when 'home/userpage'
                     != content.html
 
-                //- â”€â”€ Category + cost list â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+                //- ── Category + cost list ─────────────────────────────────────
                 when 'home/catcost'
                     include home/catcost.pug
 
-                //- â”€â”€ T&C â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+                //- ── T&C ──────────────────────────────────────────────────────
                 when 'home/tc'
                     table(width='640')
                         tr: td(align='center'): h3 Terms &amp; Conditions
                         tr: td(cellpadding='10')!= content.program.entrytctext
 
-                //- â”€â”€ Help â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+                //- ── Help ─────────────────────────────────────────────────────
                 when 'home/help'
                     table(width='640')
                         tr: td(align='center'): h3 Help
                         tr: td(cellpadding='10')!= content.program.userhelptext
 
-                //- â”€â”€ Judge T&C â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+                //- ── Judge T&C ────────────────────────────────────────────────
                 when 'home/judgetc'
                     include home/judgetc.pug
 
-                //- â”€â”€ Judge Help â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+                //- ── Judge Help ───────────────────────────────────────────────
                 when 'home/judgehelp'
                     table(width='640')
                         tr: td(align='center'): b HELP FOR JUDGES
                         tr: td(cellpadding='10')!= content.program.judgehelptext
 
-                //- â”€â”€ Judge Contacts â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+                //- ── Judge Contacts ───────────────────────────────────────────
                 when 'home/judgecontacts'
                     table(width='640')
                         tr: td(align='center'): b JUDGES CONTACTS
                         tr: td(cellpadding='10')!= content.program.judgecontacttext
 
-                //- â”€â”€ To Judge â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+                //- ── To Judge ─────────────────────────────────────────────────
                 when 'home/tojudge'
                     include home/tojudge.pug
 
-                //- â”€â”€ Review Nominees (finalist review) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+                //- ── Review Nominees (finalist review) ────────────────────────
                 when 'home/reviewfinalists'
                     include home/reviewfinalists.pug
 
-                //- â”€â”€ Wildcard Nomination â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+                //- ── Wildcard Nomination ──────────────────────────────────────
                 when 'home/wildcardnomination'
                     include home/wildcardnomination.pug
 
-                //- â”€â”€ Simple Review / Judge â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+                //- ── Simple Review / Judge ────────────────────────────────────
                 when 'home/simplereviewjudge'
                     include home/simplereviewjudge.pug
 
-                //- â”€â”€ Admin: Entry List â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+                //- ── Admin: Entry List ────────────────────────────────────────
                 when 'home/entrylist'
                     include home/entrylist.pug
 
-                //- â”€â”€ Admin: Program Settings â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+                //- ── Admin: Program Settings ──────────────────────────────────
                 when 'home/program'
                     include home/program.pug
 
-                //- â”€â”€ Admin: Discounts â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+                //- ── Admin: Discounts ─────────────────────────────────────────
                 when 'home/discounts'
                     include home/discounts.pug
 
-                //- â”€â”€ Admin: Category (new / edit) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+                //- ── Admin: Category (new / edit) ────────────────────────────
                 when 'home/category'
                     include home/category.pug
 
-                //- â”€â”€ Admin: Categories â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+                //- ── Admin: Categories ────────────────────────────────────────
                 when 'home/categories'
                     include home/categories.pug
 
-                //- â”€â”€ Admin: Questions â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+                //- ── Admin: Questions ─────────────────────────────────────────
                 when 'home/questions'
                     include home/questions.pug
                 when 'home/question-edit'
                     include home/question-edit.pug
 
-                //- â”€â”€ Admin: Discounts â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+                //- ── Admin: Discounts ────────────────────────────────────────
                 when 'home/discount-edit'
                     include home/discount-edit.pug
 
-                //- â”€â”€ Admin: Eligibility â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+                //- ── Admin: Eligibility ───────────────────────────────────────
                 when 'home/eligibility'
                     include home/eligibility.pug
                 when 'home/eligibility-edit'
                     include home/eligibility-edit.pug
 
-                //- â”€â”€ Admin: Users â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+                //- ── Admin: Users ────────────────────────────────────────────
                 when 'home/user-edit'
                     include home/user-edit.pug
 
-                //- â”€â”€ Admin: User Pages â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+                //- ── Admin: User Pages ────────────────────────────────────────
                 when 'home/userpages'
                     include home/userpages.pug
                 when 'home/userpage-edit'
                     include home/userpage-edit.pug
 
-                //- â”€â”€ Admin: Judges â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+                //- ── Admin: Judges ────────────────────────────────────────────
                 when 'home/users'
                     include home/users.pug
 
@@ -198,66 +198,66 @@ table(width='780' id='home' style='margin-left: auto; margin-right: auto; displa
                 when 'home/formJudge'
                     include home/formJudge.pug
 
-                //- â”€â”€ Admin: Allocate Judges â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+                //- ── Admin: Allocate Judges ───────────────────────────────────
                 when 'home/allocatejudges'
                     include home/allocatejudges.pug
 
-                //- â”€â”€ Admin: Email Judges â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+                //- ── Admin: Email Judges ──────────────────────────────────────
                 when 'home/emailjudges'
                     include home/emailjudges.pug
 
-                //- â”€â”€ Admin: Judge Progress Check â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+                //- ── Admin: Judge Progress Check ──────────────────────────────
                 when 'home/judgecheck'
                     include home/judgecheck.pug
 
-                //- â”€â”€ Admin: Finalist Entries â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+                //- ── Admin: Finalist Entries ──────────────────────────────────
                 when 'home/finalistentries'
                     include home/finalistentries.pug
 
-                //- â”€â”€ Australia's Favourite Event â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+                //- ── Australia's Favourite Event ──────────────────────────────
                 when 'home/favouriteevent'
                     include home/favouriteevent.pug
 
-                //- â”€â”€ Year-over-year entry statistics â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+                //- ── Year-over-year entry statistics ──────────────────────────
                 when 'home/stats'
                     include home/stats.pug
 
-                //- â”€â”€ Stats program configuration â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+                //- ── Stats program configuration ──────────────────────────────
                 when 'home/statsconfig'
                     include home/statsconfig.pug
 
-                //- â”€â”€ Active users report download â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-                //- â”€â”€ Admin: Calculate Final Scores â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+                //- ── Active users report download ─────────────────────────────
+                //- ── Admin: Calculate Final Scores ───────────────────────────
                 when 'home/calcfinalscores'
                     include home/calcfinalscores.pug
 
                 when 'home/activeusers'
                     include home/activeusers.pug
 
-                //- â”€â”€ Paid not finalised report â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+                //- ── Paid not finalised report ────────────────────────────────
                 when 'home/paidnotfinalised'
                     include home/paidnotfinalised.pug
 
-                //- â”€â”€ Finalised not paid report â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+                //- ── Finalised not paid report ────────────────────────────────
                 when 'home/finalisednotpaid'
                     include home/finalisednotpaid.pug
 
                 when 'home/switchProgram'
                     include home/switchProgram.pug
 
-                //- â”€â”€ Entrant form (new / edit) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+                //- ── Entrant form (new / edit) ────────────────────────────────
                 when 'home/entrant'
                     include formEntrant-content.pug
 
-                //- â”€â”€ Make a Payment (payment options) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+                //- ── Make a Payment (payment options) ────────────────────────
                 when 'home/paymentoptions'
                     include formPaymentOptions-content.pug
 
-                //- â”€â”€ Credit card payment form â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+                //- ── Credit card payment form ─────────────────────────────────
                 when 'home/payment'
                     include formPayment-content.pug
 
-                //- â”€â”€ Invoice (create / view) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+                //- ── Invoice (create / view) ──────────────────────────────────
                 when 'home/invoice'
                     include formInvoice-content.pug
 

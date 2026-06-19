@@ -1,5 +1,5 @@
 ﻿//- viewEntry/scoreform.pug
-//- Equiv of $scoreform in viewEntry.cgi â€” full judging score form.
+//- Equiv of $scoreform in viewEntry.cgi — full judging score form.
 
 - let jm = scorePanel.judgingModel || {}
 - let minVal = parseFloat(jm.minscore) || 0
@@ -64,7 +64,7 @@ tr: td(colspan='2')
             tr: td(colspan='2')
                 - let feedbackStyle = 'background:#c0392b;color:#fff;padding:12px;margin-bottom:8px;' + (scorePanel.commentFeedback ? '' : 'display:none;')
                 div#comment-feedback(style=feedbackStyle)
-                    b Your comments could not be saved â€” please review the feedback below and make changes before resubmitting:
+                    b Your comments could not be saved — please review the feedback below and make changes before resubmitting:
                     br
                     br
                     span#comment-feedback-text= scorePanel.commentFeedback || ''

@@ -1,4 +1,4 @@
-﻿//- home/statsconfig.pug â€” manage StatsProgram rows
+﻿//- home/statsconfig.pug — manage StatsProgram rows
 
 style.
     .sc-wrap { max-width: 900px; margin: 0 auto; }
@@ -27,7 +27,7 @@ style.
     if content.success
         p.alert-ok Saved.
 
-    //- â”€â”€ Inline add/edit form â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    //- ── Inline add/edit form ────────────────────────────────────────────────
     div#sc-form-wrap.sc-form-wrap
         h4#sc-form-title Add Program
         form#sc-form.sc-form(method='POST' action='/' + program.slug + '/home?action=statsconfig')
@@ -56,11 +56,11 @@ style.
                 button#sc-save.btn(type='submit') Save
                 a#sc-cancel.btn-secondary(href='#') Cancel
 
-    //- â”€â”€ Toolbar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    //- ── Toolbar ─────────────────────────────────────────────────────────────
     .sc-toolbar
         a#btn-new-sc(href='#') + Add Program
 
-    //- â”€â”€ Table â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    //- ── Table ───────────────────────────────────────────────────────────────
     table.sc-table
         thead
             tr
@@ -81,8 +81,8 @@ style.
                     td= p.closedate
                     td(style='color:#888')= p.lifetimecat
                     td.sc-actions(style='white-space:nowrap')
-                        a.sc-edit(href='#' title='Edit') âœï¸
-                        a.sc-delete(href='#' title='Delete' style='color:#c44') âœ•
+                        a.sc-edit(href='#' title='Edit') ✏️
+                        a.sc-delete(href='#' title='Delete' style='color:#c44') ✕
 
 script(src='/js/jade.js?v=' + buildHash)
 script.

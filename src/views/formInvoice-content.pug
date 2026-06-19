@@ -68,10 +68,10 @@ style.
     if error
         p.alert-error= error
     if emailed
-        p(style='background:#1a4a1a; color:#fff; padding:8px 12px; border-left:4px solid #4caf50; margin-bottom:12px') âœ“ Invoice emailed to #{emailSentTo}
+        p(style='background:#1a4a1a; color:#fff; padding:8px 12px; border-left:4px solid #4caf50; margin-bottom:12px') ✓ Invoice emailed to #{emailSentTo}
 
     if isNew
-        //- â”€â”€ Invoice creation form â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        //- ── Invoice creation form ────────────────────────────────────────────
         h2 Create Invoice
 
         form(method='POST' action='/formInvoice')
@@ -98,7 +98,7 @@ style.
                         td Postal Address
                         td
                             select(name='postaladdressid')
-                                option(value='a') â€” Please Select â€”
+                                option(value='a') — Please Select —
                                 each addr in addresses
                                     option(value=addr.addressid selected=(addr.addressid == user.postaladdressid))
                                         = addr.address + ', ' + addr.city + ', ' + addr.state
@@ -132,7 +132,7 @@ style.
                 button(type='submit') Create Invoice
 
     else
-        //- â”€â”€ Completed invoice view â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        //- ── Completed invoice view ───────────────────────────────────────────
         h2 Tax Invoice
 
         .invoice-header
@@ -161,9 +161,9 @@ style.
         if !forEmail
             .form-actions
                 a.btn-secondary(href='/home') Home
-                button.btn-secondary(type='button' data-action='show-email-modal') ðŸ“§ Email Invoice
-                button.btn-secondary(type='button' data-action='print') ðŸ–¨ Print
-                a.btn-danger(href='/formInvoice?invoiceid=' + invoice.invoiceid + '&action=delete' data-confirm='Delete this invoice?') ðŸ—‘ Delete
+                button.btn-secondary(type='button' data-action='show-email-modal') 📧 Email Invoice
+                button.btn-secondary(type='button' data-action='print') 🖨 Print
+                a.btn-danger(href='/formInvoice?invoiceid=' + invoice.invoiceid + '&action=delete' data-confirm='Delete this invoice?') 🗑 Delete
 
             //- Email modal
             #email-modal(style='display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:1000; align-items:center; justify-content:center;')

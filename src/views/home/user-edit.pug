@@ -29,7 +29,7 @@ if content.sent
 form.user-form(method='POST' action='/formUser')
     input(type='hidden' name='edituserid' value=content.targetUser.userid)
 
-    h2(style='text-align:center; color:#c48f06') Edit User â€” #{content.targetUser.firstname} #{content.targetUser.lastname}
+    h2(style='text-align:center; color:#c48f06') Edit User — #{content.targetUser.firstname} #{content.targetUser.lastname}
 
     if content.error
         p.alert-error= content.error
@@ -49,7 +49,7 @@ form.user-form(method='POST' action='/formUser')
             if content.targetUser.judge
                 a(href='/formUser?action=demote&edituserid=' + content.targetUser.userid data-confirm='Remove all judging data?') Demote from Judge
 
-    //- â”€â”€ Login details â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    //- ── Login details ────────────────────────────────────────────────────────
     fieldset
         legend Login Details
         table
@@ -69,7 +69,7 @@ form.user-form(method='POST' action='/formUser')
                     if content.passwordRules
                         |  If changing: #{content.passwordRules}
 
-    //- â”€â”€ Personal details â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    //- ── Personal details ─────────────────────────────────────────────────────
     fieldset
         legend Personal Details
         table
@@ -89,7 +89,7 @@ form.user-form(method='POST' action='/formUser')
                 td Mobile
                 td: input(type='text' name='mobile' value=(content.targetUser.mobile || '') maxlength='50')
 
-    //- â”€â”€ Postal address â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    //- ── Postal address ───────────────────────────────────────────────────────
     fieldset
         legend Postal Address
         table
@@ -121,7 +121,7 @@ form.user-form(method='POST' action='/formUser')
                             td(style='text-align:right; padding-right:12px; white-space:nowrap') Country
                             td: input(type='text' name='postalcountry' value='Australia' maxlength='50')
 
-    //- â”€â”€ Account settings (admin only) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    //- ── Account settings (admin only) ───────────────────────────────────────
     if content.isAdmin
         fieldset
             legend Account Settings

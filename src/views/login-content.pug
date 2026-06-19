@@ -1,4 +1,4 @@
-﻿//- login-content.pug â€” two-step login
+﻿//- login-content.pug — two-step login
 
 - let slug         = program ? program.slug : ''
 - let checkUrl     = '/' + slug + '/login/check-email'
@@ -26,7 +26,7 @@ if form
         data-login-url=loginUrl
         data-reset-url=resetUrl)
 
-    //- â”€â”€ Step 1: Email â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    //- ── Step 1: Email ────────────────────────────────────────────────────────
     div#step-email
         form#form-email(autocomplete='on')
             table
@@ -37,7 +37,7 @@ if form
                 tr: td(colspan='2')
                     div#email-error(style='color:#c0392b; margin-top:6px; display:none;')
 
-    //- â”€â”€ Step 2a: Password â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    //- ── Step 2a: Password ────────────────────────────────────────────────────
     div#step-password(style='display:none;')
         form#form-password(method='POST' action=loginUrl autocomplete='on')
             input#pw-email(type='hidden' name='email' value=locals.loginEmail || '')
@@ -57,10 +57,10 @@ if form
         div(style='margin-top:10px; font-size:0.85em; color:#aaa; text-align:center;')
             div
                 a#reset-link(href=resetUrl) Forgot your password?
-                span(style='margin:0 8px;') Â·
+                span(style='margin:0 8px;') ·
                 a(href='#' id='btn-back-from-pw') Use a different email
 
-    //- â”€â”€ Step 2b: Sign up â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    //- ── Step 2b: Sign up ─────────────────────────────────────────────────────
     style.
         #form-signup input[type=text] { width: 200px !important; }
     div#step-signup(style='display:none;')
@@ -88,12 +88,12 @@ if form
             br
             a(href='#' id='btn-back-from-signup') Use a different email
 
-    //- â”€â”€ Step 3: Signup success â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    //- ── Step 3: Signup success ───────────────────────────────────────────────
     div#step-done(style='display:none;')
         p#done-message
-        a(href='#' id='btn-back-from-done') â† Back to login
+        a(href='#' id='btn-back-from-done') ← Back to login
 
-    //- â”€â”€ Step 4: Account disabled â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    //- ── Step 4: Account disabled ─────────────────────────────────────────────
     div#step-disabled(style='display:none;')
         p Your account has been disabled. Please contact the program administrator for assistance.
         a(href='#' id='btn-back-from-disabled') Use a different email

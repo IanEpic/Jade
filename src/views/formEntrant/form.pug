@@ -1,6 +1,6 @@
 ﻿//- formEntrant/form.pug
 //- Equiv of $form_blank / $form_edit in formEntrant.cgi.
-//- Handles both new and edit â€” mode determines labels and default values.
+//- Handles both new and edit — mode determines labels and default values.
 //- Address dropdowns mirror the Perl popup_menu logic:
 //-   'a' = please select (new only)
 //-   'b' = new address below
@@ -38,7 +38,7 @@ form(name='entrantform' method='POST' action='/formEntrant')
             td= abnLabel || 'Entrant ABN'
             td: input(type='text' name='abn' value=(entrant ? entrant.abn || '' : '') size='50' maxlength='20')
 
-        //- â”€â”€ Street address â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        //- ── Street address ───────────────────────────────────────────────
         if addresses && addresses.length
             tr
                 td Select a Street Address
@@ -73,7 +73,7 @@ form(name='entrantform' method='POST' action='/formEntrant')
                         td Country
                         td: input(type='text' name='streetcountry' size='50' maxlength='50' disabled)
 
-        //- â”€â”€ Postal address â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        //- ── Postal address ───────────────────────────────────────────────
         if addresses && addresses.length
             tr
                 td Select a Postal Address
@@ -125,7 +125,7 @@ form(name='entrantform' method='POST' action='/formEntrant')
                 a.btn-secondary(href='/home') Cancel
                 button.btn(type='submit')= submitLabel
 
-//- â”€â”€ Address toggle script â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+//- ── Address toggle script ────────────────────────────────────────────────────
 //- Equiv of checkAddress() JS in the Perl legacy shell.
 //- Enables/disables the inline address fields based on dropdown selection.
 script(src='/js/jade.js?v=' + buildHash)

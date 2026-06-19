@@ -29,7 +29,7 @@ form.q-edit-form(method='POST' action='/formQuestion')
 
     h2(style='text-align:center')= content.isNew ? 'New Question' : 'Edit Question'
 
-    //- â”€â”€ Question text â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    //- ── Question text ────────────────────────────────────────────────────────
     fieldset
         legend Question Text
         table
@@ -42,7 +42,7 @@ form.q-edit-form(method='POST' action='/formQuestion')
             tr
                 td(colspan='2'): textarea(name='description' rows='3')= content.question ? content.question.description : ''
 
-    //- â”€â”€ Input settings â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    //- ── Input settings ───────────────────────────────────────────────────────
     fieldset
         legend Input Settings
         table
@@ -69,7 +69,7 @@ form.q-edit-form(method='POST' action='/formQuestion')
                 td
                     select(name='addressaboveoption')
                         if content.addressQuestions && content.addressQuestions.length
-                            option(value='0') â€” None â€”
+                            option(value='0') — None —
                             each aq in content.addressQuestions
                                 option(value=aq.questionid selected=(content.question && content.question.addressaboveoption == aq.questionid))= aq.questiontext
                         else
@@ -90,7 +90,7 @@ form.q-edit-form(method='POST' action='/formQuestion')
                 td Caption Label
                 td: input(type='text' name='captionlabel' value=(content.question ? content.question.captionlabel || '' : '') placeholder='e.g. Please describe this image')
 
-    //- â”€â”€ Options â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    //- ── Options ──────────────────────────────────────────────────────────────
     fieldset
         legend Options
         if !content.isNew && content.inputoptions && content.inputoptions.length
@@ -115,7 +115,7 @@ form.q-edit-form(method='POST' action='/formQuestion')
                     tr
                         td: input(type='text' name='option' + n value='' maxlength='100' placeholder='Option ' + n)
 
-    //- â”€â”€ Categories â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    //- ── Categories ───────────────────────────────────────────────────────────
     fieldset
         legend Categories
         .cat-grid
