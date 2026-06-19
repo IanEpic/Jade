@@ -16,10 +16,11 @@ router.use(requireAuth);
 
 // ── Data helpers ──────────────────────────────────────────────────────────────
 
-async function getAllInvoices(userId) {
+async function getAllInvoices(userId, programId) {
     const pool = await getPool();
     const result = await pool.request()
-        .input('userId', sql.Int, userId)
+        .input('userId',    sql.Int, userId)
+        .input('programId', sql.Int, programId)
         .query(`
             SELECT i.*,
                    (i.totalex + i.gst
@@ -28,14 +29,15 @@ async function getAllInvoices(userId) {
                     + ISNULL(i.multientryadjustment,0)) AS totalamt,
                    ISNULL((SELECT SUM(pa.amount) FROM PaymentAllocation pa WHERE pa.invoiceid = i.invoiceid), 0) AS paid
             FROM Invoice i
+            INNER JOIN [User] u ON u.userid = i.userid AND u.programid = @programId
             WHERE i.userid  = @userId
               AND i.deleted = 0
         `);
     return result.recordset;
 }
 
-async function getUnpaidInvoices(userId) {
-    const invoices = await getAllInvoices(userId);
+async function getUnpaidInvoices(userId, programId) {
+    const invoices = await getAllInvoices(userId, programId);
     return invoices.filter(inv => (parseFloat(inv.totalamt)||0) > (parseFloat(inv.paid)||0));
 }
 
@@ -112,7 +114,7 @@ router.get('/', async (req, res, next) => {
         }
 
         const [unpaidInvoices, uninvoicedEntries] = await Promise.all([
-            getUnpaidInvoices(user.userid),
+            getUnpaidInvoices(user.userid, program.programid),
             getUninvoicedEntries(user.userid),
         ]);
 
@@ -139,7 +141,7 @@ router.post('/', async (req, res, next) => {
         // Step 1 submit — validate and move to step 2
         if (!body.pmtoption) {
             const [unpaidInvoices, uninvoicedEntries] = await Promise.all([
-                getUnpaidInvoices(user.userid),
+                getUnpaidInvoices(user.userid, program.programid),
                 getUninvoicedEntries(user.userid),
             ]);
             return await renderInHome(req, res, 'home/paymentoptions', {
@@ -151,7 +153,7 @@ router.post('/', async (req, res, next) => {
 
         const pmtoption = parseInt(body.pmtoption, 10);
         const [unpaidInvoices, uninvoicedEntries, allEntries, earlyBird] = await Promise.all([
-            getUnpaidInvoices(user.userid),
+            getUnpaidInvoices(user.userid, program.programid),
             getUninvoicedEntries(user.userid),
             getAllEntries(user.userid),
             getEarlyBirdDiscount(program.programid),
