@@ -21,15 +21,6 @@ document.querySelectorAll('.ve-media video').forEach(function (vid) {
     vid.addEventListener('error', function () { uploadError(vid); });
 });
 
-// Finalise checkbox — toggle Edit Entry button visibility immediately on change
-var finaliseCheckbox = document.getElementById('finalise-checkbox');
-var editEntryBtn     = document.getElementById('edit-entry-btn');
-if (finaliseCheckbox && editEntryBtn) {
-    finaliseCheckbox.addEventListener('change', function () {
-        editEntryBtn.style.display = finaliseCheckbox.checked ? 'none' : '';
-    });
-}
-
 // File download links — HEAD check, replace link with [Upload Error] on 404
 document.querySelectorAll('a.ve-doc-link').forEach(function (a) {
     fetch(a.href, { method: 'HEAD' })

@@ -7,7 +7,7 @@ if scorePanel.canFinalise
             form(method='POST' action='/finaliseEntry')
                 input(type='hidden' name='entryid' value=entry.entryid)
                 label
-                    input#finalise-checkbox(type='checkbox' name='finalise' checked=entry.finalised)
+                    input(type='checkbox' name='finalise' checked=entry.finalised)
                     |  This entry is complete and ready for judging
                 br
                 br
