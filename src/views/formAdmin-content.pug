@@ -1,4 +1,4 @@
-//- formAdmin-content.pug
+﻿//- formAdmin-content.pug
 //- Equiv of $form_blank in formAdmin.cgi.
 
 if error === 'noaccess'
@@ -22,8 +22,8 @@ else
         .admin-form .form-actions { text-align: center; margin-top: 10px; }
         .admin-form .form-actions a, .admin-form .form-actions button { margin: 0 8px; }
         .admin-form .accordion-legend { cursor: pointer; user-select: none; display: flex; align-items: center; gap: 6px; }
-        .admin-form .accordion-legend::after { content: ' ▴'; font-size: 11px; color: #aaa; }
-        .admin-form .accordion-legend.collapsed::after { content: ' ▾'; }
+        .admin-form .accordion-legend::after { content: ' â–´'; font-size: 11px; color: #aaa; }
+        .admin-form .accordion-legend.collapsed::after { content: ' â–¾'; }
         .admin-form .accordion-body { display: none; }
         .admin-form .tech-table td:first-child { text-align: left; white-space: nowrap; }
 
@@ -31,7 +31,7 @@ else
 
         h2(style='text-align:center') Program Control
 
-        //- ── General ──────────────────────────────────────────────────────────
+        //- â”€â”€ General â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         fieldset
             legend General
             table
@@ -52,7 +52,7 @@ else
                             button.btn-secondary(type='button' id='favicon-delete-btn' style='margin-left:6px;') Delete
                         span#favicon-status(style='margin-left:10px;font-size:13px;')
 
-        //- ── Portal Flags ─────────────────────────────────────────────────────
+        //- â”€â”€ Portal Flags â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         fieldset
             legend.accordion-legend.collapsed(data-action='toggle-accordion') Portal Flags
             div.accordion-body
@@ -76,7 +76,7 @@ else
                         td: input(type='checkbox' name='faveventavailable' value='ON' checked=program.faveventavailable)
                         td: label Favourite Event Nominations Open
 
-        //- ── Default Category Settings ────────────────────────────────────────
+        //- â”€â”€ Default Category Settings â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         fieldset
             legend.accordion-legend.collapsed(data-action='toggle-accordion') Default Category Settings
             div.accordion-body
@@ -112,7 +112,7 @@ else
                         td(style='padding-top:8px'): input(type='checkbox' name='overwrite' value='ON')
                         td(style='padding-top:8px'): label Overwrite all records with defaults above
 
-        //- ── Technical ────────────────────────────────────────────────────────
+        //- â”€â”€ Technical â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         fieldset
             legend.accordion-legend.collapsed(data-action='toggle-accordion') Technical
             div.accordion-body
@@ -146,7 +146,7 @@ else
                         td Eway Gateway Address
                         td: input(type='text' name='ewaygatewayaddress' value=program.ewaygatewayaddress || '' size='50' maxlength='200')
 
-        //- ── Rich Text Fields ─────────────────────────────────────────────────
+        //- â”€â”€ Rich Text Fields â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         - var richGroups = [{label:'Login & Download',fields:[{label:'Login Page Text',name:'loginpagetext'},{label:'Download Page Content',name:'downloadpagehtml'}]},{label:'Invoicing & Payments',fields:[{label:'Invoice From Text',name:'invoicefromtext'},{label:'Payment Instructions Text',name:'paymentinstructionstext'},{label:'Remittance Advice Text',name:'remittanceadvicetext'},{label:'Receipt Text',name:'receipttext'}]},{label:'Home Page Text',fields:[{label:'Admin Welcome Text',name:'adminwelcometext'},{label:'Judge Welcome Text',name:'judgewelcometext'},{label:'Finalist Welcome Text',name:'finalistwelcometext'},{label:'Non Finalist Welcome Text',name:'nonfinalistwelcometext'},{label:'Standard Welcome Text',name:'standardwelcometext'}]},{label:"T's and C's",fields:[{label:'Entry Terms & Conditions',name:'entrytctext'},{label:'Judge Terms & Conditions',name:'judgetctext'}]},{label:'Help',fields:[{label:'User Help',name:'userhelptext'},{label:'Judge Help',name:'judgehelptext'},{label:'Judge Contacts',name:'judgecontacttext'}]},{label:'Explanations',fields:[{label:'Text Explaining Scores',name:'scoresexplained'},{label:'Text Explaining Entry Costs',name:'costexplanationtext'}]}]
         each group in richGroups
             fieldset
@@ -156,11 +156,11 @@ else
                         p.rich-label= field.label
                         textarea.mceEditor(id=field.name name=field.name rows='5')= program[field.name] || ''
 
-        //- ── Actions ──────────────────────────────────────────────────────────
+        //- â”€â”€ Actions â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         .form-actions
             a.btn-secondary(href='/home') Cancel
             a.btn-secondary(href='/' + program.slug + '/home?action=calcfinalscores') Calc Final Scores
             button.btn(type='submit' name='submit' value='Save Program') Save Program
 
     script(defer src='https://cdn.tiny.cloud/1/t5u2zqqe9s1ltcgp3yrcdormdh3wb2qaquf31suupv3rupdw/tinymce/7/tinymce.min.js' referrerpolicy='origin')
-    script(defer src='/js/form-admin.js')
+    script(defer src='/js/form-admin.js?v=' + buildHash)

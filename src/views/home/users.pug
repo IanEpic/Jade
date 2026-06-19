@@ -1,4 +1,4 @@
-//- home/users.pug
+﻿//- home/users.pug
 
 style.
     .users-wrap { max-width: 900px; margin: 0 auto; }
@@ -44,7 +44,7 @@ if content.success
 
 form(data-nosubmit)
     .users-toolbar
-        input#user-search(type='text' placeholder='Search by name or email…' data-filter='.users-table tbody tr')
+        input#user-search(type='text' placeholder='Search by name or emailâ€¦' data-filter='.users-table tbody tr')
         a(href='/register') + New User
 
     table.users-table
@@ -72,17 +72,17 @@ form(data-nosubmit)
                             span.pay-override-flag.badge-pay-override= u.paymentsopen ? 'pay: open' : 'pay: closed'
                     td= u.email
                     td.actions
-                        a(href='/home?action=users&edituserid=' + u.userid title='Edit') ✏️
-                        a(href='/emulate?userId=' + u.userid title='Emulate') 👤
+                        a(href='/home?action=users&edituserid=' + u.userid title='Edit') âœï¸
+                        a(href='/emulate?userId=' + u.userid title='Emulate') ðŸ‘¤
                         if u.enabled
-                            a(href='/formUser?action=disable&edituserid=' + u.userid title='Disable') 🔒
+                            a(href='/formUser?action=disable&edituserid=' + u.userid title='Disable') ðŸ”’
                         else
-                            a(href='/formUser?action=enable&edituserid=' + u.userid title='Enable') 🔓
+                            a(href='/formUser?action=enable&edituserid=' + u.userid title='Enable') ðŸ”“
                         if !u.activated
-                            button.activate-btn(type='button' data-userid=u.userid title='Activate account' style='background:none;border:none;cursor:pointer;font-size:16px;padding:0 4px;color:#aaa;') ✅
+                            button.activate-btn(type='button' data-userid=u.userid title='Activate account' style='background:none;border:none;cursor:pointer;font-size:16px;padding:0 4px;color:#aaa;') âœ…
                         if u.judge
-                            a(href='/formUser?action=demote&edituserid=' + u.userid title='Demote judge' data-confirm='Remove all judging data for this user?') ⬇️
-                        a(href='/formUser?action=delete&edituserid=' + u.userid title='Delete' data-confirm='Delete this user?' style='color:#c44') ✕
+                            a(href='/formUser?action=demote&edituserid=' + u.userid title='Demote judge' data-confirm='Remove all judging data for this user?') â¬‡ï¸
+                        a(href='/formUser?action=delete&edituserid=' + u.userid title='Delete' data-confirm='Delete this user?' style='color:#c44') âœ•
 
-script(src='/js/jade.js')
-script(src='/js/home-users.js')
+script(src='/js/jade.js?v=' + buildHash)
+script(src='/js/home-users.js?v=' + buildHash)

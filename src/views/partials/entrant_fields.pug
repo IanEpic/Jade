@@ -1,5 +1,5 @@
-//- partials/entrant_fields.pug
-//- Replaces entrant_fields.ejs — included inside entry/form.pug
+﻿//- partials/entrant_fields.pug
+//- Replaces entrant_fields.ejs â€” included inside entry/form.pug
 //- Variables available from parent: user, addresses
 
 table
@@ -19,7 +19,7 @@ table
         td Company Name (if applicable)
         td: input(type='text' name='legalentity' size='50' maxlength='300')
 
-    //- Street address selector — replaces $address_popup('streetaddressid')
+    //- Street address selector â€” replaces $address_popup('streetaddressid')
     if addresses && addresses.length
         tr
             td Select a Street Address
@@ -30,7 +30,7 @@ table
                     each addr in addresses
                         option(value=addr.addressid) #{addr.address}, #{addr.city}, #{addr.state}
 
-    //- New street address fields — replaces $address_table('street')
+    //- New street address fields â€” replaces $address_table('street')
     tr
         td(valign='top')= addresses && addresses.length ? '' : 'Enter a Street Address'
         td
@@ -51,7 +51,7 @@ table
                     td Country
                     td: input(type='text' name='streetcountry' size='50' maxlength='50' value='Australia')
 
-    //- Postal address selector — replaces $address_popup('postaladdressid', ..., 'aboveoption')
+    //- Postal address selector â€” replaces $address_popup('postaladdressid', ..., 'aboveoption')
     if addresses && addresses.length
         tr
             td Select a Postal Address
@@ -96,5 +96,5 @@ table
         td Email
         td: input(type='text' name='email' size='50' maxlength='100' value=user.email || '')
 
-script(src='/js/jade.js')
-script(src='/js/form-entry.js')
+script(src='/js/jade.js?v=' + buildHash)
+script(src='/js/form-entry.js?v=' + buildHash)

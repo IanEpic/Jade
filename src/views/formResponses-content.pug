@@ -1,4 +1,4 @@
-//- formResponses-content.pug
+﻿//- formResponses-content.pug
 
 style.
     .resp-wrap { max-width: 760px; margin: 0 auto; }
@@ -57,11 +57,11 @@ style.
     if closed
         .closed-msg
             p Entries are currently closed for this category.
-            a.btn-secondary(href='/home') ← Home
+            a.btn-secondary(href='/home') â† Home
 
     else
         h2= entry.categoryname
-        p.entry-meta Entry ##{entry.entryid} &nbsp;·&nbsp; #{entry.entrantname || ''}
+        p.entry-meta Entry ##{entry.entryid} &nbsp;Â·&nbsp; #{entry.entrantname || ''}
 
         //- Criteria box
         if questions.some && questions.some(q => q.inputtype !== 'noinput')
@@ -100,7 +100,7 @@ style.
                         if q.inputtype === 'textfield'
                             - const tfWidth = q.inputwidth ? q.inputwidth + 'ch' : '600px'
                             input(type='text' name=fieldbase+'tf' value=respval style=('width:' + tfWidth))
-                            button.btn-undo(type='button' style='display:none' data-action='undo') ↩ Undo
+                            button.btn-undo(type='button' style='display:none' data-action='undo') â†© Undo
                         else if q.inputtype === 'textarea'
                             if q.maxsize
                                 .word-limit Word limit: #{q.maxsize} words
@@ -111,7 +111,7 @@ style.
                                     | Word count:&nbsp;
                                     input(type='text' name=taname+'c' value=respval ? respval.trim().split(/\s+/).filter(Boolean).length : 0 readonly)
                                     | &nbsp;
-                                button.btn-undo(type='button' style='display:none' data-action='undo') ↩ Undo
+                                button.btn-undo(type='button' style='display:none' data-action='undo') â†© Undo
                         else if q.inputtype === 'checkbox'
                             - const cbopts = q.options || []
                             - const cbvals = respval ? respval.split('~') : []
@@ -132,7 +132,7 @@ style.
                             - const ulHidden = fieldbase + 'ul'
                             input(type='hidden' name=ulHidden value=respval)
                             .dropzone(data-field=ulHidden data-type='file' data-responseid=(resp ? resp.responseid : '') data-entryid=entry.entryid data-qid=q.questionid class=(respval ? 'uploaded' : ''))
-                                .dz-icon 📄
+                                .dz-icon ðŸ“„
                                 .dz-text= respval ? 'Click or drop to replace' : 'Drop a file here or click to browse'
                                 input(type='file' class='dz-input')
                                 .dz-preview(style=(respval ? 'display:block' : 'display:none'))
@@ -147,28 +147,28 @@ style.
                                             = displayName
                                     else
                                         span.dz-filename
-                                    button.btn-dz-remove(type='button' data-action='remove-file') ✕ Remove
+                                    button.btn-dz-remove(type='button' data-action='remove-file') âœ• Remove
                                 .dz-bar(style='display:none'): .dz-bar-fill
-                                button.dz-stop-btn(type='button' data-action='stop-upload') ✕ Stop upload
+                                button.dz-stop-btn(type='button' data-action='stop-upload') âœ• Stop upload
                                 .dz-err(style='display:none')
                         else if q.inputtype === 'image'
                             - const imHidden = fieldbase + 'im'
                             input(type='hidden' name=imHidden value=respval)
                             .dropzone(data-field=imHidden data-type='image' data-responseid=(resp ? resp.responseid : '') data-entryid=entry.entryid data-qid=q.questionid class=(respval ? 'uploaded' : ''))
-                                .dz-icon 🖼
+                                .dz-icon ðŸ–¼
                                 .dz-text= respval ? 'Click or drop to replace' : 'Drop an image here or click to browse'
                                 input(type='file' class='dz-input' accept='image/*')
                                 .dz-preview(style=(respval ? 'display:block' : 'display:none'))
                                     .dz-uploading
-                                        span.dz-uploading-icon 🖼
-                                        span Uploading…
+                                        span.dz-uploading-icon ðŸ–¼
+                                        span Uploadingâ€¦
                                     if resp && respval
                                         img.dz-thumb(src='/'+slug+'/formResponses/image?responseid='+resp.responseid)
                                     else
                                         img.dz-thumb
-                                    button.btn-dz-remove(type='button' data-action='remove-file') ✕ Remove
+                                    button.btn-dz-remove(type='button' data-action='remove-file') âœ• Remove
                                 .dz-bar(style='display:none'): .dz-bar-fill
-                                button.dz-stop-btn(type='button' data-action='stop-upload') ✕ Stop upload
+                                button.dz-stop-btn(type='button' data-action='stop-upload') âœ• Stop upload
                                 .dz-err(style='display:none')
                             if q.captionlabel
                                 .question-desc(style='margin-top:10px')!= q.captionlabel
@@ -177,7 +177,7 @@ style.
                             - const vidHidden = fieldbase + 'vid'
                             input(type='hidden' name=vidHidden value=respval)
                             .dropzone(data-field=vidHidden data-type='video' data-responseid=(resp ? resp.responseid : '') data-entryid=entry.entryid data-qid=q.questionid class=(respval ? 'uploaded' : ''))
-                                .dz-icon 🎬
+                                .dz-icon ðŸŽ¬
                                 .dz-text= respval ? 'Click or drop to replace' : 'Drop a video here or click to browse'
                                 input(type='file' class='dz-input' accept='video/*')
                                 .dz-preview(style=(respval ? 'display:block' : 'display:none'))
@@ -185,9 +185,9 @@ style.
                                         video.dz-video-player(src='/'+slug+'/formResponses/video?responseid='+resp.responseid controls preload='metadata' style='max-width:100%;max-height:200px;display:block;margin-bottom:4px;')
                                     else
                                         video.dz-video-player(controls preload='metadata' style='max-width:100%;max-height:200px;display:none;margin-bottom:4px;')
-                                    button.btn-dz-remove(type='button' data-action='remove-file') ✕ Remove
+                                    button.btn-dz-remove(type='button' data-action='remove-file') âœ• Remove
                                 .dz-bar(style='display:none'): .dz-bar-fill
-                                button.dz-stop-btn(type='button' data-action='stop-upload') ✕ Stop upload
+                                button.dz-stop-btn(type='button' data-action='stop-upload') âœ• Stop upload
                                 .dz-err(style='display:none')
                             if q.captionlabel
                                 .question-desc(style='margin-top:10px')!= q.captionlabel
@@ -196,7 +196,7 @@ style.
             p.save-status#save-status
 
             #upload-progress(style='display:none; background:#1a1a1a; border:1px solid #c48f06; border-radius:4px; padding:10px 14px; margin-bottom:12px;')
-                p(style='color:#c48f06; font-size:13px; text-align:center; margin:0 0 7px;') ⏳ Upload in progress — please wait before navigating away…
+                p(style='color:#c48f06; font-size:13px; text-align:center; margin:0 0 7px;') â³ Upload in progress â€” please wait before navigating awayâ€¦
                 div(style='height:8px; background:#333; border-radius:4px; overflow:hidden;')
                     #upload-progress-fill(style='height:100%; background:#c48f06; width:0; transition:width 0.25s ease;')
                 p#upload-progress-label(style='text-align:center; font-size:11px; color:#aaa; margin:5px 0 0;') 0%
@@ -206,4 +206,4 @@ style.
                 button.btn(type='button' id='btn-save' data-action='save') Save
                 a.btn(href='/viewEntry?entryid=' + entry.entryid) Review &amp; Finalise
 
-script(src='/js/form-responses.js')
+script(src='/js/form-responses.js?v=' + buildHash)

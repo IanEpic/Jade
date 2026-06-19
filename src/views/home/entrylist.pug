@@ -1,4 +1,4 @@
-//- home/entrylist.pug
+﻿//- home/entrylist.pug
 
 style.
     .el-wrap { max-width: 900px; margin: 0 auto; }
@@ -89,7 +89,7 @@ if user && user.admin
                 .flags-select
                     label(for='transfer-search') Transfer invoice &amp; payment to
                     .transfer-ac
-                        input#transfer-search(type='text' autocomplete='off' placeholder='Type at least 3 characters…')
+                        input#transfer-search(type='text' autocomplete='off' placeholder='Type at least 3 charactersâ€¦')
                         div#transfer-suggestions
                     input(type='hidden' name='targetentryid' id='transfer-targetentryid' value='')
                     p.flags-original#transfer-note
@@ -105,7 +105,7 @@ if user && user.admin
 
 form(data-nosubmit)
     .el-toolbar
-        input#entry-search(type='text' placeholder='Search entries…' data-filter='.el-table tbody tr')
+        input#entry-search(type='text' placeholder='Search entriesâ€¦' data-filter='.el-table tbody tr')
 
     table.el-table
         thead
@@ -148,12 +148,12 @@ form(data-nosubmit)
                         if !(currentCat && currentCat.entriesopen) && entry.entryopen
                             span.entry-open-flag.badge.badge-open-override open
                     td(style='white-space:nowrap')
-                        a(href='/viewEntry?entryid=' + entry.entryid title='View') 👁
+                        a(href='/viewEntry?entryid=' + entry.entryid title='View') ðŸ‘
                         if user && user.admin
                             |
-                            a(href='#' data-action='edit-flags' title='Edit flags') ✏️
+                            a(href='#' data-action='edit-flags' title='Edit flags') âœï¸
 
-script(src='/js/jade.js')
-script(src='/js/home-entrylist.js')
+script(src='/js/jade.js?v=' + buildHash)
+script(src='/js/home-entrylist.js?v=' + buildHash)
 script(nonce=nonce).
     document.getElementById('entry-search').focus();

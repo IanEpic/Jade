@@ -1,4 +1,4 @@
-//- home/entrants.pug
+﻿//- home/entrants.pug
 //- Equiv of $entranttable in home.cgi.
 
 style.
@@ -31,7 +31,7 @@ style.
     h2= content.entrantsLabel || 'My Entrants'
 
     if canEdit
-        //- ── Inline new/edit form ─────────────────────────────────────────────
+        //- â”€â”€ Inline new/edit form â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         .entrant-form-wrap#entrant-form-wrap
             h4#entrant-form-title= content.createLabel || 'New Entrant'
             form.entrant-form(method='POST' action='/formEntrant' id='entrant-form')
@@ -58,7 +58,7 @@ style.
                             td Street Address
                             td
                                 select(name='streetaddressid' id='ef-street-sel')
-                                    option(value='a') — Please Select —
+                                    option(value='a') â€” Please Select â€”
                                     option(value='b') + New Address Below
                                     each addr in content.addresses
                                         option(value=addr.addressid)= addr.address + ', ' + addr.city + ', ' + addr.state
@@ -85,7 +85,7 @@ style.
                             td Postal Address
                             td
                                 select(name='postaladdressid' id='ef-postal-sel')
-                                    option(value='a') — Please Select —
+                                    option(value='a') â€” Please Select â€”
                                     option(value='b') + New Address Below
                                     option(value='c') Same as Street
                                     each addr in content.addresses
@@ -124,11 +124,11 @@ style.
                     button#entrant-submit-btn(type='submit')= content.createLabel || 'Create Entrant'
                     a.btn-secondary(href='#' id='entrant-cancel') Cancel
 
-        //- ── Toolbar ─────────────────────────────────────────────────────────
+        //- â”€â”€ Toolbar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         .entrants-toolbar
             a(href='#' id='btn-new-entrant') + #{content.newEntrantLabel || 'New Entrant'}
 
-    //- ── List table ──────────────────────────────────────────────────────────
+    //- â”€â”€ List table â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     fieldset
         legend= content.entrantNoLabel || 'Entrants'
         table.entrants-table
@@ -157,7 +157,7 @@ style.
                         td= entrant.type
                         td.actions
                             if canEdit
-                                a(href='#' title='Edit' data-action='edit-entrant') ✏️
-                                a(href='/formEntrant?entrantid=' + entrant.entrantid + '&action=delete' title='Delete' data-confirm='Delete this entrant?' style='color:#c44') ✕
+                                a(href='#' title='Edit' data-action='edit-entrant') âœï¸
+                                a(href='/formEntrant?entrantid=' + entrant.entrantid + '&action=delete' title='Delete' data-confirm='Delete this entrant?' style='color:#c44') âœ•
 
-script(src='/js/home-entrants.js')
+script(src='/js/home-entrants.js?v=' + buildHash)

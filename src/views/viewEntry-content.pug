@@ -1,4 +1,4 @@
-//- viewEntry-content.pug
+﻿//- viewEntry-content.pug
 
 style.
     .ve-wrap { max-width: 900px; margin: 0 auto; font-size: 14px; }
@@ -53,7 +53,7 @@ else
         if entry
             p.ve-meta Entry by #{entrant ? entrant.name : (entry.entrantid || '')}
 
-        //- ── Judging Criteria ────────────────────────────────────────────────
+        //- â”€â”€ Judging Criteria â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         if criteria && criteria.length
             .ve-card
                 p.ve-card-title Judging Criteria
@@ -68,12 +68,12 @@ else
                                 td!= c.description
                                 td.r= c.weight ? c.weight + '%' : ''
 
-        //- ── Entrant Details ─────────────────────────────────────────────────
+        //- â”€â”€ Entrant Details â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         .ve-card
             p.ve-card-title Entrant Details
             include viewEntry/entrantdetail.pug
 
-        //- ── Questions / Responses ───────────────────────────────────────────
+        //- â”€â”€ Questions / Responses â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         .ve-card
             p.ve-card-title Entry Responses
 
@@ -82,7 +82,7 @@ else
                 - if (q.inputtype !== 'noinput') questionNum++
                 include viewEntry/question.pug
 
-        //- ── Score / action panel ────────────────────────────────────────────
+        //- â”€â”€ Score / action panel â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         if scorePanel
             case scorePanel.type
                 when 'scoreform'
@@ -101,10 +101,10 @@ else
                     .ve-card
                         include viewEntry/entrantpanel.pug
 
-        //- ── Bottom actions ──────────────────────────────────────────────────
+        //- â”€â”€ Bottom actions â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         if !scorePanel || scorePanel.type !== 'entrant'
             .ve-form-actions
                 a.btn-secondary(href='/home') Home
                 button.btn-secondary.btn-print(type='button') Print
 
-script(defer src='/js/view-entry.js')
+script(defer src='/js/view-entry.js?v=' + buildHash)

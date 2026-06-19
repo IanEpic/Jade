@@ -1,4 +1,4 @@
-//- home/discount-edit.pug
+﻿//- home/discount-edit.pug
 
 style.
     .disc-edit-form { max-width: 800px; margin: 0 auto; }
@@ -64,4 +64,4 @@ form.disc-edit-form(method='POST' action='/formDiscount')
         a(href='/home?action=discounts') < Discounts
         button(type='submit') Save Discount
 
-script(src='/js/home-discount.js')
+script(src='/js/home-discount.js?v=' + buildHash)

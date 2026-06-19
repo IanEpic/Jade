@@ -1,4 +1,4 @@
-//- formUser-content.pug
+﻿//- formUser-content.pug
 
 style.
     .user-form { max-width: 720px; margin: 0 auto; }
@@ -22,7 +22,7 @@ style.
 form.user-form(method='POST' action='/formUser')
     input(type='hidden' name='edituserid' value=targetUser.userid)
 
-    h2(style='text-align:center') Edit User — #{targetUser.firstname} #{targetUser.lastname}
+    h2(style='text-align:center') Edit User â€” #{targetUser.firstname} #{targetUser.lastname}
 
     if error
         p.alert-error= error
@@ -45,7 +45,7 @@ form.user-form(method='POST' action='/formUser')
             if targetUser.judge
                 a(href='/formUser?action=demote&edituserid=' + targetUser.userid data-confirm='Remove all judging data?') Demote from Judge
 
-    //- ── Login details ────────────────────────────────────────────────────────
+    //- â”€â”€ Login details â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     fieldset
         legend Login Details
         table
@@ -66,7 +66,7 @@ form.user-form(method='POST' action='/formUser')
                         br
                         | If changing: #{passwordRules}
 
-    //- ── Personal details ─────────────────────────────────────────────────────
+    //- â”€â”€ Personal details â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     fieldset
         legend Personal Details
         table
@@ -95,7 +95,7 @@ form.user-form(method='POST' action='/formUser')
                         span.req  *
                 td: input(type='text' name='mobile' value=targetUser.mobile maxlength='50')
 
-    //- ── Postal address ───────────────────────────────────────────────────────
+    //- â”€â”€ Postal address â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     fieldset
         legend Postal Address
         table
@@ -127,7 +127,7 @@ form.user-form(method='POST' action='/formUser')
                             td Country
                             td: input(type='text' name='postalcountry' value='Australia' maxlength='50')
 
-    //- ── Admin settings ───────────────────────────────────────────────────────
+    //- â”€â”€ Admin settings â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     if isAdmin
         fieldset
             legend Account Settings
@@ -151,9 +151,9 @@ form.user-form(method='POST' action='/formUser')
                             input(type='checkbox' name='categories' value=cat.categoryid checked=cat.judging)
                             = cat.name
 
-    //- ── Actions ──────────────────────────────────────────────────────────────
+    //- â”€â”€ Actions â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     .form-actions
         a.btn-secondary(href='/home') Cancel
         button.btn(type='submit' name='submit' value='Update User') Save Changes
 
-script(src='/js/user-edit.js')
+script(src='/js/user-edit.js?v=' + buildHash)

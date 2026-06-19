@@ -1,4 +1,4 @@
-//- home/eligibility.pug
+﻿//- home/eligibility.pug
 
 style.
     .el-wrap { max-width: 900px; margin: 0 auto; }
@@ -25,7 +25,7 @@ form(method='POST' action='/formEligibility')
     input(type='hidden' name='task' value='reorder')
 
     .el-toolbar
-        input#el-search(type='text' placeholder='Search eligibility rules…' data-filter='.el-table tbody tr')
+        input#el-search(type='text' placeholder='Search eligibility rulesâ€¦' data-filter='.el-table tbody tr')
         a#btn-new-el(href='#') + New Eligibility Rule
 
     div#new-el-form(style='display:none; margin-bottom:16px; padding:12px; background:#111; border:1px solid #555; border-radius:4px; max-width:600px')
@@ -59,11 +59,11 @@ form(method='POST' action='/formEligibility')
                     td.el-rule= el.eligibilityrule
                     td: input(type='text' name='#' + el.eligibilityid value=i+1)
                     td.el-actions
-                        a(href='/home?action=eligibility&eligibilityid=' + el.eligibilityid title='Edit') ✏️
-                        a(href='/formEligibility?eligibilityid=' + el.eligibilityid + '&action=delete' data-confirm='Delete eligibility rule ' + el.eligibilityid + '?' title='Delete' style='color:#c44') ✕
+                        a(href='/home?action=eligibility&eligibilityid=' + el.eligibilityid title='Edit') âœï¸
+                        a(href='/formEligibility?eligibilityid=' + el.eligibilityid + '&action=delete' data-confirm='Delete eligibility rule ' + el.eligibilityid + '?' title='Delete' style='color:#c44') âœ•
 
     div(style='margin-top:12px')
         button.btn(type='submit') Reorder
 
-script(src='/js/jade.js')
-script(src='/js/home-eligibility.js')
+script(src='/js/jade.js?v=' + buildHash)
+script(src='/js/home-eligibility.js?v=' + buildHash)

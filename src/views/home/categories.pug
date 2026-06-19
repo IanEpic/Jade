@@ -1,4 +1,4 @@
-//- home/categories.pug
+﻿//- home/categories.pug
 //- Equiv of $categorytable in home.cgi. Admin category management.
 
 style.
@@ -23,7 +23,7 @@ form(method='POST' action='/formCategory')
     input(type='hidden' name='task' value='reorder')
 
     .cat-toolbar
-        input#cat-search(type='text' placeholder='Search categories…' data-filter='.cat-table tbody tr')
+        input#cat-search(type='text' placeholder='Search categoriesâ€¦' data-filter='.cat-table tbody tr')
         a(href='/home?action=category') + New Category
 
     table.cat-table
@@ -60,6 +60,6 @@ form(method='POST' action='/formCategory')
     div(style='margin-top:12px')
         button(type='submit') Reorder
 
-script(src='/js/jade.js')
+script(src='/js/jade.js?v=' + buildHash)
 script(nonce=nonce).
     document.getElementById('cat-search').focus();

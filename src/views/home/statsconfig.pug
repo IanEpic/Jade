@@ -1,4 +1,4 @@
-//- home/statsconfig.pug — manage StatsProgram rows
+﻿//- home/statsconfig.pug â€” manage StatsProgram rows
 
 style.
     .sc-wrap { max-width: 900px; margin: 0 auto; }
@@ -27,7 +27,7 @@ style.
     if content.success
         p.alert-ok Saved.
 
-    //- ── Inline add/edit form ────────────────────────────────────────────────
+    //- â”€â”€ Inline add/edit form â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     div#sc-form-wrap.sc-form-wrap
         h4#sc-form-title Add Program
         form#sc-form.sc-form(method='POST' action='/' + program.slug + '/home?action=statsconfig')
@@ -56,11 +56,11 @@ style.
                 button#sc-save.btn(type='submit') Save
                 a#sc-cancel.btn-secondary(href='#') Cancel
 
-    //- ── Toolbar ─────────────────────────────────────────────────────────────
+    //- â”€â”€ Toolbar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     .sc-toolbar
         a#btn-new-sc(href='#') + Add Program
 
-    //- ── Table ───────────────────────────────────────────────────────────────
+    //- â”€â”€ Table â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     table.sc-table
         thead
             tr
@@ -81,10 +81,10 @@ style.
                     td= p.closedate
                     td(style='color:#888')= p.lifetimecat
                     td.sc-actions(style='white-space:nowrap')
-                        a.sc-edit(href='#' title='Edit') ✏️
-                        a.sc-delete(href='#' title='Delete' style='color:#c44') ✕
+                        a.sc-edit(href='#' title='Edit') âœï¸
+                        a.sc-delete(href='#' title='Delete' style='color:#c44') âœ•
 
-script(src='/js/jade.js')
+script(src='/js/jade.js?v=' + buildHash)
 script.
     (function () {
         const wrap   = document.getElementById('sc-form-wrap');

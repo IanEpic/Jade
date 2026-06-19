@@ -1,4 +1,4 @@
-doctype html
+﻿doctype html
 html(lang='en')
     head
         meta(charset='UTF-8')
@@ -8,7 +8,7 @@ html(lang='en')
         //- Per-program overrides live at /public/programs/<slug>/css/main.css
         link(rel='icon' type='image/svg+xml' href='/favicon.svg')
         link(rel='icon' type='image/x-icon' href='/favicon.ico')
-        link(rel='stylesheet' href='/css/main.css')
+        link(rel='stylesheet' href='/css/main.css?v=' + buildHash)
         block styles
 
     body(class=slug ? '' : 'root-login')

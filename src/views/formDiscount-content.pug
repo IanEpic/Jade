@@ -1,4 +1,4 @@
-//- formDiscount-content.pug — admin manage program discounts
+﻿//- formDiscount-content.pug â€” admin manage program discounts
 
 style.
     .disc-wrap { max-width: 900px; margin: 0 auto; }
@@ -39,7 +39,7 @@ style.
     if error
         p.alert-err= error
 
-    //- ── Inline add/edit form ────────────────────────────────────────────────────
+    //- â”€â”€ Inline add/edit form â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     div.disc-form-wrap#disc-form-wrap
         h4#disc-form-title Add Discount
         form.disc-form(method='POST' action='/formDiscount' id='discount-form')
@@ -86,12 +86,12 @@ style.
                 a.btn-secondary(href='#' id='disc-cancel') Cancel
                 button#disc-submit-btn.btn(type='submit') Add Discount
 
-    //- ── Toolbar ─────────────────────────────────────────────────────────────────
+    //- â”€â”€ Toolbar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     .disc-toolbar
-        input#disc-search(type='text' placeholder='Search discounts…' data-filter='.disc-table tbody tr')
+        input#disc-search(type='text' placeholder='Search discountsâ€¦' data-filter='.disc-table tbody tr')
         a(href='#' id='btn-new-disc') + New Discount
 
-    //- ── List ────────────────────────────────────────────────────────────────────
+    //- â”€â”€ List â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     if discounts.length
         table.disc-table
             thead
@@ -108,19 +108,19 @@ style.
             tbody
                 each d in discounts
                     tr
-                        td= d.name || '—'
+                        td= d.name || 'â€”'
                         td: span.badge(class=d.type === 'earlybird' ? 'badge-eb' : 'badge-code')= d.type === 'earlybird' ? 'Early Bird' : 'Code'
-                        td= d.code || '—'
+                        td= d.code || 'â€”'
                         td= d.amounttype === 'percent' ? d.amount + '%' : '$' + parseFloat(d.amount).toFixed(2) + ' per entry'
-                        td= d.validfrom ? new Date(d.validfrom).toLocaleDateString('en-AU') : '—'
-                        td= d.validto   ? new Date(d.validto).toLocaleDateString('en-AU')   : '—'
+                        td= d.validfrom ? new Date(d.validfrom).toLocaleDateString('en-AU') : 'â€”'
+                        td= d.validto   ? new Date(d.validto).toLocaleDateString('en-AU')   : 'â€”'
                         td= d.usecount + (d.maxuses ? ' / ' + d.maxuses : '')
                         td: span.badge(class=d.active ? '' : 'badge-off')= d.active ? 'Active' : 'Inactive'
                         td.disc-actions(style='white-space:nowrap')
-                            a(href='/home?action=discounts&discountid=' + d.discountid title='Edit') ✏️
-                            a(href='/home?action=discounts&delete=' + d.discountid data-confirm='Delete this discount?' title='Delete' style='color:#c44') ✕
+                            a(href='/home?action=discounts&discountid=' + d.discountid title='Edit') âœï¸
+                            a(href='/home?action=discounts&delete=' + d.discountid data-confirm='Delete this discount?' title='Delete' style='color:#c44') âœ•
     else
         p(style='color:#888; font-size:13px') No discounts configured.
 
-script(src='/js/jade.js')
-script(src='/js/home-discount.js')
+script(src='/js/jade.js?v=' + buildHash)
+script(src='/js/home-discount.js?v=' + buildHash)

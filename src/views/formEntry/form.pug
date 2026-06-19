@@ -1,4 +1,4 @@
-//- formEntry/form.pug
+﻿//- formEntry/form.pug
 //- Equiv of $form_blank / $form_edit in formEntry.cgi.
 
 - let isEdit = mode === 'edit'
@@ -14,7 +14,7 @@ if isEdit
     br
 else
     p(style='text-align:center; color:#c48f06; font-size:18px; margin-bottom:2px') Start a New Entry
-    p(style='text-align:center; color:#aaa; font-size:13px; margin-top:0; margin-bottom:16px') Step 3 — Set up your entry below and then proceed to the questions
+    p(style='text-align:center; color:#aaa; font-size:13px; margin-top:0; margin-bottom:16px') Step 3 â€” Set up your entry below and then proceed to the questions
 
 form(name='entryform' method='POST' action='/formEntry')
     if isEdit
@@ -31,7 +31,7 @@ form(name='entryform' method='POST' action='/formEntry')
         tr
             td(colspan='2' align='left'): hr
 
-        //- ── Eligibility ─────────────────────────────────────────────────
+        //- â”€â”€ Eligibility â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         if eligibilityLinks && eligibilityLinks.length
             tr
                 td(colspan='2')
@@ -46,7 +46,7 @@ form(name='entryform' method='POST' action='/formEntry')
                             li!= el.eligibilityrule
             tr: td(colspan='2'): hr
 
-        //- ── Criteria ─────────────────────────────────────────────────────
+        //- â”€â”€ Criteria â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         if criteria && criteria.length
             tr
                 td(colspan='2')
@@ -66,7 +66,7 @@ form(name='entryform' method='POST' action='/formEntry')
                                 td(align='center')= c.weight + '%'
             tr: td(colspan='2'): hr
 
-        //- ── Your Reference ───────────────────────────────────────────────
+        //- â”€â”€ Your Reference â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         tr
             td(colspan='2' align='left'): b Your Reference
         tr
@@ -76,7 +76,7 @@ form(name='entryform' method='POST' action='/formEntry')
             td: input(type='text' name='userref' value=(isEdit ? entry.userref || '' : '') size='50' maxlength='50')
         tr: td(colspan='2' align='left'): hr
 
-        //- ── Entrant selection ────────────────────────────────────────────
+        //- â”€â”€ Entrant selection â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         if entrants && entrants.length
             tr
                 td: b Select an Entrant
@@ -194,5 +194,5 @@ form(name='entryform' method='POST' action='/formEntry')
                 button.btn(type='submit' name='submit' value='Save') Save &amp; Return Home
                 button.btn(type='submit' name='submit' value='SaveProceed') Save &amp; Proceed to Questions
 
-script(src='/js/jade.js')
-script(src='/js/form-entry.js')
+script(src='/js/jade.js?v=' + buildHash)
+script(src='/js/form-entry.js?v=' + buildHash)

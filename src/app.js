@@ -129,12 +129,21 @@ app.set('views', path.join(__dirname, 'views'));
 // in development. Enable it always: templates only change on server restart anyway.
 app.enable('view cache');
 
+// ── Build hash for cache-busting JS/CSS ──────────────────────────────────────
+// Read git short SHA once at startup; falls back to process start timestamp.
+import { execSync } from 'child_process';
+const BUILD_HASH = (() => {
+  try { return execSync('git rev-parse --short HEAD', { encoding: 'utf8' }).trim(); }
+  catch { return Date.now().toString(36); }
+})();
+
 // ── Template globals ──────────────────────────────────────────────────────────
 // Makes these available in every Pug template without passing them explicitly.
 // requireAuth sets res.locals.user; resolveProgram sets res.locals.program.
 app.use((req, res, next) => {
   res.locals.currentYear = new Date().getFullYear();
   res.locals.env         = process.env.NODE_ENV || 'development';
+  res.locals.buildHash   = BUILD_HASH;
   next();
 });
 

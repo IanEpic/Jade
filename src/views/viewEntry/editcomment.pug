@@ -1,4 +1,4 @@
-//- viewEntry/editcomment.pug
+﻿//- viewEntry/editcomment.pug
 //- Judge editing their comments after commentreview flag set.
 //- Generates tr rows directly (same structure as scoreform.pug).
 
@@ -46,7 +46,7 @@ tr: td(colspan='2')
             tr: td(colspan='2')
                 - let editFeedbackStyle = 'background:#c0392b;color:#fff;padding:12px;margin-bottom:8px;' + (scorePanel.commentFeedback ? '' : 'display:none;')
                 div#comment-feedback(style=editFeedbackStyle)
-                    b Your comments could not be saved — please review the feedback below and make changes before resubmitting:
+                    b Your comments could not be saved â€” please review the feedback below and make changes before resubmitting:
                     br
                     br
                     span#comment-feedback-text= scorePanel.commentFeedback || ''
@@ -55,4 +55,4 @@ tr: td(colspan='2')
                 button#score-submit.btn(type='submit') Record Edited Messages
             tr: td(colspan='2'): hr
 
-script(src='/js/score-form.js')
+script(src='/js/score-form.js?v=' + buildHash)

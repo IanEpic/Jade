@@ -1,4 +1,4 @@
-//- home/judges.pug
+﻿//- home/judges.pug
 
 style.
     .judges-wrap { max-width: 900px; margin: 0 auto; }
@@ -22,7 +22,7 @@ style.
     h3 Manage Judges
 
     .judges-toolbar
-        input#judge-search(type='text' placeholder='Search by name or email…' data-filter='.judges-table tbody tr')
+        input#judge-search(type='text' placeholder='Search by name or emailâ€¦' data-filter='.judges-table tbody tr')
         a(href='/home?action=judge') + New Judge
 
     table.judges-table
@@ -40,12 +40,12 @@ style.
                             span.badge.badge-disabled Disabled
                     td= j.email
                     td.actions
-                        a(href='/home?action=judge&judgeid=' + j.userid title='Edit') ✏️
+                        a(href='/home?action=judge&judgeid=' + j.userid title='Edit') âœï¸
                         if j.enabled
-                            a(href='/formUser?action=disable&edituserid=' + j.userid title='Disable') 🔒
+                            a(href='/formUser?action=disable&edituserid=' + j.userid title='Disable') ðŸ”’
                         else
-                            a(href='/formUser?action=enable&edituserid=' + j.userid title='Enable') 🔓
-                        a(href='/formUser?action=demote&edituserid=' + j.userid title='Demote judge' data-confirm='Remove all judging data for this user?') ⬇️
-                        a(href='/formUser?action=delete&edituserid=' + j.userid title='Delete' data-confirm='Delete this judge?' style='color:#c44') ✕
+                            a(href='/formUser?action=enable&edituserid=' + j.userid title='Enable') ðŸ”“
+                        a(href='/formUser?action=demote&edituserid=' + j.userid title='Demote judge' data-confirm='Remove all judging data for this user?') â¬‡ï¸
+                        a(href='/formUser?action=delete&edituserid=' + j.userid title='Delete' data-confirm='Delete this judge?' style='color:#c44') âœ•
 
-script(src='/js/jade.js')
+script(src='/js/jade.js?v=' + buildHash)
