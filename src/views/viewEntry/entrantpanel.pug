@@ -15,7 +15,7 @@ if scorePanel.canFinalise
     tr: td(colspan='2' align='center')
         a.btn-secondary(href='/home') Home
         a.btn-secondary(href='/home?action=entries') My Entries
-        button.btn-secondary(type='button') Print
+        button.btn-secondary.btn-print(type='button') Print
         a#edit-entry-btn.btn-secondary(href='/' + slug + '/formResponses?entryid=' + entry.entryid style=entry.finalised ? 'display:none' : '') Edit Entry
 else
     tr: td(colspan='2')
@@ -27,4 +27,4 @@ else
     tr: td(colspan='2' align='center')
         a.btn-secondary(href='/home') Home
         a.btn-secondary(href='/home?action=entries') My Entries
-        button.btn-secondary(type='button') Print
+        button.btn-secondary.btn-print(type='button') Print

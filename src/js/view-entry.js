@@ -48,8 +48,7 @@ if (finaliseCheckbox && finaliseRecord && editEntryBtn) {
 }
 
 // Print buttons — onclick blocked by CSP script-src-attr 'none', wire up here
-document.querySelectorAll('button[onclick="window.print()"]').forEach(function (btn) {
-    btn.removeAttribute('onclick');
+document.querySelectorAll('button.btn-print').forEach(function (btn) {
     btn.addEventListener('click', function () { window.print(); });
 });
 
