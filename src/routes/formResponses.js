@@ -405,25 +405,68 @@ async function upsertResponse(pool, entryid, questionid, responseid, value) {
     }
 }
 
-// ── Chunked upload — in-memory upload registry ────────────────────────────────
+// ── Chunked upload — DB-backed upload registry ───────────────────────────────
 // Cloudflare limits request bodies to 100 MB. To support files up to 2 GB,
 // the client slices the file into 50 MB chunks and posts them one at a time.
 // Three endpoints handle the lifecycle: init → chunk(s) → complete.
 //
-// uploadRegistry holds pending uploads keyed by uploadId. Entries are cleaned
-// up on complete or on a 2-hour TTL sweep.
+// Registry is stored in the UploadRegistry SQL table so all nodes in a
+// load-balanced cluster share state. .part files land on the shared NAS.
 
 const MAX_UPLOAD_BYTES = 2 * 1024 * 1024 * 1024; // 2 GB
-const uploadRegistry   = new Map();
+
+async function registryGet(uploadId) {
+    const pool = await getPool();
+    const r = await pool.request()
+        .input('uploadId', sql.NVarChar, uploadId)
+        .query('SELECT * FROM UploadRegistry WHERE uploadid = @uploadId');
+    const row = r.recordset[0];
+    if (!row) return null;
+    return { type: row.type, filename: row.filename, size: row.filesize, ext: row.ext, tempFile: row.tempfile, received: row.received };
+}
+
+async function registrySet(uploadId, meta) {
+    const pool = await getPool();
+    await pool.request()
+        .input('uploadId',  sql.NVarChar, uploadId)
+        .input('type',      sql.NVarChar, meta.type)
+        .input('filename',  sql.NVarChar, meta.filename)
+        .input('filesize',  sql.BigInt,   meta.size)
+        .input('ext',       sql.NVarChar, meta.ext)
+        .input('tempfile',  sql.NVarChar, meta.tempFile)
+        .input('received',  sql.BigInt,   meta.received)
+        .query(`
+            IF EXISTS (SELECT 1 FROM UploadRegistry WHERE uploadid = @uploadId)
+                UPDATE UploadRegistry SET received = @received WHERE uploadid = @uploadId
+            ELSE
+                INSERT INTO UploadRegistry (uploadid, type, filename, filesize, ext, tempfile, received)
+                VALUES (@uploadId, @type, @filename, @filesize, @ext, @tempfile, @received)
+        `);
+}
+
+async function registryDelete(uploadId) {
+    const pool = await getPool();
+    await pool.request()
+        .input('uploadId', sql.NVarChar, uploadId)
+        .query('DELETE FROM UploadRegistry WHERE uploadid = @uploadId');
+}
 
 // Purge stale uploads older than 2 hours every 30 minutes.
-setInterval(() => {
-    const cutoff = Date.now() - 2 * 60 * 60 * 1000;
-    for (const [id, meta] of uploadRegistry) {
-        if (meta.createdAt < cutoff) {
-            fs.unlink(meta.tempFile).catch(() => {});
-            uploadRegistry.delete(id);
+setInterval(async () => {
+    try {
+        const pool = await getPool();
+        const stale = await pool.request().query(`
+            SELECT uploadid, tempfile FROM UploadRegistry
+            WHERE createdat < DATEADD(HOUR, -2, GETDATE())
+        `);
+        for (const row of stale.recordset) {
+            fs.unlink(row.tempfile).catch(() => {});
+            await pool.request()
+                .input('uploadId', sql.NVarChar, row.uploadid)
+                .query('DELETE FROM UploadRegistry WHERE uploadid = @uploadId');
         }
+    } catch (err) {
+        console.warn('[upload cleanup]', err.message);
     }
 }, 30 * 60 * 1000);
 
@@ -446,8 +489,7 @@ router.post('/upload/chunk-init', async (req, res, next) => {
 
         // Pre-allocate an empty file so appendFile always finds it
         await fs.writeFile(tempFile, Buffer.alloc(0));
-
-        uploadRegistry.set(uploadId, { type, filename, size, ext, tempFile, received: 0, createdAt: Date.now() });
+        await registrySet(uploadId, { type, filename, size, ext, tempFile, received: 0 });
 
         return res.json({ status: 'OK', uploadId });
     } catch (err) { next(err); }
@@ -459,7 +501,7 @@ router.post('/upload/chunk-init', async (req, res, next) => {
 router.post('/upload/chunk', express.raw({ type: 'application/octet-stream', limit: '60mb' }), async (req, res, next) => {
     try {
         const { uploadId } = req.query;
-        const meta = uploadRegistry.get(uploadId);
+        const meta = await registryGet(uploadId);
         if (!meta) return res.json({ status: 'E_NOTFOUND', msg: 'Unknown upload ID — the session may have expired.' });
 
         if (!Buffer.isBuffer(req.body) || req.body.length === 0) {
@@ -468,6 +510,7 @@ router.post('/upload/chunk', express.raw({ type: 'application/octet-stream', lim
 
         await fs.appendFile(meta.tempFile, req.body);
         meta.received += req.body.length;
+        await registrySet(uploadId, meta);
 
         return res.json({ status: 'OK', received: meta.received });
     } catch (err) { next(err); }
@@ -479,10 +522,10 @@ router.post('/upload/chunk', express.raw({ type: 'application/octet-stream', lim
 router.post('/upload/chunk-abort', async (req, res, next) => {
     try {
         const { uploadId } = req.body;
-        const meta = uploadRegistry.get(uploadId);
+        const meta = await registryGet(uploadId);
         if (meta) {
             try { await fs.unlink(meta.tempFile); } catch {}
-            uploadRegistry.delete(uploadId);
+            await registryDelete(uploadId);
         }
         return res.json({ status: 'OK' });
     } catch (err) { next(err); }
@@ -494,7 +537,7 @@ router.post('/upload/chunk-abort', async (req, res, next) => {
 router.post('/upload/chunk-complete', async (req, res, next) => {
     try {
         const { uploadId } = req.body;
-        const meta = uploadRegistry.get(uploadId);
+        const meta = await registryGet(uploadId);
         if (!meta) return res.json({ status: 'E_NOTFOUND', msg: 'Unknown upload ID — the session may have expired.' });
 
         // Verify the assembled file is the expected size
@@ -512,7 +555,7 @@ router.post('/upload/chunk-complete', async (req, res, next) => {
                        : ORIGINAL_FILES_DIR;
 
         await fs.rename(meta.tempFile, path.join(destDir, filename));
-        uploadRegistry.delete(uploadId);
+        await registryDelete(uploadId);
 
         if (meta.type === 'image') {
             processImage(filename).catch(err => console.error('[chunk] image processing error:', err.message));

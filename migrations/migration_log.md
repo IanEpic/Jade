@@ -783,6 +783,18 @@ WHERE r_img.deleted = 0
 ORDER BY r_img.entryid, r_img.questionid;
 ```
 
+## 037 — Create UploadRegistry table
+
+**Date applied to UAT:** (pending)
+**Purpose:** Replaces the in-memory `uploadRegistry` Map in `formResponses.js` with a shared
+SQL table so chunked uploads work correctly behind a multi-node load balancer. chunk-init,
+chunk, and chunk-complete can land on different nodes and still find the same metadata.
+The `.part` files continue to land on the shared NAS filestore.
+
+See `migrations/037_upload_registry.sql`.
+
+**Status:** Must be run on UAT and PROD before deploying the matching code change.
+
 _(further migrations will be added as we go)_
 
 ---
