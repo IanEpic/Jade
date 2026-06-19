@@ -7,7 +7,7 @@ if scorePanel.canFinalise
             form(method='POST' action='/finaliseEntry')
                 input(type='hidden' name='entryid' value=entry.entryid)
                 label
-                    input(type='checkbox' name='finalise' checked=entry.finalised)
+                    input#finalise-checkbox(type='checkbox' name='finalise' checked=entry.finalised)
                     |  This entry is complete and ready for judging
                 br
                 br
@@ -15,8 +15,7 @@ if scorePanel.canFinalise
     tr: td(colspan='2' align='center')
         a.btn-secondary(href='/home') Home
         button.btn-secondary(type='button' onclick='window.print()') Print
-        if !entry.finalised
-            a.btn-secondary(href='/' + slug + '/formResponses?entryid=' + entry.entryid) Edit Entry
+        a#edit-entry-btn.btn-secondary(href='/' + slug + '/formResponses?entryid=' + entry.entryid style=entry.finalised ? 'display:none' : '') Edit Entry
 else
     tr: td(colspan='2')
         div(style='border:2px solid #c48f06; padding:10px; margin-bottom:10px;')
