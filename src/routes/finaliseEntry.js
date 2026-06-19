@@ -10,6 +10,8 @@ router.use(requireAuth);
 
 router.post('/', async (req, res, next) => {
     try {
+        console.log('finaliseEntry POST headers:', JSON.stringify(req.headers));
+        console.log('finaliseEntry POST body:', JSON.stringify(req.body));
         const user    = req.user;
         const entryid = req.body.entryid ? parseInt(req.body.entryid) : null;
         if (!entryid) return res.redirect('/home');
