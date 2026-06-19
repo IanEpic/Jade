@@ -47,6 +47,12 @@ if (finaliseCheckbox && finaliseRecord && editEntryBtn) {
     });
 }
 
+// Print buttons — onclick blocked by CSP script-src-attr 'none', wire up here
+document.querySelectorAll('button[onclick="window.print()"]').forEach(function (btn) {
+    btn.removeAttribute('onclick');
+    btn.addEventListener('click', function () { window.print(); });
+});
+
 // File download links — HEAD check, replace link with [Upload Error] on 404
 document.querySelectorAll('a.ve-doc-link').forEach(function (a) {
     fetch(a.href, { method: 'HEAD' })
