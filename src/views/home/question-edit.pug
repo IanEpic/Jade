@@ -77,7 +77,7 @@ form.q-edit-form(method='POST' action='/formQuestion')
             tr
                 td Apply to all categories
                 td
-                    select(name='allcats')
+                    select(name='allcats' id='allcats-sel')
                         option(value='0' selected=!(content.question && content.question.allcats)) No
                         option(value='1' selected=(content.question && content.question.allcats)) Yes
             tr

@@ -1,4 +1,4 @@
-// question-edit.js — question type → show/hide Options fieldset and Caption row
+// question-edit.js — input type show/hide + allcats checkAll
 (function () {
     var optionTypes  = ['drop down list', 'checkbox', 'radio'];
     var captionTypes = ['image', 'video'];
@@ -15,4 +15,13 @@
 
     typeSelect.addEventListener('change', syncOptions);
     syncOptions();
+})();
+
+(function () {
+    var sel = document.getElementById('allcats-sel');
+    if (!sel) return;
+    sel.addEventListener('change', function () {
+        var checked = this.value === '1';
+        document.querySelectorAll('input[type=checkbox][name^="cat~"]').forEach(function (cb) { cb.checked = checked; });
+    });
 })();
