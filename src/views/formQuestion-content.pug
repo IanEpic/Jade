@@ -141,6 +141,6 @@ script(nonce=nonce).
         if (!sel) return;
         sel.addEventListener('change', function () {
             var checked = this.value === '1';
-            document.querySelectorAll('input[type=checkbox][name=categories]').forEach(function (cb) { cb.checked = checked; });
+            document.querySelectorAll('input[type=checkbox][name^="cat~"]').forEach(function (cb) { cb.checked = checked; });
         });
     })();
