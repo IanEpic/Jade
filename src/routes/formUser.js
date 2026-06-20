@@ -145,7 +145,8 @@ router.post('/', async (req, res, next) => {
         // Build a plain-object view of targetUser with credential fields merged (for re-renders)
         const targetUserView = () => ({
             ...targetUser.toJSON(),
-            postaladdressid: credential?.postaladdressid || null,
+            postaladdressid:  credential?.postaladdressid  || null,
+            streetaddressid:  credential?.streetaddressid  || null,
         });
 
         // Validate required fields — admins only need email, self-service needs full profile
@@ -183,7 +184,7 @@ router.post('/', async (req, res, next) => {
             }
         }
 
-        // New address
+        // New postal address
         let postaladdressid = body.postaladdressid;
         if (postaladdressid === 'b') {
             if (!operator.admin && (!body.postaladdress || !body.postalcity || !body.postalstate || !body.postalcode || !body.postalcountry)) {
@@ -193,7 +194,7 @@ router.post('/', async (req, res, next) => {
                 ]);
                 return res.renderInShell('formUser', {
                     user: operator, program, targetUser: targetUserView(), addresses, categories, passwordRules: PASSWORD_RULES,
-                    error: 'Please complete all address fields.', isAdmin: !!operator.admin,
+                    error: 'Please complete all postal address fields.', isAdmin: !!operator.admin,
                 });
             }
             const newAddr = await Address.create({
@@ -205,6 +206,21 @@ router.post('/', async (req, res, next) => {
                 country: body.postalcountry,
             });
             postaladdressid = newAddr.addressid;
+        }
+
+        // New street address
+        let streetaddressid = body.streetaddressid || null;
+        if (streetaddressid === 'a') streetaddressid = null;
+        if (streetaddressid === 'b') {
+            const newAddr = await Address.create({
+                userid:  targetUser.userid,
+                address: body.streetaddress  || '',
+                city:    body.streetcity     || '',
+                state:   body.streetstate    || '',
+                code:    body.streetcode     || '',
+                country: body.streetcountry  || '',
+            });
+            streetaddressid = newAddr.addressid;
         }
 
         const oldemail = credential?.email || '';
@@ -228,12 +244,13 @@ router.post('/', async (req, res, next) => {
         // Profile fields — write to UserCredential only (source of truth post-migration 036/038)
         if (targetUser.credentialid) {
             await UserCredential.update({
-                firstname:       body.firstname,
-                lastname:        body.lastname,
-                organisation:    body.organisation || '',
-                telephone:       body.telephone    || '',
-                mobile:          body.mobile       || '',
-                postaladdressid: postaladdressid   || null,
+                firstname:        body.firstname,
+                lastname:         body.lastname,
+                organisation:     body.organisation || '',
+                telephone:        body.telephone    || '',
+                mobile:           body.mobile       || '',
+                postaladdressid:  postaladdressid   || null,
+                streetaddressid:  streetaddressid   || null,
             }, { where: { credentialid: targetUser.credentialid } });
         }
 

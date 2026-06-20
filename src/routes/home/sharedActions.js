@@ -198,6 +198,7 @@ export async function handleSharedAction(action, req, res, program, user, data) 
             telephone:         credential?.telephone         || '',
             mobile:            credential?.mobile            || '',
             postaladdressid:   credential?.postaladdressid   || null,
+            streetaddressid:   credential?.streetaddressid   || null,
         };
         return {
             view:            'home/user-edit',

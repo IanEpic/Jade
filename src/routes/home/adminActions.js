@@ -314,6 +314,7 @@ export async function handleAdminAction(action, req, res, program, user) {
                 targetUserJson.telephone         = credential.telephone         || '';
                 targetUserJson.mobile            = credential.mobile            || '';
                 targetUserJson.postaladdressid   = credential.postaladdressid   || null;
+                targetUserJson.streetaddressid   = credential.streetaddressid   || null;
             }
             return {
                 view:            'home/user-edit',

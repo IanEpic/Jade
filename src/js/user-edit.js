@@ -17,6 +17,15 @@ document.addEventListener('click', function (e) {
         });
     }
 
+    var streetSel = document.getElementById('streetaddressid-select');
+    var streetRow = document.getElementById('new-street-address-row');
+    if (streetSel && streetRow) {
+        streetRow.style.display = streetSel.value === 'b' ? '' : 'none';
+        streetSel.addEventListener('change', function () {
+            streetRow.style.display = this.value === 'b' ? '' : 'none';
+        });
+    }
+
     var judgecb = document.getElementById('isjudge-cb');
     var judgeFs = document.getElementById('judge-cats-fieldset');
     if (judgecb && judgeFs) {

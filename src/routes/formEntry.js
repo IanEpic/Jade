@@ -33,7 +33,7 @@ async function loadFormData(user, category) {
     ]);
     return {
         entrants:        entrants.map(e => e.toJSON()),
-        addresses:       addresses.map(a => a.toJSON()),
+        addresses:       addresses,
         criteria,
         eligibilityLinks,
     };
