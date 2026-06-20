@@ -319,7 +319,7 @@ export async function handleAdminAction(action, req, res, program, user) {
                 view:            'home/user-edit',
                 targetUser:      targetUserJson,
                 operator:        user,
-                addresses:       addresses.map(a => a.toJSON()),
+                addresses:       addresses,
                 categories,
                 passwordRules:   PASSWORD_RULES,
                 targetActivated: !credential || credential.activated,
