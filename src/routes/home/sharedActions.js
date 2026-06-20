@@ -10,6 +10,7 @@ import { translate }        from '../../services/translate.js';
 import { currency, PASSWORD_RULES } from '../../services/helpers.js';
 import { getLinkedPrograms } from '../../services/auth.js';
 import Address          from '../../models/Address.js';
+import { loadAddressesForCredential } from '../../services/addressService.js';
 import UserCredential   from '../../models/UserCredential.js';
 import {
     getAllEntriesForProgram,
@@ -185,23 +186,24 @@ export async function handleSharedAction(action, req, res, program, user, data) 
 
     if (action === 'profile') {
         const [addresses, credential] = await Promise.all([
-            Address.findAll({ where: { userid: user.userid }, order: [['addressid', 'ASC']] }),
+            user.credentialid ? loadAddressesForCredential(user.credentialid) : [],
             user.credentialid ? UserCredential.findByPk(user.credentialid) : null,
         ]);
         const targetUser = {
             ...user.toJSON ? user.toJSON() : { ...user },
-            email:        credential?.email        || '',
-            firstname:    credential?.firstname    || '',
-            lastname:     credential?.lastname     || '',
-            organisation: credential?.organisation || '',
-            telephone:    credential?.telephone    || '',
-            mobile:       credential?.mobile       || '',
+            email:             credential?.email             || '',
+            firstname:         credential?.firstname         || '',
+            lastname:          credential?.lastname          || '',
+            organisation:      credential?.organisation      || '',
+            telephone:         credential?.telephone         || '',
+            mobile:            credential?.mobile            || '',
+            postaladdressid:   credential?.postaladdressid   || null,
         };
         return {
             view:            'home/user-edit',
             targetUser,
             operator:        user,
-            addresses:       addresses.map(a => a.toJSON()),
+            addresses,
             categories:      [],
             passwordRules:   PASSWORD_RULES,
             targetActivated: true,

@@ -15,6 +15,7 @@ import Category from '../models/Category.js';
 import Entrant  from '../models/Entrant.js';
 import Address  from '../models/Address.js';
 import { getEntrycost } from '../services/pricing.js';
+import { loadAddressesForCredential } from '../services/addressService.js';
 import { getPool, sql } from '../config/database.js';
 import { getCriteria, getEligibilityLinks } from '../queries/categoryQueries.js';
 
@@ -26,7 +27,7 @@ router.use(requireAuth);
 async function loadFormData(user, category) {
     const [entrants, addresses, criteria, eligibilityLinks] = await Promise.all([
         Entrant.findAll({ where: { userid: user.userid, deleted: 0 } }),
-        Address.findAll({ where: { userid: user.userid } }),
+        loadAddressesForCredential(user.credentialid),
         getCriteria(category.categoryid),
         getEligibilityLinks(category.categoryid),
     ]);

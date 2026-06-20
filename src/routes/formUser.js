@@ -16,6 +16,7 @@ import JudgeComment        from '../models/JudgeComment.js';
 import Score               from '../models/Score.js';
 import { getPool, sql }    from '../config/database.js';
 import { encryptPassword, randomPassword, validatePassword, PASSWORD_RULES } from '../services/helpers.js';
+import { loadAddressesForCredential } from '../services/addressService.js';
 import { mail, parseSmtp } from '../services/mailer.js';
 import crypto from 'crypto';
 
@@ -24,8 +25,8 @@ router.use(requireAuth);
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
-async function getAddresses(userid) {
-    return Address.findAll({ where: { userid }, order: [['addressid', 'ASC']] });
+async function getAddresses(credentialid) {
+    return loadAddressesForCredential(credentialid);
 }
 
 async function getCategories(programid, userid) {
@@ -137,6 +138,16 @@ router.post('/', async (req, res, next) => {
         const targetUser = await resolveEditUser(operator, body);
         if (!targetUser) return next(Object.assign(new Error('User not found'), { status: 404 }));
 
+        const credential = targetUser.credentialid
+            ? await UserCredential.findByPk(targetUser.credentialid)
+            : null;
+
+        // Build a plain-object view of targetUser with credential fields merged (for re-renders)
+        const targetUserView = () => ({
+            ...targetUser.toJSON(),
+            postaladdressid: credential?.postaladdressid || null,
+        });
+
         // Validate required fields — admins only need email, self-service needs full profile
         const required = operator.admin
             ? ['email']
@@ -144,11 +155,11 @@ router.post('/', async (req, res, next) => {
         const missing  = required.filter(f => !body[f]?.trim());
         if (missing.length || (!operator.admin && body.postaladdressid === 'a')) {
             const [addresses, categories] = await Promise.all([
-                getAddresses(targetUser.userid),
+                getAddresses(targetUser.credentialid),
                 operator.admin ? getCategories(program.programid, targetUser.userid) : [],
             ]);
             return res.renderInShell('formUser', {
-                user: operator, program, targetUser, addresses, categories, passwordRules: PASSWORD_RULES,
+                user: operator, program, targetUser: targetUserView(), addresses, categories, passwordRules: PASSWORD_RULES,
                 error: 'All required fields must be completed.', isAdmin: !!operator.admin,
             });
         }
@@ -158,11 +169,11 @@ router.post('/', async (req, res, next) => {
             const pwError = validatePassword(body.password) || (body.password !== body.passwordcheck ? 'Password fields do not match.' : null);
             if (pwError) {
                 const [addresses, categories] = await Promise.all([
-                    getAddresses(targetUser.userid),
+                    getAddresses(targetUser.credentialid),
                     operator.admin ? getCategories(program.programid, targetUser.userid) : [],
                 ]);
                 return res.renderInShell('formUser', {
-                    user: operator, program, targetUser, addresses, categories, passwordRules: PASSWORD_RULES,
+                    user: operator, program, targetUser: targetUserView(), addresses, categories, passwordRules: PASSWORD_RULES,
                     error: pwError, isAdmin: !!operator.admin,
                 });
             }
@@ -177,11 +188,11 @@ router.post('/', async (req, res, next) => {
         if (postaladdressid === 'b') {
             if (!operator.admin && (!body.postaladdress || !body.postalcity || !body.postalstate || !body.postalcode || !body.postalcountry)) {
                 const [addresses, categories] = await Promise.all([
-                    getAddresses(targetUser.userid),
+                    getAddresses(targetUser.credentialid),
                     operator.admin ? getCategories(program.programid, targetUser.userid) : [],
                 ]);
                 return res.renderInShell('formUser', {
-                    user: operator, program, targetUser, addresses, categories, passwordRules: PASSWORD_RULES,
+                    user: operator, program, targetUser: targetUserView(), addresses, categories, passwordRules: PASSWORD_RULES,
                     error: 'Please complete all address fields.', isAdmin: !!operator.admin,
                 });
             }
@@ -196,10 +207,6 @@ router.post('/', async (req, res, next) => {
             postaladdressid = newAddr.addressid;
         }
 
-        // Fetch current credential to get oldemail (email now lives in UserCredential)
-        const credential = targetUser.credentialid
-            ? await UserCredential.findByPk(targetUser.credentialid)
-            : null;
         const oldemail = credential?.email || '';
 
         // Admin-only flags
@@ -218,18 +225,17 @@ router.post('/', async (req, res, next) => {
             });
         }
 
-        // Profile fields — write to UserCredential only (source of truth post-migration 036)
+        // Profile fields — write to UserCredential only (source of truth post-migration 036/038)
         if (targetUser.credentialid) {
             await UserCredential.update({
-                firstname:    body.firstname,
-                lastname:     body.lastname,
-                organisation: body.organisation || '',
-                telephone:    body.telephone    || '',
-                mobile:       body.mobile       || '',
+                firstname:       body.firstname,
+                lastname:        body.lastname,
+                organisation:    body.organisation || '',
+                telephone:       body.telephone    || '',
+                mobile:          body.mobile       || '',
+                postaladdressid: postaladdressid   || null,
             }, { where: { credentialid: targetUser.credentialid } });
         }
-        // Only postaladdressid remains on the User table post-migration 036
-        await targetUser.update({ postaladdressid });
 
         // Judge category links (admin only, only if judge)
         if (operator.admin) {

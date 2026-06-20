@@ -18,6 +18,8 @@ UserCredential.init(
     mobile:            { type: DataTypes.STRING(50),  allowNull: true },
     fax:               { type: DataTypes.STRING(50),  allowNull: true },
     superadmin:        { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false },
+    postaladdressid:   { type: DataTypes.INTEGER, allowNull: true },
+    streetaddressid:   { type: DataTypes.INTEGER, allowNull: true },
   },
   {
     sequelize,

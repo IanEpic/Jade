@@ -15,15 +15,13 @@ import Address from '../models/Address.js';
 import Entry from '../models/Entry.js';
 import Category from '../models/Category.js';
 import { translate } from '../services/translate.js';
+import { loadAddressesForCredential } from '../services/addressService.js';
 
 const router = Router();
 router.use(requireAuth);
 
 // ── Shared data loader ────────────────────────────────────────────────────────
 
-async function loadAddresses(userId) {
-    return Address.findAll({ where: { userid: userId } });
-}
 
 async function catsOpenForEntries(programId) {
     return Category.findAll({ where: { programid: programId, entriesopen: 1, deleted: 0 } });
@@ -84,7 +82,7 @@ router.get('/', async (req, res, next) => {
         }
 
         // ── Load form data ────────────────────────────────────────────────
-        const addresses = await loadAddresses(user.userid);
+        const addresses = await loadAddressesForCredential(user.credentialid);
         const entrant   = entrantId ? await Entrant.findByPk(entrantId) : null;
         const mode      = entrant ? 'edit' : 'new';
 
@@ -116,7 +114,7 @@ router.post('/', async (req, res, next) => {
         const body      = req.body;
         const entrantId = body.entrantid;
 
-        const addresses = await loadAddresses(user.userid);
+        const addresses = await loadAddressesForCredential(user.credentialid);
 
         const [nameLabel, typeLabel, abnLabel, createLabel, editLabel, entrantsLabel] = await Promise.all([
             translate(program.programid, 'Entrant Name'),

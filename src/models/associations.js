@@ -71,13 +71,15 @@ export function setupAssociations() {
   // ── UserCredential associations ───────────────────────────────────────────
   UserCredential.hasMany(User, { foreignKey: 'credentialid', as: 'users' });
   User.belongsTo(UserCredential, { foreignKey: 'credentialid', as: 'credential' });
+  UserCredential.belongsTo(Address, { foreignKey: 'postaladdressid', as: 'postaladdress' });
+  UserCredential.belongsTo(Address, { foreignKey: 'streetaddressid', as: 'streetaddress' });
 
   // ── User associations ─────────────────────────────────────────────────────
   User.belongsTo(Program,         { foreignKey: 'programid',      as: 'program'         });
-  User.belongsTo(Address,         { foreignKey: 'postaladdressid', as: 'postaladdress'   });
 
   // ── Entrant associations ──────────────────────────────────────────────────
   Entrant.belongsTo(Address, { foreignKey: 'streetaddressid', as: 'streetaddress' });
+  Entrant.belongsTo(Address, { foreignKey: 'postaladdressid', as: 'postaladdress' });
   User.belongsTo(JudgeSuggestion, { foreignKey: 'judgesuggestionid', as: 'judgesuggestion' });
 
   User.hasMany(Entrant,          { foreignKey: 'userid', as: 'entrants',           order: [['entrantid',    'ASC']] });

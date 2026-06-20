@@ -9,6 +9,7 @@ import { requireAuth }      from '../middleware/auth.js';
 import Invoice              from '../models/Invoice.js';
 import Entry                from '../models/Entry.js';
 import Address              from '../models/Address.js';
+import { loadAddressesForCredential } from '../services/addressService.js';
 import TravelPackage        from '../models/TravelPackage.js';
 import { getPool, sql }     from '../config/database.js';
 import { currency, currentDatetime } from '../services/helpers.js';
@@ -231,7 +232,7 @@ router.post('/', async (req, res, next) => {
         // ── Step 1: Show invoice form ─────────────────────────────────────────
         if (body.submit === 'Continue') {
             const [addresses, totals, codeDiscountCount] = await Promise.all([
-                Address.findAll({ where: { userid: user.userid } }),
+                loadAddressesForCredential(user.credentialid),
                 calcTotals(program, entries, { status: body.status }),
                 ProgramDiscount.count({ where: { programid: program.programid, type: 'code', active: true } }),
             ]);
@@ -250,7 +251,7 @@ router.post('/', async (req, res, next) => {
         if (body.submit === 'Create Invoice') {
             if (body.postaladdressid === 'a') {
                 const [addresses, totals, codeDiscountCount] = await Promise.all([
-                    Address.findAll({ where: { userid: user.userid } }),
+                    loadAddressesForCredential(user.credentialid),
                     calcTotals(program, entries, { status: body.status, promoCode: body.promocode }),
                     ProgramDiscount.count({ where: { programid: program.programid, type: 'code', active: true } }),
                 ]);

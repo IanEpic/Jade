@@ -21,6 +21,7 @@ import InputOption             from '../../models/InputOption.js';
 import CategoryEligibilityLink from '../../models/CategoryEligibilityLink.js';
 import UserPage                from '../../models/UserPage.js';
 import Address                 from '../../models/Address.js';
+import { loadAddressesForCredential } from '../../services/addressService.js';
 import JudgeCategoryLink       from '../../models/JudgeCategoryLink.js';
 import UserCredential          from '../../models/UserCredential.js';
 import JudgingModel            from '../../models/JudgingModel.js';
@@ -295,7 +296,7 @@ export async function handleAdminAction(action, req, res, program, user) {
             const targetUser = await User.findByPk(edituserid);
             if (!targetUser) { res.redirect('/home?action=users'); return null; }
             const [addresses, categories, credential] = await Promise.all([
-                Address.findAll({ where: { userid: edituserid }, order: [['addressid', 'ASC']] }),
+                targetUser.credentialid ? loadAddressesForCredential(targetUser.credentialid) : [],
                 (async () => {
                     const cats  = await Category.findAll({ where: { programid: program.programid, deleted: false }, order: [['orda', 'ASC'], ['categoryid', 'ASC']] });
                     const links = await JudgeCategoryLink.findAll({ where: { userid: edituserid } });
@@ -306,12 +307,13 @@ export async function handleAdminAction(action, req, res, program, user) {
             ]);
             const targetUserJson = targetUser.toJSON();
             if (credential) {
-                targetUserJson.email        = credential.email        || '';
-                targetUserJson.firstname    = credential.firstname    || '';
-                targetUserJson.lastname     = credential.lastname     || '';
-                targetUserJson.organisation = credential.organisation || '';
-                targetUserJson.telephone    = credential.telephone    || '';
-                targetUserJson.mobile       = credential.mobile       || '';
+                targetUserJson.email             = credential.email             || '';
+                targetUserJson.firstname         = credential.firstname         || '';
+                targetUserJson.lastname          = credential.lastname          || '';
+                targetUserJson.organisation      = credential.organisation      || '';
+                targetUserJson.telephone         = credential.telephone         || '';
+                targetUserJson.mobile            = credential.mobile            || '';
+                targetUserJson.postaladdressid   = credential.postaladdressid   || null;
             }
             return {
                 view:            'home/user-edit',
