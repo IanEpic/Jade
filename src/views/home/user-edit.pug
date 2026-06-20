@@ -154,6 +154,25 @@ form.user-form(method='POST' action='/formUser')
                             td(style='text-align:right; padding-right:12px; white-space:nowrap') Country
                             td: input(type='text' name='streetcountry' value='Australia' maxlength='50')
 
+    //- ── Manage addresses ────────────────────────────────────────────────────
+    if content.addresses && content.addresses.length
+        fieldset
+            legend Manage Addresses
+            table(style='width:100%; font-size:13px; border-collapse:collapse')
+                each addr in content.addresses
+                    tr(style='border-bottom:1px solid #333')
+                        td(style='padding:5px 8px')
+                            = addr.address + ', ' + addr.city
+                            if addr.state
+                                = ', ' + addr.state
+                            if addr.code
+                                = ' ' + addr.code
+                        td(style='padding:5px 8px; white-space:nowrap; text-align:right')
+                            form(method='POST' action='/formUser/address-delete' style='display:inline')
+                                input(type='hidden' name='addressid' value=addr.addressid)
+                                input(type='hidden' name='edituserid' value=content.targetUser.userid)
+                                button.btn-secondary(type='submit' data-confirm='Delete this address?' style='padding:2px 8px; font-size:12px') Delete
+
     //- ── Account settings (admin only) ───────────────────────────────────────
     if content.isAdmin
         fieldset

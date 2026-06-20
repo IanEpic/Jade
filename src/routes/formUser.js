@@ -311,6 +311,34 @@ router.post('/', async (req, res, next) => {
     } catch (err) { next(err); }
 });
 
+// ── POST /formUser/address-delete ─────────────────────────────────────────────
+
+router.post('/address-delete', async (req, res, next) => {
+    try {
+        const operator  = req.user;
+        const addressid = parseInt(req.body.addressid);
+        const edituserid = req.body.edituserid ? parseInt(req.body.edituserid) : null;
+
+        const targetUser = operator.admin && edituserid
+            ? await User.findByPk(edituserid)
+            : operator;
+        if (!targetUser) return res.redirect('/home');
+
+        // Only allow deletion of addresses belonging to this credential's pool
+        const allowed = await loadAddressesForCredential(targetUser.credentialid);
+        if (!allowed.some(a => a.addressid === addressid)) {
+            return res.redirect('/home?action=profile&error=notfound');
+        }
+
+        await Address.update({ deleted: true }, { where: { addressid } });
+
+        if (operator.admin && edituserid) {
+            return res.redirect('/home?action=users&edituserid=' + edituserid);
+        }
+        return res.redirect('/home?action=profile');
+    } catch (err) { next(err); }
+});
+
 // ── POST /formUser/batch-payments ─────────────────────────────────────────────
 // Set paymentsopen on multiple users at once.
 
