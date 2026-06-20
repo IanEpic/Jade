@@ -161,17 +161,17 @@ form.user-form(method='POST' action='/formUser')
             table(style='width:100%; font-size:13px; border-collapse:collapse')
                 each addr in content.addresses
                     tr(style='border-bottom:1px solid #333')
-                        td(style='padding:5px 8px')
+                        td(style='padding:5px 8px; text-align:left')
                             = addr.address + ', ' + addr.city
                             if addr.state
                                 = ', ' + addr.state
                             if addr.code
                                 = ' ' + addr.code
-                        td(style='padding:5px 8px; white-space:nowrap; text-align:right')
+                        td(style='padding:5px 8px; white-space:nowrap; text-align:right; width:1%')
                             form(method='POST' action='/formUser/address-delete' style='display:inline')
                                 input(type='hidden' name='addressid' value=addr.addressid)
                                 input(type='hidden' name='edituserid' value=content.targetUser.userid)
-                                button.btn-secondary(type='submit' data-confirm='Delete this address?' style='padding:2px 8px; font-size:12px') Delete
+                                button(type='submit' data-confirm='Delete this address?' title='Delete' style='background:none; border:none; cursor:pointer; color:#c44; font-size:16px; padding:0 4px; line-height:1') ✕
 
     //- ── Account settings (admin only) ───────────────────────────────────────
     if content.isAdmin
