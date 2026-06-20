@@ -64,7 +64,7 @@ export async function handleSharedAction(action, req, res, program, user, data) 
     if (action === 'entrants') {
         const [overrideOpen, addresses, nameLabel, typeLabel, abnLabel, createLabel, editLabel] = await Promise.all([
             getEntriesOpenByOverride({ userId: user.userid }),
-            Address.findAll({ where: { userid: user.userid } }),
+            user.credentialid ? loadAddressesForCredential(user.credentialid) : [],
             translate(program.programid, 'Entrant Name'),
             translate(program.programid, 'Entrant Type'),
             translate(program.programid, 'Entrant ABN'),
