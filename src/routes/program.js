@@ -45,6 +45,7 @@ import formEntryFlagsRouter      from './formEntryFlags.js';
 import reportActiveUsersRouter    from './reportActiveUsers.js';
 import reportPaidNotFinalisedRouter from './reportPaidNotFinalised.js';
 import reportFinalisedNotPaidRouter from './reportFinalisedNotPaid.js';
+import reportEntriesByCategoryRouter from './reportEntriesByCategory.js';
 
 const router = Router({ mergeParams: true });
 
@@ -96,6 +97,7 @@ router.use('/formEntryFlags',      formEntryFlagsRouter);
 router.use('/reportActiveUsers',      reportActiveUsersRouter);
 router.use('/reportPaidNotFinalised', reportPaidNotFinalisedRouter);
 router.use('/reportFinalisedNotPaid', reportFinalisedNotPaidRouter);
+router.use('/reportEntriesByCategory', reportEntriesByCategoryRouter);
 
 // ── Compatibility shims ───────────────────────────────────────────────────────
 // Legacy .cgi URLs that may still appear in TopMenuButton records or bookmarks.
