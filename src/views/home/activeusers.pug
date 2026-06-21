@@ -17,6 +17,9 @@ style.
     p.rpt-desc All non-excluded users for this program, with last logon and entry counts.
 
     if content.rows && content.rows.length
+        - var totStarted   = content.rows.reduce(function(s,r){ return s + (r.started   || 0); }, 0)
+        - var totPaid      = content.rows.reduce(function(s,r){ return s + (r.paid      || 0); }, 0)
+        - var totFinalised = content.rows.reduce(function(s,r){ return s + (r.finalised || 0); }, 0)
         table.rpt-table
             thead
                 tr
@@ -39,6 +42,12 @@ style.
                         td.num= r.started
                         td.num= r.paid
                         td.num= r.finalised
+            tfoot
+                tr
+                    td(colspan='5' style='font-weight:600; color:#c48f06; border-top:2px solid #555;') Total
+                    td.num(style='font-weight:600; color:#c48f06; border-top:2px solid #555;')= totStarted
+                    td.num(style='font-weight:600; color:#c48f06; border-top:2px solid #555;')= totPaid
+                    td.num(style='font-weight:600; color:#c48f06; border-top:2px solid #555;')= totFinalised
     else
         p(style='color:#888; text-align:center; margin-top:24px;') No users found.
 
