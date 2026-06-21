@@ -13,6 +13,9 @@ function markEntriesClosed() {
     _entriesClosed = true;
     var status = document.getElementById('save-status');
     if (status) status.innerHTML = '<span style="color:#c44">✗ Entries are now closed. No further changes can be saved.</span>';
+    // Disable Save button
+    var saveBtn = document.getElementById('btn-save');
+    if (saveBtn) { saveBtn.disabled = true; saveBtn.textContent = 'Entries Closed'; }
     // Disable all dropzones so no new uploads can be started
     document.querySelectorAll('.dropzone').forEach(function (dz) {
         dz.classList.add('dz-closed');
