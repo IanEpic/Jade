@@ -68,6 +68,29 @@ document.addEventListener('click', function (e) {
         return (window.JADE_BASE || '') + '/ping';
     }
 
+    function removeBanner() {
+        var b = document.getElementById('session-expired-banner');
+        if (b) b.parentNode.removeChild(b);
+        warned = false;
+    }
+
+    function checkAgain() {
+        fetch(pingUrl(), { credentials: 'same-origin' })
+            .then(function (r) {
+                if (r.ok) {
+                    removeBanner();
+                    startPing();
+                } else {
+                    var btn = document.getElementById('session-check-btn');
+                    if (btn) { btn.textContent = 'Still expired — try logging in again'; btn.disabled = false; }
+                }
+            })
+            .catch(function () {
+                var btn = document.getElementById('session-check-btn');
+                if (btn) { btn.textContent = 'Network error — try again'; btn.disabled = false; }
+            });
+    }
+
     function showExpiredBanner() {
         if (warned) return;
         warned = true;
@@ -80,10 +103,18 @@ document.addEventListener('click', function (e) {
         ].join(';');
         banner.innerHTML =
             '<strong>Your session has expired.</strong> ' +
-            'Open a <a href="' + (window.JADE_BASE || '') + '/login" target="_blank" ' +
-            'style="color:#ffd;text-decoration:underline;">new tab to log in</a>, ' +
-            'then return here to continue. Your unsaved work is still on this page.';
+            '<a href="' + (window.JADE_BASE || '') + '/login" target="_blank" ' +
+            'style="color:#ffd;font-weight:600;text-decoration:underline;">Log in on a new tab</a>' +
+            ' — your session will be restored here automatically. Your unsaved work is still on this page. ' +
+            '<button id="session-check-btn" style="margin-left:12px;padding:4px 12px;background:#c48f06;' +
+            'color:#000;border:none;border-radius:3px;font-weight:600;cursor:pointer;font-size:13px;">' +
+            'I\'ve logged in — check again</button>';
         document.body.insertBefore(banner, document.body.firstChild);
+        document.getElementById('session-check-btn').addEventListener('click', function () {
+            this.textContent = 'Checking…';
+            this.disabled = true;
+            checkAgain();
+        });
     }
 
     function ping() {
