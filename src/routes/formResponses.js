@@ -429,7 +429,7 @@ async function registryGet(uploadId) {
         .query('SELECT * FROM UploadRegistry WHERE uploadid = @uploadId');
     const row = r.recordset[0];
     if (!row) return null;
-    return { type: row.type, filename: row.filename, size: row.filesize, ext: row.ext, tempFile: row.tempfile, received: row.received };
+    return { type: row.type, filename: row.filename, size: Number(row.filesize), ext: row.ext, tempFile: row.tempfile, received: Number(row.received) };
 }
 
 async function registrySet(uploadId, meta) {
@@ -516,7 +516,7 @@ router.post('/upload/chunk', express.raw({ type: 'application/octet-stream', lim
         }
 
         await fs.appendFile(meta.tempFile, req.body);
-        meta.received += req.body.length;
+        meta.received = Number(meta.received) + req.body.length;
         await registrySet(uploadId, meta);
 
         return res.json({ status: 'OK', received: meta.received });
