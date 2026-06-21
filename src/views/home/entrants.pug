@@ -26,6 +26,7 @@ style.
     .entrants-table .actions a:hover { color: #c48f06; }
 
 - var canEdit = content.catsOpenForEntries.length || content.overrideOpen.length
+- var fd = content.formData || {}
 
 .entrants-wrap
     h2= content.entrantsLabel || 'My Entrants'
@@ -42,29 +43,29 @@ style.
                 table
                     tr
                         td= content.nameLabel || 'Entrant Name'
-                        td: input(type='text' name='name' id='ef-name' maxlength='300')
+                        td: input(type='text' name='name' id='ef-name' maxlength='300' value=fd.name || '')
                     tr
                         td= content.typeLabel || 'Entrant Type'
                         td
                             select(name='type' id='ef-type')
                                 each opt in ['Individual', 'Business', 'Company']
-                                    option(value=opt)= opt
+                                    option(value=opt selected=(fd.type === opt))= opt
                     tr
                         td Legal Entity Name
-                        td: input(type='text' name='legalentity' id='ef-legalentity' maxlength='300')
+                        td: input(type='text' name='legalentity' id='ef-legalentity' maxlength='300' value=fd.legalentity || '')
                     tr
                         td= content.abnLabel || 'ABN'
-                        td: input(type='text' name='abn' id='ef-abn' maxlength='20')
+                        td: input(type='text' name='abn' id='ef-abn' maxlength='20' value=fd.abn || '')
 
                     if content.addresses && content.addresses.length
                         tr
                             td Street Address
                             td
                                 select(name='streetaddressid' id='ef-street-sel')
-                                    option(value='a') — Please Select —
-                                    option(value='b') + New Address Below
+                                    option(value='a' selected=(!fd.streetaddressid || fd.streetaddressid === 'a')) — Please Select —
+                                    option(value='b' selected=(fd.streetaddressid === 'b')) + New Address Below
                                     each addr in content.addresses
-                                        option(value=addr.addressid)= addr.address + ', ' + addr.city + ', ' + addr.state
+                                        option(value=addr.addressid selected=(String(addr.addressid) === String(fd.streetaddressid)))= addr.address + ', ' + addr.city + ', ' + addr.state
                         tr
                             td
                             td
@@ -88,11 +89,11 @@ style.
                             td Postal Address
                             td
                                 select(name='postaladdressid' id='ef-postal-sel')
-                                    option(value='a') — Please Select —
-                                    option(value='b') + New Address Below
-                                    option(value='c') Same as Street
+                                    option(value='a' selected=(!fd.postaladdressid || fd.postaladdressid === 'a')) — Please Select —
+                                    option(value='b' selected=(fd.postaladdressid === 'b')) + New Address Below
+                                    option(value='c' selected=(fd.postaladdressid === 'c')) Same as Street
                                     each addr in content.addresses
-                                        option(value=addr.addressid)= addr.address + ', ' + addr.city + ', ' + addr.state
+                                        option(value=addr.addressid selected=(String(addr.addressid) === String(fd.postaladdressid)))= addr.address + ', ' + addr.city + ', ' + addr.state
                         tr
                             td
                             td
@@ -115,13 +116,13 @@ style.
 
                     tr
                         td Telephone
-                        td: input(type='text' name='telephone' id='ef-telephone' maxlength='300')
+                        td: input(type='text' name='telephone' id='ef-telephone' maxlength='300' value=fd.telephone || '')
                     tr
                         td Mobile
-                        td: input(type='text' name='mobile' id='ef-mobile' maxlength='50')
+                        td: input(type='text' name='mobile' id='ef-mobile' maxlength='50' value=fd.mobile || '')
                     tr
                         td Email
-                        td: input(type='text' name='email' id='ef-email' maxlength='100')
+                        td: input(type='text' name='email' id='ef-email' maxlength='100' value=fd.email || '')
 
                 .form-actions
                     button#entrant-submit-btn(type='submit')= content.createLabel || 'Create Entrant'

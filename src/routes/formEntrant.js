@@ -125,8 +125,10 @@ router.post('/', async (req, res, next) => {
             translate(program.programid, 'My Entrants'),
         ]);
 
-        const redirectError = (msg) =>
-            res.redirect('/home?action=entrants&error=' + encodeURIComponent(msg));
+        const redirectError = (msg) => {
+            req.session.entrantFormData = body;
+            return res.redirect('/home?action=entrants&error=' + encodeURIComponent(msg));
+        };
 
         // ── Resolve street address ────────────────────────────────────────
         let streetAddressId = body.streetaddressid;
