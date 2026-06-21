@@ -8,7 +8,6 @@ User.init(
     userid:               { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
     programid:            { type: DataTypes.INTEGER, allowNull: false },
     credentialid:         { type: DataTypes.INTEGER },
-    postaladdressid:      { type: DataTypes.INTEGER },
     paymentsopen:         { type: DataTypes.BOOLEAN },
     judgingopen:          { type: DataTypes.BOOLEAN },
     judge:                { type: DataTypes.BOOLEAN },
