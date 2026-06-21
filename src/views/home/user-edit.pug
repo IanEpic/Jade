@@ -19,6 +19,8 @@ style.
     .user-form .form-actions a, .user-form .form-actions button { margin: 0 6px; }
     .user-form .action-links { font-size: 13px; color: #aaa; margin-bottom: 12px; text-align: center; }
     .user-form .action-links a { margin: 0 8px; }
+    .user-form .req { color: #c48f06; margin-left: 2px; }
+    .user-form .req-note { font-size: 12px; color: #888; text-align: right; margin-bottom: 8px; }
 
 if content.saved
     p(style='color:#4caf50; text-align:center; margin-bottom:12px') Saved.
@@ -49,12 +51,19 @@ form.user-form(method='POST' action='/formUser')
             if content.targetUser.judge
                 a(href='/formUser?action=demote&edituserid=' + content.targetUser.userid data-confirm='Remove all judging data?') Demote from Judge
 
+    if !content.isAdmin
+        p.req-note
+            span.req *
+            |  Required field
+
     //- ── Login details ────────────────────────────────────────────────────────
     fieldset
         legend Login Details
         table
             tr
-                td Email Address
+                td
+                    | Email Address
+                    span.req *
                 td: input(type='email' name='email' value=content.targetUser.email maxlength='300')
             tr
                 td New Password
@@ -74,10 +83,16 @@ form.user-form(method='POST' action='/formUser')
         legend Personal Details
         table
             tr
-                td First Name
+                td
+                    | First Name
+                    if !content.isAdmin
+                        span.req *
                 td: input(type='text' name='firstname' value=content.targetUser.firstname maxlength='300')
             tr
-                td Last Name
+                td
+                    | Last Name
+                    if !content.isAdmin
+                        span.req *
                 td: input(type='text' name='lastname' value=content.targetUser.lastname maxlength='300')
             tr
                 td Organisation
@@ -86,12 +101,18 @@ form.user-form(method='POST' action='/formUser')
                 td Telephone
                 td: input(type='text' name='telephone' value=(content.targetUser.telephone || '') maxlength='50')
             tr
-                td Mobile
+                td
+                    | Mobile
+                    if !content.isAdmin
+                        span.req *
                 td: input(type='text' name='mobile' value=(content.targetUser.mobile || '') maxlength='50')
 
     //- ── Postal address ───────────────────────────────────────────────────────
     fieldset
-        legend Postal Address
+        legend
+            | Postal Address
+            if !content.isAdmin
+                span.req *
         table
             tr
                 td Select Address
