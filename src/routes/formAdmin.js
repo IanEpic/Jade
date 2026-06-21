@@ -108,33 +108,39 @@ router.post('/', async (req, res, next) => {
         });
 
         // Overwrite — apply defaults to all categories/users
-        if (body.overwrite) {
+        if (body.overwrite || body['overwrite-payments']) {
             const pool = await getPool();
-            await pool.request()
-                .input('paymentsopen', sql.Int, boolField('paymentsopen'))
-                .input('programid',    sql.Int, program.programid)
-                .query(`UPDATE [User] SET paymentsopen = @paymentsopen WHERE programid = @programid`);
-            await pool.request()
-                .input('entriesopen',      sql.Int, boolField('entriesopen'))
-                .input('judgingopen',      sql.Int, boolField('judgingopen'))
-                .input('scoreready',       sql.Int, boolField('scoreready'))
-                .input('finalistreview',   sql.Int, boolField('finalistreview'))
-                .input('wildcarddecision', sql.Int, boolField('wildcarddecision'))
-                .input('winnernomination', sql.Int, boolField('winnernomination'))
-                .input('programid',        sql.Int, program.programid)
-                .query(`UPDATE Category SET
-                    entriesopen      = @entriesopen,
-                    judgingopen      = @judgingopen,
-                    scoreready       = @scoreready,
-                    finalistreview   = @finalistreview,
-                    wildcarddecision = @wildcarddecision,
-                    winnernomination = @winnernomination
-                  WHERE programid = @programid AND deleted = 0`);
 
-            // If overwrite is opening entries, clear the auto-close date so the
-            // scheduler doesn't immediately re-close them on its next tick.
-            if (boolField('entriesopen')) {
-                await program.update({ entryclosedate: null });
+            if (body['overwrite-payments']) {
+                await pool.request()
+                    .input('paymentsopen', sql.Int, boolField('paymentsopen'))
+                    .input('programid',    sql.Int, program.programid)
+                    .query(`UPDATE [User] SET paymentsopen = @paymentsopen WHERE programid = @programid`);
+            }
+
+            if (body.overwrite) {
+                await pool.request()
+                    .input('entriesopen',      sql.Int, boolField('entriesopen'))
+                    .input('judgingopen',      sql.Int, boolField('judgingopen'))
+                    .input('scoreready',       sql.Int, boolField('scoreready'))
+                    .input('finalistreview',   sql.Int, boolField('finalistreview'))
+                    .input('wildcarddecision', sql.Int, boolField('wildcarddecision'))
+                    .input('winnernomination', sql.Int, boolField('winnernomination'))
+                    .input('programid',        sql.Int, program.programid)
+                    .query(`UPDATE Category SET
+                        entriesopen      = @entriesopen,
+                        judgingopen      = @judgingopen,
+                        scoreready       = @scoreready,
+                        finalistreview   = @finalistreview,
+                        wildcarddecision = @wildcarddecision,
+                        winnernomination = @winnernomination
+                      WHERE programid = @programid AND deleted = 0`);
+
+                // If overwrite is opening entries, clear the auto-close date so the
+                // scheduler doesn't immediately re-close them on its next tick.
+                if (boolField('entriesopen')) {
+                    await program.update({ entryclosedate: null });
+                }
             }
         }
 

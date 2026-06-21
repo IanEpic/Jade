@@ -88,11 +88,6 @@ else
                         if entryExceptions && entryExceptions.length
                             td.note NOTE: Some categories are not using this default
                     tr
-                        td: input(type='checkbox' name='paymentsopen' value='ON' checked=program.paymentsopendefault)
-                        td: label Payments Open
-                        if paymentExceptions && paymentExceptions.length
-                            td.note NOTE: Some users are not using this default
-                    tr
                         td: input(type='checkbox' name='judgingopen' value='ON' checked=program.judgingopendefault)
                         td: label Judging Open
                         if judgingExceptions && judgingExceptions.length
@@ -112,6 +107,20 @@ else
                     tr(style='border-top:1px solid #444')
                         td(style='padding-top:8px'): input(type='checkbox' name='overwrite' value='ON')
                         td(style='padding-top:8px'): label Overwrite all records with defaults above
+
+        //- ── Default User Settings ────────────────────────────────────────────
+        fieldset
+            legend.accordion-legend.collapsed(data-action='toggle-accordion') Default User Settings
+            div.accordion-body
+                table.checkbox-table
+                    tr
+                        td: input(type='checkbox' name='paymentsopen' value='ON' checked=program.paymentsopendefault)
+                        td: label Payments Open
+                        if paymentExceptions && paymentExceptions.length
+                            td.note NOTE: Some users are not using this default
+                    tr(style='border-top:1px solid #444')
+                        td(style='padding-top:8px'): input(type='checkbox' name='overwrite-payments' value='ON')
+                        td(style='padding-top:8px'): label Overwrite all users with default above
 
         //- ── Automatic Actions ────────────────────────────────────────────────
         fieldset
