@@ -178,15 +178,4 @@ router.post('/delete-favicon', async (req, res, next) => {
     } catch (err) { next(err); }
 });
 
-// ── GET /admin/favicon ────────────────────────────────────────────────────────
-
-router.get('/favicon', async (req, res, next) => {
-    try {
-        const program = await Program.findByPk(req.user.programid);
-        if (!program.faviconfile) return res.status(404).end();
-        const filePath = path.join(FAVICONS_DIR, String(program.programid), program.faviconfile);
-        res.sendFile(filePath, err => { if (err && !res.headersSent) next(err); });
-    } catch (err) { next(err); }
-});
-
 export default router;

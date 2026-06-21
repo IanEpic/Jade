@@ -4,6 +4,8 @@
 // the resolveProgram middleware before this router runs.
 
 import { Router } from 'express';
+import path from 'path';
+import fs   from 'fs';
 
 import entryRouter            from './entry.js';
 import loginRouter            from './login.js';
@@ -51,6 +53,18 @@ const router = Router({ mergeParams: true });
 
 // /:slug → redirect to /:slug/login
 router.get('/', (req, res) => res.redirect('/login'));
+
+// ── Public favicon ───────────────────────────────────────────────────────────
+// Served without auth so the browser can display it on the login page and any
+// other page where the user is not yet authenticated.
+const FAVICONS_DIR = path.join(process.env.FILESTORE_ROOT || 'C:/Data/LocalJadeFilestore', 'favicons');
+router.get('/admin/favicon', (req, res) => {
+    const program = req.program;
+    if (!program?.faviconfile) return res.status(404).end();
+    const filePath = path.join(FAVICONS_DIR, String(program.programid), program.faviconfile);
+    if (!fs.existsSync(filePath)) return res.status(404).end();
+    res.sendFile(filePath, err => { if (err && !res.headersSent) res.status(404).end(); });
+});
 
 // ── Session keep-alive ────────────────────────────────────────────────────────
 // Called by client JS every 10 min. Resets the rolling session cookie.
