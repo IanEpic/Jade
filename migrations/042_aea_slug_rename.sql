@@ -1,0 +1,19 @@
+-- Migration 042: Rename AEA program slugs from aeaYY to eventawardsYY
+UPDATE Program SET slug = 'eventawards09' WHERE slug = 'aea09';
+UPDATE Program SET slug = 'eventawards10' WHERE slug = 'aea10';
+UPDATE Program SET slug = 'eventawards11' WHERE slug = 'aea11';
+UPDATE Program SET slug = 'eventawards12' WHERE slug = 'aea12';
+UPDATE Program SET slug = 'eventawards13' WHERE slug = 'aea13';
+UPDATE Program SET slug = 'eventawards14' WHERE slug = 'aea14';
+UPDATE Program SET slug = 'eventawards15' WHERE slug = 'aea15';
+UPDATE Program SET slug = 'eventawards16' WHERE slug = 'aea16';
+UPDATE Program SET slug = 'eventawards17' WHERE slug = 'aea17';
+UPDATE Program SET slug = 'eventawards18' WHERE slug = 'aea18';
+UPDATE Program SET slug = 'eventawards19' WHERE slug = 'aea19';
+UPDATE Program SET slug = 'eventawards20' WHERE slug = 'aea20';
+UPDATE Program SET slug = 'eventawards21' WHERE slug = 'aea21';
+UPDATE Program SET slug = 'eventawards22' WHERE slug = 'aea22';
+UPDATE Program SET slug = 'eventawards23' WHERE slug = 'aea23';
+UPDATE Program SET slug = 'eventawards24' WHERE slug = 'aea24';
+UPDATE Program SET slug = 'eventawards25' WHERE slug = 'aea25';
+UPDATE Program SET slug = 'eventawards26' WHERE slug = 'aea26';
