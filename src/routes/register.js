@@ -121,8 +121,8 @@ router.post('/', async (req, res, next) => {
             country: body.country.trim(),
         });
 
-        // Link address back to user
-        await newUser.update({ postaladdressid: newAddress.addressid });
+        // Link address back to credential (postaladdressid moved from User to UserCredential in migration 038/039)
+        await credential.update({ postaladdressid: newAddress.addressid });
 
         // Fire-and-forget — don't block the response on email delivery
         const proto    = req.get('x-forwarded-proto') || req.protocol;

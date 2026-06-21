@@ -342,7 +342,7 @@ export async function getJudgesForProgram({ programId, useSimplejudging }) {
              u.judge, u.simplejudge, u.admin, u.enabled, u.deleted,
              u.paymentsopen, u.judgingopen, u.exclude, u.chairperson, u.viewentries,
              u.reviewer, u.onlyjudgepostreview, u.judgetc, u.judgesuggestionid,
-             u.postaladdressid,
+             uc.postaladdressid,
              uc.firstname, uc.lastname, uc.organisation, uc.telephone, uc.mobile
       FROM [User] u
       LEFT JOIN UserCredential uc ON uc.credentialid = u.credentialid
@@ -365,7 +365,7 @@ export async function getAllUsersForProgram({ programId }) {
              u.judge, u.simplejudge, u.admin, u.enabled, u.deleted,
              u.paymentsopen, u.judgingopen, u.exclude, u.chairperson, u.viewentries,
              u.reviewer, u.onlyjudgepostreview, u.judgetc, u.judgesuggestionid,
-             u.postaladdressid,
+             uc.postaladdressid,
              uc.firstname, uc.lastname, uc.organisation, uc.telephone, uc.mobile,
              ISNULL(uc.activated, 1)                 AS activated
       FROM [User] u
@@ -389,7 +389,7 @@ export async function getEnabledJudgesForProgram({ programId, useSimplejudging }
              u.judge, u.simplejudge, u.admin, u.enabled, u.deleted,
              u.paymentsopen, u.judgingopen, u.exclude, u.chairperson, u.viewentries,
              u.reviewer, u.onlyjudgepostreview, u.judgetc, u.judgesuggestionid,
-             u.postaladdressid,
+             uc.postaladdressid,
              uc.firstname, uc.lastname, uc.organisation, uc.telephone, uc.mobile
       FROM [User] u
       LEFT JOIN UserCredential uc ON uc.credentialid = u.credentialid
