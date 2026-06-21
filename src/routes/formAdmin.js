@@ -129,7 +129,13 @@ router.post('/', async (req, res, next) => {
                     finalistreview   = @finalistreview,
                     wildcarddecision = @wildcarddecision,
                     winnernomination = @winnernomination
-                  WHERE programid = @programid`);
+                  WHERE programid = @programid AND deleted = 0`);
+
+            // If overwrite is opening entries, clear the auto-close date so the
+            // scheduler doesn't immediately re-close them on its next tick.
+            if (boolField('entriesopen')) {
+                await program.update({ entryclosedate: null });
+            }
         }
 
         bustProgramCache(program.slug, program.fqdn);
