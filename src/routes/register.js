@@ -57,10 +57,11 @@ router.post('/', async (req, res, next) => {
             return renderError('You must accept the terms and conditions to register.');
         }
 
-        // Duplicate email check
-        const existing = await User.findOne({
-            where: { programid: program.programid, email: body.email.trim(), deleted: false }
-        });
+        // Duplicate email check — look up via UserCredential (User.email dropped in migration 036)
+        const existingCred = await UserCredential.findOne({ where: { email: body.email.trim() } });
+        const existing = existingCred ? await User.findOne({
+            where: { programid: program.programid, credentialid: existingCred.credentialid, deleted: false },
+        }) : null;
         if (existing) {
             return renderError('An account with this email address already exists. Use the password reset function if you have forgotten your password.');
         }
@@ -101,10 +102,6 @@ router.post('/', async (req, res, next) => {
         const newUser = await User.create({
             programid:       program.programid,
             credentialid:    credential.credentialid,
-            email:           body.email.trim(),
-            password:        encryptedPassword,
-            question:        body.question?.trim() || '',
-            answer:          body.answer?.trim() || '',
             postaladdressid: null, // set after address is created
             paymentsopen:    program.paymentsopendefault ? 1 : 0,
             judge:           isAdmin && body.isjudge ? 1 : 0,

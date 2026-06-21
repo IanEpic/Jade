@@ -63,11 +63,12 @@ router.post('/', async (req, res, next) => {
         // ── Edit existing judge ───────────────────────────────────────────────
         if (judgeid) {
             const judge = await User.findByPk(judgeid);
-            await judge.update({
-                email:     body.email,
-                firstname: body.firstname,
-                lastname:  body.lastname,
-            });
+            if (judge.credentialid) {
+                await UserCredential.update(
+                    { email: body.email, firstname: body.firstname, lastname: body.lastname },
+                    { where: { credentialid: judge.credentialid } },
+                );
+            }
 
             // Replace category links
             await JudgeCategoryLink.destroy({ where: { userid: judgeid } });
@@ -141,9 +142,10 @@ router.post('/', async (req, res, next) => {
 
         // ── Check for existing user with that email ───────────────────────────
         const email = (Array.isArray(body.email) ? body.email[0] : (body.email || '')).trim();
-        const existing = await User.findOne({
-            where: { programid: program.programid, email, deleted: false },
-        });
+        const existingCredential = await UserCredential.findOne({ where: { email } });
+        const existing = existingCredential ? await User.findOne({
+            where: { programid: program.programid, credentialid: existingCredential.credentialid, deleted: false },
+        }) : null;
         if (existing) {
             const qs = new URLSearchParams({
                 action: 'judge', conflict: '1',
@@ -165,12 +167,8 @@ router.post('/', async (req, res, next) => {
         });
 
         const newUser = await User.create({
-            email,
             credentialid: credential.credentialid,
             programid:    program.programid,
-            firstname:    body.firstname,
-            lastname:     body.lastname,
-            password:     hashed,
             paymentsopen: program.paymentsopendefault || false,
             judge:        program.usesimplejudging ? false : true,
             simplejudge:  program.usesimplejudging ? true  : false,

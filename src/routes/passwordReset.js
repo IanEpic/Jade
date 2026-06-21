@@ -36,9 +36,10 @@ router.post('/', async (req, res, next) => {
             }, { useLoginShell: true });
         }
 
-        const user = await User.findOne({
-            where: { programid: program.programid, email, deleted: 0 },
-        });
+        const credential = await UserCredential.findOne({ where: { email } });
+        const user = credential ? await User.findOne({
+            where: { programid: program.programid, credentialid: credential.credentialid, deleted: 0 },
+        }) : null;
 
         if (!user || !user.enabled) {
             // Don't reveal whether the email exists — just show the same success screen
@@ -47,26 +48,22 @@ router.post('/', async (req, res, next) => {
             }, { useLoginShell: true });
         }
 
-        // Generate temp password and update credential (or legacy user row)
+        // Generate temp password and update credential
         const tempPassword = randomPassword();
         const hashed       = await encryptPassword(tempPassword);
 
-        if (user.credentialid) {
-            await UserCredential.update(
-                { password: hashed, mustchangepassword: 1 },
-                { where: { credentialid: user.credentialid } },
-            );
-        } else {
-            await User.update({ password: hashed }, { where: { userid: user.userid } });
-        }
+        await UserCredential.update(
+            { password: hashed, mustchangepassword: 1 },
+            { where: { credentialid: credential.credentialid } },
+        );
 
         mail({
-            to:       user.email,
+            to:       email,
             subject:  program.name + ' — Password Reset',
-            text:     'Dear ' + (user.firstname || user.email) + ',\n\n'
+            text:     'Dear ' + (credential.firstname || email) + ',\n\n'
                     + 'As requested, we have reset your password.\n\n'
                     + 'Your temporary login details are:\n\n'
-                    + '  Email:    ' + user.email + '\n'
+                    + '  Email:    ' + email + '\n'
                     + '  Password: ' + tempPassword + '\n\n'
                     + 'Please log in immediately and change your password via My Profile.\n\n'
                     + 'If you did not request this reset, please contact the program administrator.\n',

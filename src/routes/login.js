@@ -67,15 +67,6 @@ router.post('/check-email', async (req, res, next) => {
       return res.json({ status: 'password', name: credential.firstname || user.firstname });
     }
 
-    // Legacy fallback: password stored on User row
-    const legacyUser = await User.findOne({
-      where: { email, programid: program.programid, deleted: 0 },
-    });
-    if (legacyUser) {
-      if (!legacyUser.enabled) return res.json({ status: 'disabled' });
-      return res.json({ status: 'password', name: legacyUser.firstname });
-    }
-
     // No account at all
     return res.json({ status: 'signup' });
 
@@ -95,10 +86,7 @@ router.post('/signup', async (req, res, next) => {
 
     // Check again — someone else may have registered between steps
     const existingCredential = await UserCredential.findOne({ where: { email } });
-    const existingUser = await User.findOne({
-      where: { email, programid: program.programid, deleted: 0 },
-    });
-    if (existingCredential || existingUser) {
+    if (existingCredential) {
       return res.json({ ok: false, error: 'An account with this email address already exists. Please use the login form or reset your password.' });
     }
 
