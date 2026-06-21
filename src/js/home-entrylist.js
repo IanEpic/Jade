@@ -339,16 +339,29 @@
     if (searchInput) {
         searchInput.addEventListener('input', function () {
             var q = this.value.trim();
+            var rows = document.querySelectorAll('.el-table tbody tr');
             if (q === ':open') {
-                document.querySelectorAll('.el-table tbody tr').forEach(function (row) {
+                rows.forEach(function (row) {
                     row.classList.toggle('hidden',
                         !(row.getAttribute('data-entryopen') === '1' && row.getAttribute('data-catopen') === '0'));
                 });
-            } else if (q.charAt(0) === ':') {
-                // Unknown command — show all (jade.js won't run for ':' prefix queries).
-                document.querySelectorAll('.el-table tbody tr').forEach(function (row) {
-                    row.classList.remove('hidden');
+            } else if (q === ':unpaid') {
+                rows.forEach(function (row) {
+                    var badge = row.querySelector('.badge');
+                    row.classList.toggle('hidden', !badge || !badge.classList.contains('badge-unpaid'));
                 });
+            } else if (q === ':invoiced') {
+                rows.forEach(function (row) {
+                    var badge = row.querySelector('.badge');
+                    row.classList.toggle('hidden', !badge || !badge.classList.contains('badge-invoiced'));
+                });
+            } else if (q === ':finalised') {
+                rows.forEach(function (row) {
+                    row.classList.toggle('hidden', row.getAttribute('data-finalised') !== '1');
+                });
+            } else if (q.charAt(0) === ':') {
+                // Unknown command — show all
+                rows.forEach(function (row) { row.classList.remove('hidden'); });
             }
             // else: jade.js handles normal text queries
         });
