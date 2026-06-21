@@ -52,6 +52,14 @@ const router = Router({ mergeParams: true });
 // /:slug → redirect to /:slug/login
 router.get('/', (req, res) => res.redirect('/login'));
 
+// ── Session keep-alive ────────────────────────────────────────────────────────
+// Called by client JS every 10 min. Resets the rolling session cookie.
+// Returns 200 {ok:true} if logged in, 401 {ok:false} if session has expired.
+router.get('/ping', (req, res) => {
+    if (req.session?.userId) return res.json({ ok: true });
+    res.status(401).json({ ok: false });
+});
+
 // ── Auth ──────────────────────────────────────────────────────────────────────
 router.use('/login',    loginRouter);
 

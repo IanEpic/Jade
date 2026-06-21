@@ -80,11 +80,12 @@ app.use(session({
   secret:            process.env.SESSION_SECRET || 'change-me',
   resave:            false,
   saveUninitialized: false,
+  rolling:           true,   // reset expiry on every request
   name:              'jade.sid',
   cookie: {
     secure:   isProd,        // HTTPS only in production
     httpOnly: true,
-    maxAge:   8 * 60 * 60 * 1000,  // 8 hours — typical awards session
+    maxAge:   7 * 24 * 60 * 60 * 1000,  // 7 days rolling — survives overnight + weekends
   },
 }));
 

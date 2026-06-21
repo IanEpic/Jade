@@ -52,3 +52,55 @@ document.addEventListener('click', function (e) {
     e.preventDefault();
     window.print();
 });
+
+// ── Session keep-alive ────────────────────────────────────────────────────────
+// Pings /:slug/ping every 10 minutes while the tab is open.
+// Also pings immediately when the tab becomes visible again (wake from sleep).
+// On 401, shows a non-destructive warning banner so the user can log in on
+// another tab and return to finish their work without losing unsaved data.
+(function () {
+    var PING_INTERVAL = 10 * 60 * 1000; // 10 minutes
+    var warned = false;
+    var pingTimer = null;
+
+    function pingUrl() {
+        // JADE_BASE is set by the shell template: window.JADE_BASE = '/:slug'
+        return (window.JADE_BASE || '') + '/ping';
+    }
+
+    function showExpiredBanner() {
+        if (warned) return;
+        warned = true;
+        var banner = document.createElement('div');
+        banner.id = 'session-expired-banner';
+        banner.style.cssText = [
+            'position:fixed', 'top:0', 'left:0', 'right:0', 'z-index:9999',
+            'background:#7a2a00', 'color:#fff', 'padding:12px 20px',
+            'font-size:14px', 'text-align:center', 'box-shadow:0 2px 8px rgba(0,0,0,0.5)',
+        ].join(';');
+        banner.innerHTML =
+            '<strong>Your session has expired.</strong> ' +
+            'Open a <a href="' + (window.JADE_BASE || '') + '/login" target="_blank" ' +
+            'style="color:#ffd;text-decoration:underline;">new tab to log in</a>, ' +
+            'then return here to continue. Your unsaved work is still on this page.';
+        document.body.insertBefore(banner, document.body.firstChild);
+    }
+
+    function ping() {
+        fetch(pingUrl(), { credentials: 'same-origin' })
+            .then(function (r) { if (r.status === 401) showExpiredBanner(); })
+            .catch(function () {}); // network error — silently ignore
+    }
+
+    function startPing() {
+        if (pingTimer) clearInterval(pingTimer);
+        pingTimer = setInterval(ping, PING_INTERVAL);
+    }
+
+    // Ping on visibility change (tab focus / wake from sleep)
+    document.addEventListener('visibilitychange', function () {
+        if (document.visibilityState === 'visible') ping();
+    });
+
+    startPing();
+}());
