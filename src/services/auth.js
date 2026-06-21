@@ -86,13 +86,14 @@ export async function login(email, password, programId, emulateUserId = null) {
 }
 
 // Returns all programs this credential has access to (for the switcher).
+// Closed portals are excluded unless the user is an admin on that program.
 export async function getLinkedPrograms(credentialId) {
   const users = await User.findAll({
     where: { credentialid: credentialId, deleted: 0, enabled: 1 },
-    include: [{ model: Program, as: 'program', attributes: ['programid', 'slug', 'name'] }],
+    include: [{ model: Program, as: 'program', attributes: ['programid', 'slug', 'name', 'portalopen'] }],
   });
   return users
-    .filter(u => u.program)
+    .filter(u => u.program && (u.program.portalopen || u.admin))
     .map(u => ({
       userid:    u.userid,
       programid: u.programid,
