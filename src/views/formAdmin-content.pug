@@ -26,6 +26,7 @@ else
         .admin-form .accordion-legend.collapsed::after { content: ' ▾'; }
         .admin-form .accordion-body { display: none; }
         .admin-form .tech-table td:first-child { text-align: left; white-space: nowrap; }
+        .admin-form input[type=datetime-local]::-webkit-calendar-picker-indicator { filter: invert(1); cursor: pointer; }
 
     form.admin-form(method='POST' action='/admin')
 
