@@ -164,3 +164,9 @@ style.
                                 a(href='/formEntrant?entrantid=' + entrant.entrantid + '&action=delete' title='Delete' data-confirm='Delete this entrant?' style='color:#c44') ✕
 
 script(src='/js/home-entrants.js?v=' + buildHash)
+if content.error
+    script(nonce=nonce).
+        (function () {
+            var w = document.getElementById('entrant-form-wrap');
+            if (w) w.style.display = '';
+        })();
