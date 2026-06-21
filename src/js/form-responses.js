@@ -6,6 +6,22 @@
 
 var _activeUploads  = {};   // id → { loaded, total }
 var _nextUploadId   = 0;
+var _entriesClosed  = false; // set on first E_CLOSED response; blocks new uploads and autosaves
+
+function markEntriesClosed() {
+    if (_entriesClosed) return;
+    _entriesClosed = true;
+    var status = document.getElementById('save-status');
+    if (status) status.innerHTML = '<span style="color:#c44">✗ Entries are now closed. No further changes can be saved.</span>';
+    // Disable all dropzones so no new uploads can be started
+    document.querySelectorAll('.dropzone').forEach(function (dz) {
+        dz.classList.add('dz-closed');
+        dz.style.pointerEvents = 'none';
+        dz.style.opacity = '0.5';
+        var dzText = dz.querySelector('.dz-text');
+        if (dzText) dzText.textContent = 'Entries are closed';
+    });
+}
 
 function uploadStarted(totalBytes) {
     var id = ++_nextUploadId;
@@ -135,6 +151,8 @@ document.querySelectorAll('.dropzone').forEach(function (dz) {
     var CHUNK_SIZE     = 10 * 1024 * 1024;       // 10 MB — balances retry cost vs timeout risk on slow connections
 
     function handleFile(file) {
+        // ── Closed guard ────────────────────────────────────────────────────
+        if (_entriesClosed) return showErr('Entries are closed — no new uploads can be started.');
         // ── Type guard ──────────────────────────────────────────────────────
         if (type === 'image' && !file.type.startsWith('image/')) {
             return showErr('Please upload an image file (jpg, png, gif, etc.)');
@@ -422,6 +440,8 @@ document.querySelectorAll('.dropzone').forEach(function (dz) {
             if (saved.status === 'OK') {
                 dz.dataset.responseid  = saved.responseid;
                 dz.dataset.pendingFile = '';
+            } else if (saved.status === 'E_CLOSED') {
+                markEntriesClosed();
             } else {
                 console.warn('save-file error:', saved.status);
             }
@@ -558,9 +578,12 @@ function _postField(fd) {
                 setTimeout(function () {
                     if (status.textContent.indexOf('Autosaved') !== -1) status.innerHTML = '';
                 }, 2000);
+            } else if (r.status === 'E_CLOSED') {
+                markEntriesClosed();
             }
         } catch (e) {}
     });
+    if (_entriesClosed) return; // don't send if already known closed
     xhr.open('POST', window.JADE_BASE + '/formResponses');
     xhr.send(fd);
 }
@@ -642,7 +665,7 @@ function saveResponses() {
                 status.innerHTML = '<span style="color:#4caf50">✓ Saved successfully</span>';
                 updateUndoBaselines();
             } else if (resp.status === 'E_CLOSED') {
-                status.innerHTML = '<span style="color:#c44">✗ ' + (resp.msg || 'Entries are closed') + '</span>';
+                markEntriesClosed();
             } else {
                 status.innerHTML = '<span style="color:#c44">✗ Error: ' + (resp.msg || resp.status) + '</span>';
             }
