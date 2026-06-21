@@ -134,11 +134,9 @@ router.get('/', async (req, res, next) => {
         // Security: entry must belong to this user (via entrant)
         if (entry.entrantuserid !== user.userid && !user.admin) return res.redirect('/home');
 
-        // Check entries are open
+        // Check entries are open — redirect non-admins to home rather than showing a closed page
         if (!entry.entriesopen && !entry.entryopen && !user.admin) {
-            return res.renderInShell('formResponses', {
-                user, program, entry, questions: [], responses: {}, closed: true,
-            });
+            return res.redirect('/home');
         }
 
         const questions = await getQuestionsForEntry(entryid);
