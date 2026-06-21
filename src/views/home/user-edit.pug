@@ -129,7 +129,8 @@ form.user-form(method='POST' action='/formUser')
                 td Select Address
                 td
                     select(name='streetaddressid' id='streetaddressid-select')
-                        option(value='a') — None —
+                        option(value='a' selected=(!content.targetUser.streetaddressid)) — Please Select —
+                        option(value='c') Same as above
                         if content.addresses && content.addresses.length
                             each addr in content.addresses
                                 option(value=addr.addressid selected=(addr.addressid == content.targetUser.streetaddressid))

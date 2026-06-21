@@ -211,6 +211,7 @@ router.post('/', async (req, res, next) => {
         // New street address
         let streetaddressid = body.streetaddressid || null;
         if (streetaddressid === 'a') streetaddressid = null;
+        if (streetaddressid === 'c') streetaddressid = postaladdressid;
         if (streetaddressid === 'b') {
             const newAddr = await Address.create({
                 userid:  targetUser.userid,
