@@ -98,6 +98,11 @@ router.get('/', async (req, res, next) => {
             const entry = await Entry.findByPk(entryId);
             if (!entry) return res.redirect('/home');
 
+            // Finalised entries cannot be edited by non-admins
+            if (entry.finalised && !user.admin) {
+                return res.redirect(`/viewEntry?entryid=${entryId}`);
+            }
+
             const category = await Category.findByPk(entry.categoryid);
 
             // Check entries are open for this entry
@@ -205,6 +210,11 @@ router.post('/', async (req, res, next) => {
 
         // ── Create or update entry ────────────────────────────────────────
         let entry = body.entryid ? await Entry.findByPk(body.entryid) : null;
+
+        // Prevent saving a finalised entry (non-admin)
+        if (entry && entry.finalised && !user.admin) {
+            return res.redirect(`/viewEntry?entryid=${entry.entryid}`);
+        }
 
         if (!entry) {
             entry = await Entry.create({
