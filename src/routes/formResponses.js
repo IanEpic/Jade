@@ -17,9 +17,28 @@ import multer           from 'multer';
 import path             from 'path';
 import fs               from 'fs/promises';
 import { randomFilename } from '../services/helpers.js';
+import { autoCloseIfExpired } from '../services/autoClose.js';
 
 const router = Router();
 router.use(requireAuth);
+
+// Returns true if writes should be blocked for this entry.
+// Checks both the category entriesopen flag AND the program entryclosedate so
+// saves are blocked immediately when the countdown hits zero, without waiting
+// up to 60s for the auto-close interval to flip the category flag.
+function entriesClosed(entry, program) {
+    if (entry.entryopen) return false;
+    if (!entry.entriesopen) return true;
+    const ecd = program?.entryclosedate;
+    if (ecd) {
+        const nowStr = new Date().toISOString().replace('T', ' ').slice(0, 23);
+        if (nowStr >= ecd) {
+            autoCloseIfExpired(program.programid).catch(console.error);
+            return true;
+        }
+    }
+    return false;
+}
 
 // ── File upload config ────────────────────────────────────────────────────────
 // Mirrors get_network_filestore_root() + subdirectory subs from EPIC::JADE::Common.
@@ -204,7 +223,7 @@ router.post('/save-file', async (req, res, next) => {
         if (!entryCheck.recordset.length) return res.json({ status: 'E_NOTFOUND' });
         const entry = entryCheck.recordset[0];
         if (entry.entrantuserid !== req.user.userid && !req.user.admin) return res.json({ status: 'E_AUTH' });
-        if (!entry.entriesopen && !entry.entryopen && !req.user.admin) {
+        if (entriesClosed(entry, req.program) && !req.user.admin) {
             return res.json({ status: 'E_CLOSED', msg: 'Cannot save. Entries are closed.' });
         }
 
@@ -306,8 +325,8 @@ router.post('/', upload.any(), async (req, res, next) => {
         if (!entry) return res.json({ status: 'E_NOTFOUND' });
         if (entry.entrantuserid !== user.userid && !user.admin) return res.json({ status: 'E_AUTH' });
 
-        if (!entry.entriesopen && !entry.entryopen && !user.admin) {
-            return res.json({ status: 'E_CLOSED', msg: 'Cannot upload. Entries are closed.' });
+        if (entriesClosed(entry, req.program) && !user.admin) {
+            return res.json({ status: 'E_CLOSED', msg: 'Cannot save. Entries are closed.' });
         }
 
         const pool = await getPool();

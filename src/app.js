@@ -193,6 +193,7 @@ function buildCloseBanner(program, nonce) {
            `if(diff<=0){` +
              `banner.style.background='#3a1a1a';banner.style.color='#f88';banner.style.borderBottomColor='#7a2a2a';` +
              `document.getElementById('jade-close-msg').innerHTML='Entries for this program are now closed.';` +
+             `if(typeof markEntriesClosed==='function')markEntriesClosed();` +
              `clearInterval(timer);return;` +
            `}` +
            `if(diff<24*3600*1000){banner.style.background='#3a1500';banner.style.color='#f93';banner.style.borderBottomColor='#7a3a00';}` +
