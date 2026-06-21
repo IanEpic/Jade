@@ -33,7 +33,7 @@ if form
                 tr
                     td(colspan='2'): input#login-email(type='email' name='email' size='40' maxlength='300' autocomplete='email' placeholder='Please enter your email address' value=locals.loginEmail || '')
                 tr
-                    td(colspan='2'): button#btn-continue.btn(type='submit') Continue
+                    td(colspan='2' style='padding-top:10px;'): button#btn-continue.btn(type='submit') Continue
                 tr: td(colspan='2')
                     div#email-error(style='color:#c0392b; margin-top:6px; display:none;')
 
@@ -48,7 +48,7 @@ if form
                 tr
                     td(colspan='2'): input#login-password(type='password' name='password' size='40' maxlength='50' autocomplete='current-password' placeholder='Password')
                 tr
-                    td(colspan='2'): button.btn(type='submit') Log In
+                    td(colspan='2' style='padding-top:10px;'): button.btn(type='submit') Log In
                 tr: td(colspan='2')
                     div#password-error(style='color:#c0392b; margin-top:6px; display:none;')
                     if errors && errors.length
@@ -86,7 +86,8 @@ if form
                         input(type='checkbox' name='tc' id='signup-tc' required)
                         |  I agree to the terms and conditions
                 div#signup-error(style='color:#c0392b; margin-top:6px; display:none;')
-                button#btn-signup.btn(type='submit') Create Account
+                div(style='padding-top:10px;')
+                    button#btn-signup.btn(type='submit') Create Account
             br
             p(style='text-align:center; margin-top:6px;')
                 a(href='#' id='btn-back-from-signup') Use a different email
