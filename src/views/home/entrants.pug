@@ -125,7 +125,7 @@ style.
                         td: input(type='text' name='email' id='ef-email' maxlength='100' value=fd.email || '')
 
                 .form-actions
-                    button#entrant-submit-btn(type='submit')= (fd.entrantid ? (content.editLabel || 'Save Entrant') : (content.createLabel || 'Create Entrant'))
+                    button#entrant-submit-btn(type='submit')= (fd.entrantid ? 'Save Entrant' : (content.createLabel || 'Create Entrant'))
                     a.btn-secondary(href='#' id='entrant-cancel') Cancel
 
         //- ── Toolbar ─────────────────────────────────────────────────────────
