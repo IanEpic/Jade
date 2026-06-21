@@ -85,7 +85,7 @@ app.use(session({
   cookie: {
     secure:   isProd,        // HTTPS only in production
     httpOnly: true,
-    maxAge:   7 * 24 * 60 * 60 * 1000,  // 7 days rolling — survives overnight + weekends
+    maxAge:   8 * 60 * 60 * 1000,  // 8 hours rolling
   },
 }));
 
