@@ -4,7 +4,9 @@
 
 import { Router } from 'express';
 import { encryptPassword, validatePassword, PASSWORD_RULES } from '../services/helpers.js';
+import { getLinkedPrograms, recordLogon } from '../services/auth.js';
 import UserCredential from '../models/UserCredential.js';
+import User from '../models/User.js';
 
 const router = Router();
 
@@ -58,8 +60,27 @@ router.post('/', async (req, res, next) => {
         if (errors.length) return renderError(errors, token);
 
         const hashed = await encryptPassword(password);
-        await credential.update({ password: hashed, activationtoken: null, activated: 1 });
+        await credential.update({ password: hashed, activationtoken: null, activated: 1, mustchangepassword: 0 });
 
+        // Log the user in and redirect to home
+        const user = await User.findOne({
+            where: { credentialid: credential.credentialid, programid: program.programid, deleted: 0 },
+        });
+
+        if (user) {
+            await recordLogon(user.userid);
+            req.session.userId       = user.userid;
+            req.session.programId    = program.programid;
+            req.session.programSlug  = program.slug;
+            req.session.credentialId = credential.credentialid;
+            req.session.linkedPrograms = await getLinkedPrograms(credential.credentialid);
+            return req.session.save(err => {
+                if (err) return next(err);
+                res.redirect('/home');
+            });
+        }
+
+        // Fallback if no User row found (shouldn't happen)
         return res.renderInShell('setPassword', {
             program, token: null, passwordRules: PASSWORD_RULES, errors: [],
             message: 'done',
