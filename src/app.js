@@ -12,6 +12,7 @@ import { fileURLToPath } from 'url';
 
 import sequelize from './config/sequelize.js';
 import { setupAssociations } from './models/associations.js';
+import { autoCloseAllPrograms } from './services/autoClose.js';
 import { resolveProgram } from './middleware/resolveProgram.js';
 import rootLoginRouter   from './routes/rootLogin.js';
 import programRouter from './routes/program.js';
@@ -154,6 +155,53 @@ app.use((req, res, next) => {
 const TEMPLATE_ROOT = process.env.TEMPLATE_ROOT;
 if (!TEMPLATE_ROOT) throw new Error('TEMPLATE_ROOT env var is required');
 
+// Builds an entry-close countdown banner injected above page content.
+// Returns empty string when no close date is set or it's more than 7 days away.
+function buildCloseBanner(program, nonce) {
+  const ecd = program?.entryclosedate;
+  if (!ecd) return '';
+  const closeMs = new Date(ecd).getTime();
+  const nowMs   = Date.now();
+  const diffMs  = closeMs - nowMs;
+  const sevenDays = 7 * 24 * 60 * 60 * 1000;
+  if (diffMs > sevenDays) return '';
+
+  // Closed already: static message, no timer.
+  if (diffMs <= 0) {
+    return `<div id="jade-close-banner" style="background:#3a1a1a;color:#f88;padding:10px 20px;text-align:center;font-size:13px;font-weight:600;border-bottom:2px solid #7a2a2a;">` +
+           `Entries for this program are now closed.</div>`;
+  }
+
+  // Upcoming: dynamic countdown driven by client JS.
+  return `<div id="jade-close-banner" data-closedate="${new Date(ecd).toISOString()}" style="background:#1a2a1a;color:#cfc;padding:10px 20px;text-align:center;font-size:13px;border-bottom:2px solid #2a5a2a;">` +
+         `<span id="jade-close-msg">Entries close in <strong id="jade-close-countdown"></strong></span>` +
+         `</div>` +
+         `<script nonce="${nonce}">(function(){` +
+         `var banner=document.getElementById('jade-close-banner');` +
+         `var cd=document.getElementById('jade-close-countdown');` +
+         `var closeMs=new Date(banner.dataset.closedate).getTime();` +
+         `function fmt(ms){` +
+           `if(ms<=0)return'0s';` +
+           `var s=Math.floor(ms/1000),m=Math.floor(s/60),h=Math.floor(m/60),d=Math.floor(h/24);` +
+           `if(d>1)return d+'d '+('0'+h%24).slice(-2)+'h';` +
+           `if(h>=1)return h+'h '+('0'+m%60).slice(-2)+'m';` +
+           `return m+'m '+('0'+s%60).slice(-2)+'s';` +
+         `}` +
+         `function tick(){` +
+           `var diff=closeMs-Date.now();` +
+           `if(diff<=0){` +
+             `banner.style.background='#3a1a1a';banner.style.color='#f88';banner.style.borderBottomColor='#7a2a2a';` +
+             `document.getElementById('jade-close-msg').innerHTML='Entries for this program are now closed.';` +
+             `clearInterval(timer);return;` +
+           `}` +
+           `if(diff<24*3600*1000){banner.style.background='#3a1500';banner.style.color='#f93';banner.style.borderBottomColor='#7a3a00';}` +
+           `else if(diff<48*3600*1000){banner.style.background='#2a2a00';banner.style.color='#ff6';banner.style.borderBottomColor='#5a5a00';}` +
+           `if(cd)cd.textContent=fmt(diff);` +
+         `}` +
+         `tick();var timer=setInterval(tick,1000);` +
+         `}());</script>`;
+}
+
 // Cache shell HTML in memory — these files sit in the OneDrive-backed Apache
 // htdocs folder and never change at runtime; reading them from disk (or OneDrive
 // sync) on every request adds significant latency.
@@ -224,9 +272,10 @@ window.JADE_BASE='/${slug}';
         const programFavicon = program.faviconfile
             ? `<link rel="icon" href="/${program.slug}/admin/favicon">`
             : '<link rel="icon" type="image/svg+xml" href="/favicon.svg"><link rel="icon" type="image/x-icon" href="/favicon.ico">';
+        const closeBanner = buildCloseBanner(program, nonce);
         const assembled = shell
             .replace('</head>', programFavicon + '</head>')
-            .replace('<CGIINSERT>', content + rewriterScript);
+            .replace('<CGIINSERT>', closeBanner + content + rewriterScript);
         const withNonces = assembled.replace(/<script(\b[^>]*)>/gi, (match, attrs) => {
             if (/\bsrc=/i.test(attrs) || /\bnonce=/i.test(attrs)) return match;
             return `<script${attrs} nonce="${nonce}">`;
@@ -314,6 +363,11 @@ async function start() {
     app.listen(PORT, () => {
       console.log(`JADE running on http://localhost:${PORT}`);
     });
+
+    // Auto-close entries for programs whose entryclosedate has passed.
+    // Runs immediately on startup and then every minute.
+    autoCloseAllPrograms().catch(console.error);
+    setInterval(() => autoCloseAllPrograms().catch(console.error), 60 * 1000);
   } catch (err) {
     console.error('Failed to start:', err);
     process.exit(1);

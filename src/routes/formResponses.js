@@ -195,15 +195,20 @@ router.post('/save-file', async (req, res, next) => {
 
         const pool = await getPool();
 
-        // Check entry ownership
+        // Check entry ownership and that entries are still open
         const entryCheck = await pool.request()
             .input('entryid', sql.Int, entryid)
-            .query(`SELECT e.entryid, en.userid AS entrantuserid FROM Entry e
+            .query(`SELECT e.entryid, e.entryopen, en.userid AS entrantuserid, c.entriesopen
+                    FROM Entry e
                     INNER JOIN Entrant en ON e.entrantid = en.entrantid
+                    INNER JOIN Category c ON e.categoryid = c.categoryid
                     WHERE e.entryid = @entryid AND e.deleted = 0`);
         if (!entryCheck.recordset.length) return res.json({ status: 'E_NOTFOUND' });
         const entry = entryCheck.recordset[0];
         if (entry.entrantuserid !== req.user.userid && !req.user.admin) return res.json({ status: 'E_AUTH' });
+        if (!entry.entriesopen && !entry.entryopen && !req.user.admin) {
+            return res.json({ status: 'E_CLOSED', msg: 'Cannot save. Entries are closed.' });
+        }
 
         // Upsert the response and return the responseid
         const existing = await pool.request()

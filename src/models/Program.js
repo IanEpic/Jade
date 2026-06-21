@@ -70,6 +70,7 @@ Program.init(
     judgingmodelid:             { type: DataTypes.INTEGER },
     ccdpaymentonly:             { type: DataTypes.BOOLEAN },
     faviconfile:                { type: DataTypes.STRING },
+    entryclosedate:             { type: DataTypes.DATE },
   },
   {
     sequelize,
