@@ -183,9 +183,10 @@ function buildCloseBanner(program, nonce) {
          `function fmt(ms){` +
            `if(ms<=0)return'0s';` +
            `var s=Math.floor(ms/1000),m=Math.floor(s/60),h=Math.floor(m/60),d=Math.floor(h/24);` +
-           `if(d>1)return d+'d '+('0'+h%24).slice(-2)+'h';` +
-           `if(h>=1)return h+'h '+('0'+m%60).slice(-2)+'m';` +
-           `return m+'m '+('0'+s%60).slice(-2)+'s';` +
+           `var ss=('0'+s%60).slice(-2),mm=('0'+m%60).slice(-2),hh=('0'+h%24).slice(-2);` +
+           `if(d>=1)return d+'d '+hh+'h '+mm+'m '+ss+'s';` +
+           `if(h>=1)return h+'h '+mm+'m '+ss+'s';` +
+           `return m+'m '+ss+'s';` +
          `}` +
          `function tick(){` +
            `var diff=closeMs-Date.now();` +
