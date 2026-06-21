@@ -126,6 +126,7 @@ else
                             - var ecdUtc = program.entryclosedate ? new Date(program.entryclosedate).toISOString() : ''
                             input#ecd-utc(type='hidden' name='entryclosedate' value=ecdUtc)
                             input#ecd-local(type='datetime-local' style='background:#1e1e1e;color:#ddd;border:1px solid #555;border-radius:3px;padding:4px 8px;font-size:13px;')
+                            button#ecd-clear(type='button' style='margin-left:8px;padding:4px 10px;background:transparent;color:#c44;border:1px solid #c44;border-radius:3px;font-size:12px;cursor:pointer;vertical-align:middle;') Clear
                             p(style='font-size:12px;color:#888;margin:6px 0 0;') Enter in your local time. When set, all categories auto-close at this date/time and entries are locked. Leave blank to disable.
 
         //- ── Technical ────────────────────────────────────────────────────────
@@ -222,4 +223,14 @@ else
                 utcIn.value = d.toISOString();
                 updateLabel(d);
             });
+
+            // Clear button
+            var clearBtn = document.getElementById('ecd-clear');
+            if (clearBtn) {
+                clearBtn.addEventListener('click', function () {
+                    localIn.value = '';
+                    utcIn.value   = '';
+                    updateLabel(new Date());
+                });
+            }
         }());
