@@ -87,12 +87,6 @@ else
                         if entryExceptions && entryExceptions.length
                             td.note NOTE: Some categories are not using this default
                     tr
-                        td(colspan='3' style='padding-top:6px;padding-bottom:2px;')
-                            label(style='font-size:12px;color:#aaa;display:block;margin-bottom:4px;') Auto-close date/time
-                            - var ecd = program.entryclosedate ? new Date(program.entryclosedate).toISOString().slice(0,16) : ''
-                            input(type='datetime-local' name='entryclosedate' value=ecd style='background:#1e1e1e;color:#ddd;border:1px solid #555;border-radius:3px;padding:4px 8px;font-size:13px;')
-                            span(style='font-size:12px;color:#888;margin-left:8px;') All categories auto-close at this date/time. Leave blank to disable.
-                    tr
                         td: input(type='checkbox' name='paymentsopen' value='ON' checked=program.paymentsopendefault)
                         td: label Payments Open
                         if paymentExceptions && paymentExceptions.length
@@ -117,6 +111,18 @@ else
                     tr(style='border-top:1px solid #444')
                         td(style='padding-top:8px'): input(type='checkbox' name='overwrite' value='ON')
                         td(style='padding-top:8px'): label Overwrite all records with defaults above
+
+        //- ── Automatic Actions ────────────────────────────────────────────────
+        fieldset
+            legend.accordion-legend.collapsed(data-action='toggle-accordion') Automatic Actions
+            div.accordion-body
+                table.checkbox-table
+                    tr
+                        td(colspan='3')
+                            label(style='font-size:12px;color:#aaa;display:block;margin-bottom:6px;') Entry Close Date / Time
+                            - var ecd = program.entryclosedate ? new Date(program.entryclosedate).toISOString().slice(0,16) : ''
+                            input(type='datetime-local' name='entryclosedate' value=ecd style='background:#1e1e1e;color:#ddd;border:1px solid #555;border-radius:3px;padding:4px 8px;font-size:13px;')
+                            p(style='font-size:12px;color:#888;margin:6px 0 0;') When set, all categories will auto-close at this date/time and entries will be locked. Leave blank to disable.
 
         //- ── Technical ────────────────────────────────────────────────────────
         fieldset
