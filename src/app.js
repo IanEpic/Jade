@@ -303,6 +303,17 @@ app.use((req, res, next) => {
   next();
 });
 
+// Uptime monitor — used by Cloudflare LB health checks. No auth, no middleware.
+app.all('/uptimemonitor', async (req, res) => {
+  try {
+    await sequelize.authenticate();
+    await fs.access(process.env.FILESTORE_ROOT, fs.constants.R_OK | fs.constants.W_OK);
+    res.status(200).send('OK');
+  } catch (err) {
+    res.status(500).send(err.message);
+  }
+});
+
 // Platform-level login — must be mounted before /:slug to avoid 'login' being
 // treated as a program slug.
 app.use('/login', rootLoginRouter);
