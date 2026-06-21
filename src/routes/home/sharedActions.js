@@ -80,6 +80,7 @@ export async function handleSharedAction(action, req, res, program, user, data) 
             nameLabel, typeLabel, abnLabel, createLabel, editLabel,
             program,
             translate,
+            error: req.query.error || null,
         };
     }
 

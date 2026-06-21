@@ -125,21 +125,15 @@ router.post('/', async (req, res, next) => {
             translate(program.programid, 'My Entrants'),
         ]);
 
-        const renderError = (errors, entrant = null) => renderInHome(req, res, 'home/entrant', {
-            user, program,
-            mode:    entrant ? 'edit' : 'new',
-            entrant: entrant || null,
-            addresses, errors,
-            nameLabel, typeLabel, abnLabel, createLabel, editLabel, entrantsLabel,
-        });
+        const redirectError = (msg) =>
+            res.redirect('/home?action=entrants&error=' + encodeURIComponent(msg));
 
         // ── Resolve street address ────────────────────────────────────────
-        // Equiv: if ($INPUT{streetaddressid} eq 'b') → create new address
         let streetAddressId = body.streetaddressid;
         if (body.streetaddressid === 'b') {
             const { streetaddress, streetcity, streetstate, streetcode, streetcountry } = body;
             if (!streetaddress || !streetcity || !streetstate || !streetcode || !streetcountry) {
-                return renderError(['You must select or enter both a street and postal address.']);
+                return redirectError('You must complete all street address fields.');
             }
             const newStreet = await Address.create({
                 userid: user.userid, address: streetaddress, city: streetcity,
@@ -149,14 +143,13 @@ router.post('/', async (req, res, next) => {
         }
 
         // ── Resolve postal address ────────────────────────────────────────
-        // 'c' = same as street, 'b' = new address, otherwise existing id
         let postalAddressId = body.postaladdressid;
         if (body.postaladdressid === 'c') {
             postalAddressId = streetAddressId;
         } else if (body.postaladdressid === 'b') {
             const { postaladdress, postalcity, postalstate, postalcode, postalcountry } = body;
             if (!postaladdress || !postalcity || !postalstate || !postalcode || !postalcountry) {
-                return renderError(['You must select or enter both a street and postal address.']);
+                return redirectError('You must complete all postal address fields.');
             }
             const newPostal = await Address.create({
                 userid: user.userid, address: postaladdress, city: postalcity,
@@ -165,9 +158,8 @@ router.post('/', async (req, res, next) => {
             postalAddressId = newPostal.addressid;
         }
 
-        // ── Validate address selection (must not still be 'a' = please select) ──
         if (streetAddressId === 'a' || postalAddressId === 'a') {
-            return renderError(['You must select or enter both a street and postal address.']);
+            return redirectError('You must select or enter both a street and postal address.');
         }
 
         const fields = {

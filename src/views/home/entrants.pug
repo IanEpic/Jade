@@ -30,6 +30,9 @@ style.
 .entrants-wrap
     h2= content.entrantsLabel || 'My Entrants'
 
+    if content.error
+        p(style='background:#7a2a00; color:#fff; padding:8px 12px; border-left:4px solid #c44; margin-bottom:12px')= content.error
+
     if canEdit
         //- ── Inline new/edit form ─────────────────────────────────────────────
         .entrant-form-wrap#entrant-form-wrap
