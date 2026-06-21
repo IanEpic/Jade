@@ -89,7 +89,8 @@ router.get('/', async (req, res, next) => {
         // ── Delete ────────────────────────────────────────────────────────
         if (action === 'delete' && entryId) {
             const entry = await Entry.findByPk(entryId);
-            if (entry) await entry.update({ deleted: 1 });
+            if (!entry || (entry.userid !== user.userid && !user.admin)) return res.redirect('/home');
+            await entry.update({ deleted: 1 });
             return res.redirect('/home');
         }
 
@@ -97,6 +98,9 @@ router.get('/', async (req, res, next) => {
         if (entryId) {
             const entry = await Entry.findByPk(entryId);
             if (!entry) return res.redirect('/home');
+
+            // Only the entry owner or admin may edit
+            if (entry.userid !== user.userid && !user.admin) return res.redirect('/home');
 
             // Finalised entries cannot be edited by non-admins
             if (entry.finalised && !user.admin) {
@@ -210,6 +214,9 @@ router.post('/', async (req, res, next) => {
 
         // ── Create or update entry ────────────────────────────────────────
         let entry = body.entryid ? await Entry.findByPk(body.entryid) : null;
+
+        // Only the entry owner or admin may save changes
+        if (entry && entry.userid !== user.userid && !user.admin) return res.redirect('/home');
 
         // Prevent saving a finalised entry (non-admin)
         if (entry && entry.finalised && !user.admin) {

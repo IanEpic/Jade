@@ -244,33 +244,37 @@ router.post('/delete-file', async (req, res, next) => {
 
         const pool = await getPool();
 
-        // Fetch the response so we know the filename and question type
+        // Fetch the response so we know the filename, question type, and entry ownership
         const r = await pool.request()
             .input('responseid', sql.Int, responseid)
             .query(`
-                SELECT r.value, q.inputtype
+                SELECT r.value, q.inputtype, e.userid AS entryuserid
                 FROM Response r
                 INNER JOIN Question q ON q.questionid = r.questionid
+                INNER JOIN Entry e ON e.entryid = r.entryid
                 WHERE r.responseid = @responseid AND r.deleted = 0
             `);
 
-        if (r.recordset.length) {
-            const { value: filename, inputtype } = r.recordset[0];
-            if (filename) {
-                // Delete from both possible locations (original + converted)
-                const dirs = inputtype === 'image'
-                    ? [ORIGINAL_IMAGES_DIR, CONVERTED_IMAGES_DIR]
-                    : inputtype === 'video'
-                    ? [ORIGINAL_VIDEOS_DIR, CONVERTED_VIDEOS_DIR]
-                    : [ORIGINAL_FILES_DIR];
+        if (!r.recordset.length) return res.json({ status: 'E_NOTFOUND' });
+        if (r.recordset[0].entryuserid !== req.user.userid && !req.user.admin) {
+            return res.json({ status: 'E_AUTH' });
+        }
 
-                for (const dir of dirs) {
-                    const filePath = path.join(dir, filename);
-                    try {
-                        await fs.unlink(filePath);
-                    } catch (e) {
-                        console.warn(`Could not delete file: ${filePath} — ${e.message}`);
-                    }
+        const { value: filename, inputtype } = r.recordset[0];
+        if (filename) {
+            // Delete from both possible locations (original + converted)
+            const dirs = inputtype === 'image'
+                ? [ORIGINAL_IMAGES_DIR, CONVERTED_IMAGES_DIR]
+                : inputtype === 'video'
+                ? [ORIGINAL_VIDEOS_DIR, CONVERTED_VIDEOS_DIR]
+                : [ORIGINAL_FILES_DIR];
+
+            for (const dir of dirs) {
+                const filePath = path.join(dir, filename);
+                try {
+                    await fs.unlink(filePath);
+                } catch (e) {
+                    console.warn(`Could not delete file: ${filePath} — ${e.message}`);
                 }
             }
         }
