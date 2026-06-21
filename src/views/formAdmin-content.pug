@@ -120,10 +120,13 @@ else
                 table.checkbox-table
                     tr
                         td(colspan='3')
-                            label(style='font-size:12px;color:#aaa;display:block;margin-bottom:6px;') Entry Close Date / Time
-                            - var ecd = program.entryclosedate ? new Date(program.entryclosedate).toISOString().slice(0,16) : ''
-                            input(type='datetime-local' name='entryclosedate' value=ecd style='background:#1e1e1e;color:#ddd;border:1px solid #555;border-radius:3px;padding:4px 8px;font-size:13px;')
-                            p(style='font-size:12px;color:#888;margin:6px 0 0;') When set, all categories will auto-close at this date/time and entries will be locked. Leave blank to disable.
+                            label(style='font-size:12px;color:#aaa;display:block;margin-bottom:6px;')
+                                | Entry Close Date / Time&#32;
+                                span#ecd-tz(style='color:#888;font-weight:normal;')
+                            - var ecdUtc = program.entryclosedate ? new Date(program.entryclosedate).toISOString() : ''
+                            input#ecd-utc(type='hidden' name='entryclosedate' value=ecdUtc)
+                            input#ecd-local(type='datetime-local' style='background:#1e1e1e;color:#ddd;border:1px solid #555;border-radius:3px;padding:4px 8px;font-size:13px;')
+                            p(style='font-size:12px;color:#888;margin:6px 0 0;') Enter in your local time. When set, all categories auto-close at this date/time and entries are locked. Leave blank to disable.
 
         //- ── Technical ────────────────────────────────────────────────────────
         fieldset
@@ -177,3 +180,46 @@ else
 
     script(defer src='https://cdn.tiny.cloud/1/t5u2zqqe9s1ltcgp3yrcdormdh3wb2qaquf31suupv3rupdw/tinymce/7/tinymce.min.js' referrerpolicy='origin')
     script(defer src='/js/form-admin.js?v=' + buildHash)
+    script.
+        (function () {
+            var utcIn   = document.getElementById('ecd-utc');
+            var localIn = document.getElementById('ecd-local');
+            var tzSpan  = document.getElementById('ecd-tz');
+            if (!utcIn || !localIn) return;
+
+            function offsetStr(date) {
+                var off = -date.getTimezoneOffset();
+                var h   = Math.floor(Math.abs(off) / 60);
+                var m   = Math.abs(off) % 60;
+                return (off >= 0 ? '+' : '-') + ('0' + h).slice(-2) + ':' + ('0' + m).slice(-2);
+            }
+
+            function updateLabel(date) {
+                var tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+                tzSpan.textContent = '(' + tz + ' UTC' + offsetStr(date) + ')';
+            }
+
+            // Populate local input from stored UTC value
+            if (utcIn.value) {
+                var d = new Date(utcIn.value);
+                // Shift to local wall-clock time for the datetime-local input
+                var local = new Date(d.getTime() - d.getTimezoneOffset() * 60000)
+                    .toISOString().slice(0, 16);
+                localIn.value = local;
+                updateLabel(d);
+            } else {
+                updateLabel(new Date());
+            }
+
+            // Keep hidden UTC input in sync; update label offset for the chosen date
+            localIn.addEventListener('input', function () {
+                if (!localIn.value) {
+                    utcIn.value = '';
+                    updateLabel(new Date());
+                    return;
+                }
+                var d = new Date(localIn.value); // browser parses as local time
+                utcIn.value = d.toISOString();
+                updateLabel(d);
+            });
+        }());
