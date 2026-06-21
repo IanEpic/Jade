@@ -859,13 +859,13 @@ export async function getEntriesByCategoryReport({ programId }) {
                 SELECT e.entryid, e.categoryid
                 FROM Entry e
                 INNER JOIN [User] u ON e.userid = u.userid
-                WHERE e.deleted = 0 AND u.exclude = 0 AND u.programid = @programId
+                WHERE e.deleted = 0 AND e.programid = @programId AND u.exclude = 0 AND u.programid = @programId
             ) AS es ON es.categoryid = c.categoryid
             LEFT JOIN (
                 SELECT e.entryid, e.categoryid
                 FROM Entry e
                 INNER JOIN [User] u ON e.userid = u.userid
-                WHERE e.deleted = 0 AND u.exclude = 0 AND e.entryaccepted = 1 AND u.programid = @programId
+                WHERE e.deleted = 0 AND e.programid = @programId AND u.exclude = 0 AND e.entryaccepted = 1 AND u.programid = @programId
             ) AS ep ON ep.categoryid = c.categoryid
             WHERE c.programid = @programId AND c.deleted = 0
             GROUP BY c.name, c.orda
