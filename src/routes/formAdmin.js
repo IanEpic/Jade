@@ -104,7 +104,7 @@ router.post('/', async (req, res, next) => {
             scoresexplained:         body.scoresexplained,
             downloadpagehtml:        body.downloadpagehtml,
             costexplanationtext:     body.costexplanationtext,
-            entryclosedate:          body.entryclosedate ? new Date(body.entryclosedate) : null,
+            entryclosedate:          body.entryclosedate ? new Date(body.entryclosedate).toISOString().replace('T', ' ').slice(0, 23) : null,
         });
 
         // Overwrite — apply defaults to all categories/users
