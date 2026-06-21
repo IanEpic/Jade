@@ -1,0 +1,38 @@
+//- home/entriesbycategory.pug
+
+style.
+    .ebc-wrap { max-width: 700px; margin: 0 auto; }
+    .ebc-wrap h3 { color: #c48f06; font-size: 18px; text-align: center; margin-bottom: 16px; }
+    .ebc-table { width: 100%; border-collapse: collapse; }
+    .ebc-table th { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1px solid #555; padding: 6px 10px; text-align: left; color: #c48f06; }
+    .ebc-table th.num { text-align: right; }
+    .ebc-table td { padding: 7px 10px; border-bottom: 1px solid #2a2a2a; font-size: 14px; }
+    .ebc-table td.num { text-align: right; color: #ccc; }
+    .ebc-table tr:hover td { background: rgba(255,255,255,0.04); }
+    .ebc-table tfoot td { border-top: 2px solid #555; border-bottom: none; font-weight: 600; color: #c48f06; }
+
+.ebc-wrap
+    h3 Entries by Category
+
+    if content.rows && content.rows.length
+        - var totalStarted = content.rows.reduce(function(s,r){ return s + (r.entriesstarted||0); }, 0)
+        - var totalPaid    = content.rows.reduce(function(s,r){ return s + (r.entriespaid||0); }, 0)
+        table.ebc-table
+            thead
+                tr
+                    th Category
+                    th.num Entries Started
+                    th.num Entries Paid
+            tbody
+                each row in content.rows
+                    tr
+                        td= row.name
+                        td.num= row.entriesstarted
+                        td.num= row.entriespaid
+            tfoot
+                tr
+                    td Total
+                    td.num= totalStarted
+                    td.num= totalPaid
+    else
+        p(style='color:#888; text-align:center; margin-top:24px;') No categories found.

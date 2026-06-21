@@ -845,6 +845,35 @@ export async function getFinalisedNotPaidReport({ programId }) {
     return result.recordset;
 }
 
+// Entries by category summary report
+export async function getEntriesByCategoryReport({ programId }) {
+    const pool = await getPool();
+    const result = await pool.request()
+        .input('programId', sql.Int, programId)
+        .query(`
+            SELECT c.name,
+                   COUNT(es.entryid) AS entriesstarted,
+                   COUNT(ep.entryid) AS entriespaid
+            FROM Category c
+            LEFT JOIN (
+                SELECT e.entryid, e.categoryid
+                FROM Entry e
+                INNER JOIN [User] u ON e.userid = u.userid
+                WHERE e.deleted = 0 AND u.exclude = 0 AND u.programid = @programId
+            ) AS es ON es.categoryid = c.categoryid
+            LEFT JOIN (
+                SELECT e.entryid, e.categoryid
+                FROM Entry e
+                INNER JOIN [User] u ON e.userid = u.userid
+                WHERE e.deleted = 0 AND u.exclude = 0 AND e.entryaccepted = 1 AND u.programid = @programId
+            ) AS ep ON ep.categoryid = c.categoryid
+            WHERE c.programid = @programId AND c.deleted = 0
+            GROUP BY c.name, c.orda
+            ORDER BY c.orda
+        `);
+    return result.recordset;
+}
+
 // All judge comments for an entry (for scorescomments view)
 export async function getJudgeCommentsForEntry({ entryId }) {
     const pool = await getPool();

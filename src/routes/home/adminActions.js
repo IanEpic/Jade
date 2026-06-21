@@ -45,6 +45,7 @@ import {
     upsertStatsProgram,
     deleteStatsProgram,
     getEntriesAssignedToJudge,
+    getEntriesByCategoryReport,
 } from '../../queries/homeQueries.js';
 
 async function loadJudgingModel(judgingmodelid) {
@@ -381,6 +382,11 @@ export async function handleAdminAction(action, req, res, program, user) {
     if (action === 'activeusers')      return { view: 'home/activeusers' };
     if (action === 'paidnotfinalised') return { view: 'home/paidnotfinalised' };
     if (action === 'finalisednotpaid') return { view: 'home/finalisednotpaid' };
+
+    if (action === 'entriesbycategory') {
+        const rows = await getEntriesByCategoryReport({ programId: program.programid });
+        return { view: 'home/entriesbycategory', rows };
+    }
 
     if (action === 'calcfinalscores') {
         const programId    = program.programid;
