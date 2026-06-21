@@ -307,6 +307,23 @@ router.post('/', async (req, res, next) => {
             }
         }
 
+        if (body.resend && operator.admin && targetUser.credentialid) {
+            const setupToken = crypto.randomBytes(32).toString('hex');
+            const cred = await UserCredential.findByPk(targetUser.credentialid);
+            await cred.update({ activationtoken: setupToken });
+            const proto    = req.get('x-forwarded-proto') || req.protocol;
+            const host     = req.get('x-forwarded-host')  || req.get('host');
+            const setupUrl = `${proto}://${host}/${program.slug}/set-password?token=${setupToken}`;
+            mail({
+                to:      cred.email,
+                subject: `${program.name} — Set Your Password`,
+                text:    `Dear ${cred.firstname || ''},\n\nA password setup link has been generated for your account.\n\nPlease click the link below to set your password:\n\n${setupUrl}\n\nIf you did not request this, please contact the program administrator.\n`,
+                from:    program.emailfromaddress,
+                ...parseSmtp(program.smtpserver),
+            }).catch(err => console.warn('Resend setup email failed:', err.message));
+            return res.redirect(`/formUser?edituserid=${targetUser.userid}&sent=1`);
+        }
+
         return res.redirect(operator.admin ? '/home?action=users&success=1' : '/home');
 
     } catch (err) { next(err); }

@@ -47,7 +47,7 @@ form.user-form(method='POST' action='/formUser')
             if !content.targetActivated
                 a(href='/formUser?action=activate&edituserid=' + content.targetUser.userid) Activate Account
             if content.hasSetupToken
-                a(href='/formUser?action=resend-setup&edituserid=' + content.targetUser.userid) Resend Setup Email
+                span (setup email not yet used)
             if content.targetUser.judge
                 a(href='/formUser?action=demote&edituserid=' + content.targetUser.userid data-confirm='Remove all judging data?') Demote from Judge
 
@@ -243,5 +243,7 @@ form.user-form(method='POST' action='/formUser')
     .form-actions
         a.btn-secondary(href=content.isAdmin ? '/home?action=users' : '/home') #{content.isAdmin ? '< Users' : 'Cancel'}
         button.btn(type='submit') Save Changes
+        if content.isAdmin && content.hasSetupToken
+            button.btn(type='submit' name='resend' value='1') Save &amp; Resend Setup Email
 
 script(src='/js/user-edit.js?v=' + buildHash)
