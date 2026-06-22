@@ -106,8 +106,10 @@ export async function getLinkedPrograms(credentialId) {
 export async function recordLogon(userId) {
   try {
     const { default: LogOnRecord } = await import('../models/LogOnRecord.js');
-    await LogOnRecord.create({ userid: userId, timestamp: new Date() });
-  } catch {
-    // LogOnRecord table may not exist in all program setups — fail silently
+    // timestamp has a DEFAULT (getdate()) in the DB — let SQL Server fill it.
+    await LogOnRecord.create({ userid: userId });
+  } catch (err) {
+    // LogOnRecord table may not exist in all program setups — log but don't block login.
+    console.warn('recordLogon failed:', err.message);
   }
 }

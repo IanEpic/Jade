@@ -5,8 +5,9 @@ class LogOnRecord extends Model {}
 
 LogOnRecord.init(
   {
-    userid:    { type: DataTypes.INTEGER },
-    timestamp: { type: DataTypes.DATE },
+    logonrecordid: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+    userid:        { type: DataTypes.INTEGER },
+    timestamp:     { type: DataTypes.DATE },
   },
   {
     sequelize,
