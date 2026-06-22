@@ -187,6 +187,34 @@ export function truncateWords(text, maxWords) {
     return { truncated: true, text: words.slice(0, maxWords).join(' ') };
 }
 
+// A "word" for word-limit purposes excludes list markers — bullet characters
+// and list enumerators (1.  2)  (3)  a.  b)) — which are formatting, not content.
+// NOTE: the same literal is mirrored client-side in form-responses.js (isListMarker)
+// so the live counter, the initial count, and viewEntry truncation all agree.
+export const LIST_MARKER_RE = /^([•·‣◦▪▫■*–—-]+|\(?\d+[.)]|\(?[A-Za-z][.)])$/;
+
+// Count content words, ignoring list markers/numbers.
+export function countContentWords(text) {
+    if (!text) return 0;
+    return text.trim().split(/\s+/).filter(w => w && !LIST_MARKER_RE.test(w)).length;
+}
+
+// Truncate to `max` CONTENT words. List markers/numbers don't count toward the
+// limit but are preserved (so list formatting survives). Original whitespace
+// (incl. newlines) up to the cutoff is kept. Returns { truncated, text }.
+export function truncateContentWords(text, max) {
+    if (!text) return { truncated: false, text: '' };
+    const re = /\S+/g;
+    let count = 0, idx = 0, m;
+    while ((m = re.exec(text)) !== null) {
+        if (LIST_MARKER_RE.test(m[0])) continue;
+        count++;
+        if (count === max) idx = m.index + m[0].length;
+        else if (count > max) return { truncated: true, text: text.slice(0, idx) };
+    }
+    return { truncated: false, text };
+}
+
 // Replaces: replacecr($str) — newlines to <br>
 export function replaceCr(str) {
     return str ? str.replace(/\r?\n|\r/g, '<br />') : str;

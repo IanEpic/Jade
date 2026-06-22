@@ -11,6 +11,7 @@ import crypto from 'crypto';
 import { fileURLToPath } from 'url';
 
 import sequelize from './config/sequelize.js';
+import { countContentWords } from './services/helpers.js';
 import { setupAssociations } from './models/associations.js';
 import { autoCloseAllPrograms } from './services/autoClose.js';
 import { resolveProgram } from './middleware/resolveProgram.js';
@@ -146,6 +147,7 @@ app.use((req, res, next) => {
   res.locals.currentYear = new Date().getFullYear();
   res.locals.env         = process.env.NODE_ENV || 'development';
   res.locals.buildHash   = BUILD_HASH;
+  res.locals.countContentWords = countContentWords;
   next();
 });
 

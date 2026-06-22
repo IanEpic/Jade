@@ -109,8 +109,9 @@ style.
                             .word-count
                                 if q.maxsize
                                     | Word count:&nbsp;
-                                    input(type='text' name=taname+'c' value=respval ? respval.trim().split(/\s+/).filter(Boolean).length : 0 readonly)
+                                    input(type='text' name=taname+'c' value=countContentWords(respval) readonly)
                                     | &nbsp;
+                                    span.word-over(data-over=taname style='color:#c44; font-weight:600; display:none')
                                 button.btn-undo(type='button' style='display:none' data-action='undo') ↩ Undo
                         else if q.inputtype === 'checkbox'
                             - const cbopts = q.options || []

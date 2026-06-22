@@ -18,6 +18,7 @@ import Category     from '../models/Category.js';
 import Response     from '../models/Response.js';
 import { getPool, sql } from '../config/database.js';
 import { getCriteria } from '../queries/categoryQueries.js';
+import { truncateContentWords } from '../services/helpers.js';
 
 const FILESTORE_ROOT        = process.env.FILESTORE_ROOT || 'C:/Data/LocalJadeFilestore';
 const ORIGINAL_IMAGES_DIR   = path.join(FILESTORE_ROOT, 'originalImages');
@@ -236,6 +237,23 @@ router.get('/', async (req, res, next) => {
                     path.join(ORIGINAL_FILES_DIR, resp.value),
                     path.join(ORIGINAL_FILES_DIR, base)
                 );
+            }
+        }
+
+        // Enforce the per-question word limit on display. q.maxsize is the word
+        // limit (textarea only — that's where the form applies it). The entry
+        // form doesn't block over-limit submissions, so truncate here so judges
+        // only ever see up to the limit. List markers/numbers don't count toward
+        // the limit (countContentWords/truncateContentWords), matching the form's
+        // live counter.
+        for (const q of questions) {
+            if (q.inputtype !== 'textarea' || !q.maxsize) continue;
+            const resp = responses[q.questionid];
+            if (!resp || !resp.value) continue;
+            const { truncated, text } = truncateContentWords(resp.value, q.maxsize);
+            if (truncated) {
+                resp.value     = text;
+                resp.truncated = true;
             }
         }
 

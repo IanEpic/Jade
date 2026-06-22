@@ -50,6 +50,8 @@ else if q.inputtype === 'textarea'
                 - let paras = resp.value.split('\n').filter(l => l.trim())
                 each para in paras
                     p!= para
+                if resp.truncated
+                    p.ve-q-truncated(style='color:#c48f06; font-style:italic; font-size:12px;')= '[truncated to word limit: ' + q.maxsize + ' words]'
             else
                 span.ve-q-noresp= noResp
 

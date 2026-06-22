@@ -97,11 +97,27 @@ window.addEventListener('beforeunload', function (e) {
 });
 
 // ── Word count ────────────────────────────────────────────────────────────────
+// List markers (bullet chars / list enumerators like 1. 2) (3) a. b)) are
+// formatting, not content, so they don't count toward the word limit. Mirrors
+// LIST_MARKER_RE in services/helpers.js — keep the two in sync.
+var LIST_MARKER_RE = /^([•·‣◦▪▫■*–—-]+|\(?\d+[.)]|\(?[A-Za-z][.)])$/;
+function isListMarker(w) { return LIST_MARKER_RE.test(w); }
+
 function countWords(ta, limit) {
-    var words    = ta.value.trim().split(/\s+/).filter(Boolean);
+    var words    = ta.value.trim().split(/\s+/).filter(function (w) { return w && !isListMarker(w); });
     var cnt      = words.length;
     var cntField = document.querySelector('[name="' + ta.name + 'c"]');
     if (cntField) cntField.value = cnt;
+    var over    = limit ? cnt - limit : 0;
+    var overEl  = document.querySelector('[data-over="' + ta.name + '"]');
+    if (overEl) {
+        if (over > 0) {
+            overEl.textContent = '(' + over + ' word' + (over === 1 ? '' : 's') + ' over limit)';
+            overEl.style.display = '';
+        } else {
+            overEl.style.display = 'none';
+        }
+    }
     if (limit && cnt > limit) ta.style.borderColor = '#c44';
     else ta.style.borderColor = '';
 }
@@ -705,6 +721,7 @@ function initUndoBaselines() {
             countWords(ta, limit || null);
             trackChange(ta);
         });
+        countWords(ta, limit || null); // initial state (count, over-limit message, border)
     });
 }
 
