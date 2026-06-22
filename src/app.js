@@ -252,9 +252,13 @@ window.JADE_BASE='/${slug}';
 (function(){
   var base=window.JADE_BASE;
   var otherSlugs=${JSON.stringify(otherSlugs)};
+  // Global (non-slug) prefixes — static asset routes that must NOT be slug-prefixed.
+  var global=['/wwwref/','/tinymce/','/css/','/js/','/favicon','/login/','/uptimemonitor'];
   function fix(el,attr){
     var v=el.getAttribute(attr);
-    if(v&&v.charAt(0)==='/'&&v.indexOf(base)!==0){var seg=v.split('/')[1];if(seg&&otherSlugs.indexOf(seg)!==-1)return;el.setAttribute(attr,base+v);}
+    if(!v||v.charAt(0)!=='/'||v.indexOf(base)===0)return;
+    for(var i=0;i<global.length;i++){if(v.indexOf(global[i])===0)return;}
+    var seg=v.split('/')[1];if(seg&&otherSlugs.indexOf(seg)!==-1)return;el.setAttribute(attr,base+v);
   }
   function rewrite(){
     [].forEach.call(document.querySelectorAll('a[href]'),function(a){fix(a,'href');});
