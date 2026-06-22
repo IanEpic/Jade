@@ -5,7 +5,7 @@ class Feedback extends Model {}
 
 Feedback.init(
   {
-    fedbackid:     { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+    feedbackid:    { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
     userid:        { type: DataTypes.INTEGER },
     communication: { type: DataTypes.STRING },
     portal:        { type: DataTypes.STRING },
