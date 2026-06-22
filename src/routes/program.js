@@ -122,7 +122,7 @@ router.use('/reportFinalisedNotPaid', reportFinalisedNotPaidRouter);
 router.use('/reportEntriesByCategory', reportEntriesByCategoryRouter);
 
 // ── Compatibility shims ───────────────────────────────────────────────────────
-// Legacy .cgi URLs that may still appear in TopMenuButton records or bookmarks.
+// Legacy .cgi URLs that may still appear in bookmarks.
 router.get('/logout', (req, res) => res.redirect('/login/logout'));
 router.get('/logout.cgi', (req, res) => res.redirect('/login/logout'));
 router.get('/formUser.cgi', (req, res) =>

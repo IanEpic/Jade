@@ -925,18 +925,6 @@ export async function getWildcardNominationsByJudge({ userId }) {
     return result.recordset;
 }
 
-// Menu buttons for editing (padded to numButtons slots, nulls for empty rows)
-export async function getMenuButtonsForEdit({ topMenuId, numButtons = 6 }) {
-    if (!topMenuId) return Array(numButtons).fill(null);
-    const pool = await getPool();
-    const result = await pool.request()
-        .input('topMenuId', sql.Int, topMenuId)
-        .query(`SELECT * FROM TopMenuButton WHERE topmenuid = @topMenuId ORDER BY topmenubuttonid`);
-    const buttons = result.recordset;
-    while (buttons.length < numButtons) buttons.push(null);
-    return buttons.slice(0, numButtons);
-}
-
 // Payments for an invoice (for invoice balance calculation)
 export async function getPaymentsForInvoice({ invoiceId }) {
     const pool = await getPool();

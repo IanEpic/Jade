@@ -20,7 +20,6 @@ import Nomination from './Nomination.js';
 import TravelPackage from './TravelPackage.js';
 import Terminology from './Terminology.js';
 import Address from './Address.js';
-import TopMenu from './TopMenu.js';
 import JudgingModel from './JudgingModel.js';
 import JudgeSuggestion from './JudgeSuggestion.js';
 import Payment from './Payment.js';
@@ -56,9 +55,6 @@ export function setupAssociations() {
   });
 
   // ── Program associations ──────────────────────────────────────────────────
-  Program.belongsTo(TopMenu,      { foreignKey: 'adminmenu',     as: 'adminMenuObj'  });
-  Program.belongsTo(TopMenu,      { foreignKey: 'usermenu',      as: 'userMenuObj'   });
-  Program.belongsTo(TopMenu,      { foreignKey: 'judgemenu',     as: 'judgeMenuObj'  });
   Program.belongsTo(JudgingModel, { foreignKey: 'judgingmodelid',as: 'judgingmodel'  });
 
   Program.hasMany(User,        { foreignKey: 'programid', as: 'users'        });
