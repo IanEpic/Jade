@@ -149,6 +149,10 @@
                 rows.forEach(function (row) {
                     row.classList.toggle('hidden', !row.querySelector('.badge-judge'));
                 });
+            } else if (q === ':online') {
+                rows.forEach(function (row) {
+                    row.classList.toggle('hidden', !row.querySelector('.online-dot'));
+                });
             } else if (q.charAt(0) === ':') {
                 rows.forEach(function (row) { row.classList.remove('hidden'); });
             }

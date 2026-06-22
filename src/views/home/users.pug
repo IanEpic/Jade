@@ -27,8 +27,8 @@ style.
     .u-batch-bar.active { display: flex; }
     .u-batch-bar span { color: #c48f06; }
     .badge-pay-override { background: #1a2a3a; color: #90caf9; margin-left: 5px; font-size: 11px; padding: 1px 5px; border-radius: 2px; }
-    .online-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #4caf50; margin-right: 6px; vertical-align: middle; box-shadow: 0 0 4px #4caf50; }
-    .online-spacer { display: inline-block; width: 8px; margin-right: 6px; }
+    .users-table td.name-cell { position: relative; padding-left: 24px; }
+    .online-dot { position: absolute; left: 9px; top: 50%; transform: translateY(-50%); width: 8px; height: 8px; border-radius: 50%; background: #4caf50; box-shadow: 0 0 4px #4caf50; }
 
 - var payDefault = content.payDefault
 
@@ -46,25 +46,23 @@ if content.success
 
 form(data-nosubmit)
     .users-toolbar
-        input#user-search(type='text' placeholder='Search… or :pay :admin :judge' data-filter='.users-table tbody tr')
+        input#user-search(type='text' placeholder='Search… or :pay :admin :judge :online' data-filter='.users-table tbody tr')
         a(href='/register') + New User
 
     table.users-table
         thead
             tr
                 th.u-check-col: input#u-select-all(type='checkbox' title='Select all visible')
-                th Name
+                th(style='padding-left:24px') Name
                 th Email
                 th(style='width:160px')
         tbody
             each u in content.users
                 tr(data-userid=u.userid data-paymentsopen=u.paymentsopen ? '1' : '0' data-paydefault=payDefault ? '1' : '0')
                     td.u-check-col: input.u-checkbox(type='checkbox' value=u.userid)
-                    td
+                    td.name-cell
                         if u.online
                             span.online-dot(title='Online now (active in the last 15 min)')
-                        else
-                            span.online-spacer
                         a(href='/home?action=users&edituserid=' + u.userid)= u.firstname + ' ' + u.lastname
                         if u.admin
                             span.badge.badge-admin Admin
