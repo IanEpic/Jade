@@ -377,6 +377,26 @@ export async function getAllUsersForProgram({ programId }) {
     return result.recordset;
 }
 
+// Returns userids with an active (unexpired) DB session scoped to this program,
+// plus the session expiry (rolling 8h, reset each request — so expiry minus the
+// 8h maxAge gives the user's last-activity time). Used to flag logged-on users.
+export async function getActiveSessionUserIds({ programId }) {
+    const pool = await getPool();
+    const result = await pool.request()
+        .input('programId', sql.Int, programId)
+        .query(`
+      SELECT TRY_CAST(JSON_VALUE(session, '$.userId') AS INT) AS userid,
+             MAX(expires) AS expires
+      FROM sessions
+      -- expires is stored in UTC by the session store, so compare with GETUTCDATE()
+      WHERE expires > GETUTCDATE()
+        AND TRY_CAST(JSON_VALUE(session, '$.programId') AS INT) = @programId
+        AND JSON_VALUE(session, '$.userId') IS NOT NULL
+      GROUP BY TRY_CAST(JSON_VALUE(session, '$.userId') AS INT)
+    `);
+    return result.recordset; // [{ userid, expires }]
+}
+
 // Equiv: EPIC::JADE::User->search(programid, judge=1, deleted=0, enabled=1) for email checkboxes
 export async function getEnabledJudgesForProgram({ programId, useSimplejudging }) {
     const pool = await getPool();

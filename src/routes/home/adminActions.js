@@ -40,6 +40,7 @@ import {
     getScoreForEntryCriteriaJudge,
     getJudgeCommentsForEntryByJudge,
     getAllUsersForProgram,
+    getActiveSessionUserIds,
     getEntryStats,
     getStatsPrograms,
     upsertStatsProgram,
@@ -336,6 +337,20 @@ export async function handleAdminAction(action, req, res, program, user) {
             };
         }
         const users = await getAllUsersForProgram({ programId: program.programid });
+        // Flag users with a live session as "online". Sessions are rolling 8h
+        // (reset each request), so expiry minus maxAge = last activity; treat
+        // activity within the last 15 min as currently online.
+        const SESSION_MAX_AGE = 8 * 60 * 60 * 1000;
+        const ONLINE_WINDOW   = 15 * 60 * 1000;
+        const now = Date.now();
+        const activeSessions = await getActiveSessionUserIds({ programId: program.programid });
+        const lastActiveById = new Map(
+            activeSessions.map(s => [s.userid, new Date(s.expires).getTime() - SESSION_MAX_AGE])
+        );
+        for (const u of users) {
+            const la = lastActiveById.get(u.userid);
+            u.online = la != null && (now - la) < ONLINE_WINDOW;
+        }
         return { view: 'home/users', users, payDefault: !!program.paymentsopendefault, success: req.query.success === '1' };
     }
 
