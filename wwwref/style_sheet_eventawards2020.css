@@ -1,0 +1,260 @@
+body {
+	font-family: 'Avalon', sans-serif;
+	font-weight: 400;
+	line-height: 1.44;
+	color: #fff;
+	text-rendering: optimizeLegibility;
+	vertical-align: baseline;
+	font-size: 15px;
+	background-size: cover;
+	background-position: center center;
+	background-repeat: repeat-y;
+	background-image: url("../wwwref/background-eventawards2018.jpg");
+	position: relative;
+	padding-bottom: 74px;
+}
+
+a{
+	text-decoration: none;
+	color: #baab85;
+	-webkit-transition: all 0.3s ease-in-out;
+	-moz-transition: all 0.3s ease-in-out;
+	-ms-transition: all 0.3s ease-in-out;
+	-o-transition: all 0.3s ease-in-out;
+	transition: all 0.3s ease-in-out;
+}
+
+a:hover, a:focus{
+	color: #cf9702; 
+	outline: none;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    clear: both;
+    margin-top: 0;
+    font-family: 'Avalon', sans-serif;
+    font-weight: 400;
+    padding: 0;
+    margin-bottom: 15px;
+    color: #c48f06;
+}
+
+h1 {
+    font-size: 20px;
+}
+
+h2 {
+    font-size: 18px;
+}
+
+h3 {
+    font-size: 15px;
+    margin-bottom: 0px;
+}
+
+h4 {
+    font-size: 12px;
+}
+
+table {
+	margin: 10px auto;
+}
+
+.btn , button,
+input[type="button"],
+input[type="reset"],
+input[type="submit"] {
+	border-radius: 3px;
+	background: #fff;
+	font-size: 15px;
+	color: #000;
+	padding: 3px;
+	text-transform: none; border: 0; border-radius: 0;
+	line-height: 1;
+    	transition: all 0.3s ease-in-out;
+	-webkit-transition: all 0.3s ease-in-out;
+	-ms-transition: all 0.3s ease-in-out;
+	-moz-transition: all 0.3s ease-in-out;
+	-o-transition: all 0.3s ease-in-out;
+	display: inline-block;
+	clear: both;
+	text-align: center;
+    	margin-right: 5px;
+}
+
+.btn:hover , button:hover,
+input[type="button"]:hover,
+input[type="reset"]:hover,
+input[type="submit"]:hover {
+	background: #cf9702;
+	color: #fff;
+}
+
+.btn:focus , button:focus,
+input[type="button"]:focus,
+input[type="reset"]:focus,
+input[type="submit"]:focus,
+button:active,
+input[type="button"]:active,
+input[type="reset"]:active,
+input[type="submit"]:active {
+	background: #cf9702;
+	color: #fff;
+}
+
+input[type="text"],
+input[type="email"],
+input[type="confirm_email"],
+input[type="url"],
+input[type="password"],
+input[type="search"],
+input[type="number"],
+input[type="tel"],
+input[type="range"],
+input[type="date"],
+input[type="month"],
+input[type="week"],
+input[type="time"],
+input[type="datetime"],
+input[type="datetime-local"],
+input[type="color"],
+textarea,
+select,
+select option{
+    background: black;
+	color: #fff;
+	border: 1px solid #fff;
+	border-radius: 0;
+	padding: 8px 12px 9px;
+
+    transition: all 0.3s ease-in-out;
+    -webkit-transition: all 0.3s ease-in-out;
+    -ms-transition: all 0.3s ease-in-out;
+    -moz-transition: all 0.3s ease-in-out;
+    -o-transition: all 0.3s ease-in-out;
+    font-family: 'Avalon', sans-serif;
+    font-size: 15px;
+    font-weight: 400;
+
+}
+
+select, select option {
+	border: 1px solid #fff;
+}
+
+input[type="text"]:focus,
+input[type="email"]:focus,
+input[type="confirm_email"]:focus,
+input[type="url"]:focus,
+input[type="password"]:focus,
+input[type="search"]:focus,
+input[type="number"]:focus,
+input[type="tel"]:focus,
+input[type="range"]:focus,
+input[type="date"]:focus,
+input[type="month"]:focus,
+input[type="week"]:focus,
+input[type="time"]:focus,
+input[type="datetime"]:focus,
+input[type="datetime-local"]:focus,
+input[type="color"]:focus,
+textarea:focus,
+select:focus{
+	border-color: #cf9702;
+}
+
+textarea {
+	width: 100%;
+}
+
+#header{
+	height: 98px;
+	background-color: black;
+}
+
+#decoration {
+    background-size: cover;
+    background-position: center center;
+    background-repeat: no-repeat;
+    height: 206px;
+    width: 100%;
+    display: block;
+    background-image: url(../wwwref/login-header.jpg);
+}
+
+#footer{
+	font-size: 70%;
+	text-align: center;
+	width: 100%;
+	position: fixed;
+	bottom: 0;
+	left: 0;
+	right: 0;
+	background-color: black;
+	padding: 15px 0 0 0;
+	z-index: 2;
+}
+
+#cgiContent {
+	text-align:center;
+}
+
+/***********Horizontal Bar***********/
+#cgiContent ul#vertnav {
+	list-style: none;
+	margin-top: 0px;
+	margin-right: 0px;
+	margin-bottom: 0px;
+	border:none;
+	float: left;
+	padding: 0px;
+	margin-left: 0px;
+}
+
+#cgiContent ul#vertnav li {
+	float: left;
+}
+
+#cgiContent ul#vertnav  a {
+	font-size: 17px;
+	color: white;
+	width: 128px;
+	text-align: center;
+	float: left;
+	padding-top: 7px;
+	padding-bottom: 7px;
+	border: none;
+}
+#cgiContent ul#vertnav a:hover {
+	color: #ffba01;
+}
+
+/***********Horizontal Bar***********/
+
+
+/*********** Vertical Bar **************/
+#cgiContent ul#vertnav2 {
+	margin: 0px;
+	padding-right: 5px;
+	padding-left: 10px;
+	list-style: none;
+	border-right: solid 1px white;
+}
+#cgiContent ul#vertnav2 li {
+	margin: 0px;
+	padding: 0px;
+}
+#cgiContent ul#vertnav2 li a {
+	font-size: 17px;
+	color: white;
+	display: block;
+	padding-left: 5px;
+	padding-top: 7px;
+	padding-bottom: 7px;
+	border:  none;
+}
+#cgiContent ul#vertnav2 a:hover {
+	color: #ffba01;
+}
+
+/*********** Vertical Bar **************/

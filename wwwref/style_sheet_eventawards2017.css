@@ -1,0 +1,304 @@
+body {
+	margin: 0;
+	padding: 0;
+	background: #04002e url(background_eventawards2016.jpg) no-repeat center top fixed;
+	background-size: 1600px auto;
+	font: 14px/1.5 'Raleway', Arial, Helvetica, sans-serif;
+	color: #000000;
+}
+#header {
+	margin-top: 10px;
+	margin-right: auto;
+	margin-left: auto;
+	height: auto;
+	width: 780px;
+}
+#header table {
+	margin: auto;
+	width: 980px;
+}
+#header td {
+	padding: 20px 0 30px;
+	line-height: 1.2;
+	text-align: center;
+	text-transform: uppercase;
+}
+#header a {	
+	display: block;
+	font-size: 40px;
+	color: #F78F1E;
+	text-decoration: none;
+}
+#header a img {
+	max-width: 900px;
+	height: auto;
+	border: none;
+}
+#header p {
+	margin: 10px 0 0;
+	font-size: 12px;
+}
+
+#social {
+	float: right;
+	position: relative;
+	margin: -70px 0 0 0;
+}
+#social a {
+	display: block;
+	float: left;
+	width: 24px;
+	height: 24px;
+	margin-left: 7px;
+	background: url(social_iabca2015.png) 0 0 no-repeat;
+}
+
+#container {
+	width: 786px;
+	background-color: black;
+	font-family: Arial, Helvetica, sans-serif;
+	margin-right: auto;
+	margin-left: auto;
+	border-top-style: none;
+	border-right-style: none;
+	border-bottom-style: none;
+	border-left-style: none;
+}
+
+
+#outerborder {
+	width: 786px;
+	margin-right: auto;
+	margin-left: auto;
+	margin-top: auto;
+	margin-bottom: auto;
+	background-color: #FFF;
+	border: 3px none #B1953A;
+}
+#cgiContent {
+	text-align: center;
+	padding-bottom: 30px;
+	padding-top: 10px;
+	height: auto;
+	vertical-align: middle;
+}
+#cgiContent h1 {
+	font-size: 190%;
+}
+#cgiContent h2 {
+	font-size: 140%;
+}
+#cgiContent h3 {
+	font-size: 120%;
+	padding-top: 0px;
+}
+#cgiContent h6 {
+	font-size: 70%;
+	font-weight: bolder;
+}
+#cgiContent p {
+	font-size: 100%;
+}
+#cgiContent a {
+	color: #788993;
+}
+#cgiContent table {
+	border: 1px solid #000;
+	text-align: left;
+	margin-right: auto;
+	margin-left: auto;
+	padding-right: 5px;
+	padding-left: 5px;
+}
+#cgiContent #home li {
+	margin-left: 10px;
+}
+#cgiContent table table {
+	border: 0px;
+	text-align: left;
+	margin-right: auto;
+	margin-left: auto;
+}
+#cgiContent form {
+	margin-right: auto;
+	margin-left: auto;
+}
+#cgiContent table a {
+	color: #664536;
+}
+#cgiContent table a:hover {
+	color: #927936;
+}
+#cgiContent table caption {
+	font-size: 110%;
+	text-align: center;
+	margin-bottom: 1px;
+	padding-bottom: 1px;
+}
+
+
+/***********HOME PAGE TABLES***********/
+#cgiContent table {
+}
+#cgiContent table#home {
+	border: 0px solid #000;
+	border-collapse: collapse;
+	margin: 0px;
+	text-align: left;
+	padding-right: 5px;
+	padding-left: 0px;
+}
+#cgiContent table#home table {
+	border: 1px solid #000;
+	text-align: left;
+	margin-right: auto;
+	margin-left: auto;
+	padding-right: 5px;
+	padding-left: 5px;
+}
+#cgiContent table#home table table {
+	border: 0px;
+	text-align: left;
+}
+#cgiContent table#home table a {
+	color: #664536;
+}
+#cgiContent table#home table a:hover {
+	color: #927936;
+}
+#cgiContent table#home table caption {
+	font-size: 110%;
+	text-align: center;
+	margin-bottom: 1px;
+	padding-bottom: 1px;
+}
+#cgiContent #questionarea input {
+	background-color: #EEE7DF;
+}
+#cgiContent #questionarea textarea {
+	background-color: #EEE7DF;
+}
+
+/***********Horizontal Bar***********/
+#cgiContent ul#vertnav {
+	list-style: none;
+	background-color: #04002e;
+	margin-top: 0px;
+	margin-right: 0px;
+	margin-bottom: 0px;
+	border-top-style: none;
+	border-right-style: none;
+	border-bottom-style: none;
+	border-left-style: none;
+	float: left;
+	padding: 0px;
+	margin-left: 0px;
+}
+#cgiContent ul#vertnav li {
+	float: left;
+}
+#cgiContent ul#vertnav  a {
+	color: #FFF;
+	text-decoration: none;
+	width: 128px;
+	text-align: center;
+	float: left;
+	padding-top: 7px;
+	padding-bottom: 7px;
+	border-left-width: 1px;
+	border-left-style: solid;
+	border-left-color: #FFFFFF;
+	border-right-width: 1px;
+	border-right-style: solid;
+	border-right-color: #FFFFFF;
+}
+#cgiContent ul#vertnav a:hover {
+	background-color: #0b007f;
+	color: #C1C489;
+}
+#cgiContent ul#vertnav_last a {
+	border-right-style: solid;
+	border-right-width: 1px;
+	border-right-color: #788993;
+}
+
+/***********Horizontal Bar***********/
+
+
+/*********** Vertical Nav 2 **************/
+#cgiContent ul#vertnav2 {
+	background-color: #04002e;
+	margin: 0px;
+	padding: 0px;
+	list-style-type: none;
+	border-right-width: 1px;
+	border-bottom-width: 1px;
+	border-left-width: 0px;
+	border-right-style: solid;
+	border-bottom-style: solid;
+	border-left-style: solid;
+	border-right-color: #FFF;
+	border-bottom-color: #FFF;
+	border-left-color: #FFF;
+}
+#cgiContent ul#vertnav2 li {
+	margin: 0px;
+	padding: 0px;
+}
+#cgiContent ul#vertnav2 li a {
+	color: #FFFFFF;
+	text-decoration: none;
+	display: block;
+	padding-left: 5px;
+	padding-top: 7px;
+	padding-bottom: 7px;
+	border-left-style: collapse;
+	border-top-width: 2px;
+	border-top-style: solid;
+	border-top-color: #FFF;
+}
+#cgiContent ul#vertnav2 a:hover {
+	background-color: #0b007f;
+	color: #C1C489;
+}
+#cgiContent ul#vertnav2_last a {
+	border-bottom-style: solid;
+	border-bottom-width: 1px;
+	border-bottom-color: #FFF;
+}
+/*********** Vertical Nav **************/
+
+#footerinside a:link,
+#footerinside a:visited {
+	color: #999999;
+	text-decoration: none;
+}
+#footerinside a:hover,
+#footerinside a:active {
+	color: #999999;
+	text-decoration: underline;
+}
+#footerinside {
+	text-align: left;
+	padding-top: 5px;
+	padding-bottom: 10px;
+}
+#footerinside p {
+	font-family: "Trebuchet MS", Arial, sans-serif;
+	font-size: 60%;
+	line-height: 11px;
+	margin: 0; /* zeroing the margins of the first element in the footer will avoid the possibility of margin collapse - a space between divs */
+	padding: 0px; /* padding on this element will create space, just as the the margin would have, without the margin collapse issue */
+	color: #A4A7A6;
+	text-align: center;
+}
+#footeroutside {
+	color: #A4A7A6;
+	font-size: 70%;
+	text-align: right;
+	width: 786px;
+	padding-top: 10px;
+}
+#footeroutside p a {
+	color: #A4A7A6;
+}

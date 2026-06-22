@@ -1,0 +1,196 @@
+
+/***********CGI INSRERT GENERALLY***********/
+
+#cgiContent {
+	font-family: Arial, Helvetica, sans-serif;
+	text-align: center;
+	padding-bottom: 30px;
+	padding-top: 10px;
+	height: auto;
+	vertical-align: middle;
+}
+#cgiContent h1 {
+	font-size: 190%;
+}
+#cgiContent h2 {
+	font-size: 140%;
+}
+#cgiContent h3 {
+	font-size: 120%;
+	padding-top: 0px;
+}
+#cgiContent h6 {
+	font-size: 70%;
+	font-weight: bolder;
+}
+#cgiContent p {
+	font-size: 80%;
+}
+#cgiContent a {
+	color: #788993;
+}
+
+/***********CGI INSRERT TABLES***********/
+
+#cgiContent table {
+	border: 1px solid #000;
+	text-align: left;
+	margin-right: auto;
+	margin-left: auto;
+	padding-right: 5px;
+	padding-left: 5px;
+}
+
+
+#cgiContent table a {
+	color: #664536;
+}
+#cgiContent table a:hover {
+	color: #927936;
+}
+#cgiContent table caption {
+	font-size: 110%;
+	text-align: center;
+	margin-bottom: 1px;
+	padding-bottom: 1px;
+}
+#cgiContent table td {
+	font-style: normal;
+	font-size: 85%;
+}
+#cgiContent table td i {
+	font-style: normal;
+	font-size: 70%;
+}
+#cgiContent table tr th {
+	font-size: 90%;
+}
+
+#cgiContent table table {
+	border: 0px;
+	text-align: left;
+	margin-right: auto;
+	margin-left: auto;
+}
+
+/***********HOME PAGE FORMS***********/
+
+#cgiContent form {
+	margin-right: auto;
+	margin-left: auto;
+}
+
+/***********HOME PAGE LISTS***********/
+
+#cgiContent #home li {
+	margin-left: 10px;
+}
+
+/***********HOME PAGE TABLES***********/
+
+#cgiContent table#home {
+	border: 0px solid #000;
+	text-align: left;
+	margin-right: auto;
+	margin-left: 0px;
+	padding-right: 5px;
+	padding-left: 0px;
+}
+#cgiContent table#home table {
+	border: 1px solid #000;
+	text-align: left;
+	margin-right: auto;
+	margin-left: auto;
+	padding-right: 5px;
+	padding-left: 5px;
+}
+#cgiContent table#home table table {
+	border: 0px;
+	text-align: left;
+	margin-right: auto;
+	margin-left: auto;
+}
+#cgiContent table#home table a {
+	color: #664536;
+}
+#cgiContent table#home table a:hover {
+	color: #927936;
+}
+#cgiContent table#home table caption {
+	font-size: 110%;
+	text-align: center;
+	margin-bottom: 1px;
+	padding-bottom: 1px;
+}
+#cgiContent table#home table td {
+	font-style: normal;
+	font-size: 85%;
+}
+#cgiContent table#home table td i {
+	font-style: normal;
+	font-size: 60%;
+}
+#cgiContent table#home table tr th {
+	font-size: 90%;
+}
+#cgiContent #questionarea input {
+	background-color: #EEE7DF;
+}
+#cgiContent #questionarea textarea {
+	background-color: #EEE7DF;
+}
+
+/***********Horizontal Bar***********/
+#cgiContent ul#vertnav {
+	list-style: none;
+	margin: 0px;
+	float: left;
+	padding: 0px;
+	margin-left: 0px;
+}
+#cgiContent ul#vertnav li {
+	float: left;
+     margin: 0px;
+
+}
+#cgiContent ul#vertnav  a {
+	text-decoration: none;
+	width: 130px;
+	text-align: center;
+	font-size: 100%;
+	line-height: 2;
+	float: left;
+	border-right-width: 1px;
+	border-right-style: solid;
+	border-right-color: #FFFFFF;
+}
+
+#cgiContent ul#vertnav_last a {
+	border-right-style: solid;
+	border-right-width: 1px;
+	border-right-color: #788993;
+}
+
+/*********** Vertical Nav 2 **************/
+#cgiContent ul#vertnav2 {
+	margin: 0px;
+	padding: 0px;
+	list-style-type: none;
+	font-size: 90%;
+     }
+#cgiContent ul#vertnav2 li {
+	margin: 0px;
+	}
+#cgiContent ul#vertnav2 li a {
+     width: 115px;
+	font-size: 100%;
+     padding-left: 15px;
+	text-decoration: none;
+	display: block;
+	padding-top: 7px;
+	padding-bottom: 7px;
+	border-top-width: 3px;
+	border-top-style: solid;
+	border-top-color: #FFF;
+}
+

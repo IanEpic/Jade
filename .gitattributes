@@ -1,0 +1,23 @@
+# Static web reference assets are deployed verbatim to prod (Linux);
+# keep text files LF so the codebase matches the servers exactly.
+# NOTE: order matters — later rules override earlier ones, so the
+# binary overrides below must come AFTER these directory rules.
+wwwref/**  text=auto eol=lf
+design/**  text eol=lf
+
+# Force known binary asset types to binary (no CRLF conversion, no diff).
+# These come last so they win over the directory rules above.
+*.pdf   binary
+*.docx  binary
+*.doc   binary
+*.zip   binary
+*.png   binary
+*.jpg   binary
+*.jpeg  binary
+*.gif   binary
+*.ico   binary
+*.woff  binary
+*.woff2 binary
+*.ttf   binary
+*.eot   binary
+*.map   binary

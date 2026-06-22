@@ -1,0 +1,210 @@
+@charset "utf-8";
+/* CSS Document */
+
+.header {
+	font-size: 100%;
+	font-style: italic;
+}
+#container {
+	width: 783px;
+	font-family: Arial, Helvetica, sans-serif;
+	margin-right: auto;
+	margin-left: auto;
+	border-top-style: none;
+	border-right-style: none;
+	border-bottom-style: none;
+	border-left-style: none;
+}
+#header {
+	height: auto;
+	width: 780px;
+}
+#body {
+	background-color: #FFF;
+}
+.container {
+	width: 780px;
+	margin-right: auto;
+	margin-left: auto;
+}
+#mainContent {
+	padding-top: 0px;
+	padding-right: 10px;
+	padding-bottom: 10px;
+	padding-left: 10px;
+}
+#mainContent p {
+	font-size: 100%;
+	padding: 0px;
+}
+#mainContent h2 {
+	font-size: 150%;
+	text-align: center;
+}
+#mainContent a {
+	color: #788993;
+}
+#OuterBorder {
+	width: 780px;
+	border: 3px solid #B1953A;
+	margin-top: auto;
+	margin-bottom: auto;
+	background-color: #FFF;
+}
+#cgiContent {
+	text-align: center;
+	padding-bottom: 30px;
+	padding-top: 10px;
+	height: auto;
+	vertical-align: middle;
+}
+#cgiContent h1 {
+	font-size: 200%;
+}
+#cgiContent h2 {
+	font-size: 150%;
+}
+
+#cgiContent h3 {
+	font-size: 130%;
+
+}
+#cgiContent h6 {
+	font-size: 80%;
+}
+
+#cgiContent p {
+	font-size: 90%;
+}
+
+#cgiContent a {
+	color: #788993;
+}
+
+#cgiContent table {
+	border: 1px solid #000;
+	text-align: left;
+	margin-right: auto;
+	margin-left: auto;
+	padding-right: 5px;
+	padding-left: 5px;
+}
+
+#cgiContent table table {
+	border: 0px;
+	text-align: left;
+	margin-right: auto;
+	margin-left: auto;
+		}
+#cgiContent form {
+	margin-right: auto;
+	margin-left: auto;
+}
+
+
+#cgiContent table a {
+	color: #788993;
+}
+#cgiContent table a:hover {
+	color: #927936;
+}
+
+#cgiContent table caption {
+	font-size: 120%;
+	text-align: center;
+	margin-bottom: 1px;
+	padding-bottom: 1px;
+	display: run-in;
+}
+
+#cgiContent table td {
+	font-style: normal;
+	font-size: 95%;
+}
+
+#cgiContent table td i {
+	font-style: normal;
+	font-size: 70%;
+}
+
+#cgiContent table tr th {
+	font-size: 100%;
+}
+
+#cgiContent ul#vertnav {
+	list-style: none;
+	background-color: #788993;
+	margin-top: 0px;
+	margin-right: 0px;
+	margin-bottom: 30px;
+	border-top-style: none;
+	border-right-style: none;
+	border-bottom-style: none;
+	border-left-style: none;
+	float: left;
+	padding: 0px;
+	margin-left: 0px;
+}
+
+#cgiContent ul#vertnav li {
+	float: left;
+
+}
+
+#cgiContent ul#vertnav  a {
+	color: #FFF;
+	text-decoration: none;
+	width: 129px;
+	text-align: center;
+	font-size: 90%;
+	line-height: 2;
+	float: left;
+	border-right-width: 1px;
+	border-right-style: solid;
+	border-right-color: #FFFFFF;
+}
+
+#cgiContent ul#vertnav a:hover {
+	background-color: #927936;
+}
+
+#cgiContent ul#vertnav_last a {
+	border-right-style: solid;
+	border-right-width: 1px;
+	border-right-color: #788993;
+}
+
+#footerInside a:link,
+#footerInside a:visited {
+	color: #999999;
+	text-decoration: none;
+}
+#footerInside a:hover,
+#footerInside a:active {
+	color: #999999;
+	text-decoration: underline;
+}
+#footerInside {
+	text-align: left;
+	padding-top: 5px;
+	padding-bottom: 10px;
+}
+#footerInside p {
+	font-family: "Trebuchet MS", Arial, sans-serif;
+	font-size: 70%;
+	line-height: 11px;
+	margin: 0; /* zeroing the margins of the first element in the footer will avoid the possibility of margin collapse - a space between divs */
+	padding: 0px; /* padding on this element will create space, just as the the margin would have, without the margin collapse issue */
+	color: #A4A7A6;
+	text-align: center;
+}
+#footer {
+	color: #A4A7A6;
+	font-size: 80%;
+	text-align: right;
+	width: 786px;
+	padding-top: 10px;
+}
+#footer p a {
+	color: #A4A7A6;
+}

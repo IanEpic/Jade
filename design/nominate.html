@@ -1,0 +1,94 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>Australian Event Awards</title>
+
+<script type="text/javascript">
+<!--
+function MM_validateForm() { //v4.0
+  if (document.getElementById){
+    var i,p,q,nm,test,num,min,max,errors='',args=MM_validateForm.arguments;
+    for (i=0; i<(args.length-2); i+=3) { test=args[i+2]; val=document.getElementById(args[i]);
+      if (val) { nm=val.name; if ((val=val.value)!="") {
+        if (test.indexOf('isEmail')!=-1) { p=val.indexOf('@');
+          if (p<1 || p==(val.length-1)) errors+='- '+nm+' must contain an e-mail address.\n';
+        } else if (test!='R') { num = parseFloat(val);
+          if (isNaN(val)) errors+='- '+nm+' must contain a number.\n';
+          if (test.indexOf('inRange') != -1) { p=test.indexOf(':');
+            min=test.substring(8,p); max=test.substring(p+1);
+            if (num<min || max<num) errors+='- '+nm+' must contain a number between '+min+' and '+max+'.\n';
+      } } } else if (test.charAt(0) == 'R') errors += '- '+nm+' is required.\n'; }
+    } if (errors) alert('The following error(s) occurred:\n'+errors);
+    document.MM_returnValue = (errors == '');
+} }
+//-->
+function checkAll(form){
+	if (form.allcats.options[form.allcats.selectedIndex].value==1) {
+		for (i = 0; i < form.categories.length; i++) {
+			form.categories[i].checked = true ;
+	    }
+	}
+}
+</script>
+
+<style type="text/css">
+<!--
+body {
+	background-image: url(../wwwref/background_gradient.jpg);
+	background-repeat: repeat-x;
+	background-color: #01375B;
+}
+-->
+</style>
+
+<link href="../wwwref/style_sheet.css" rel="stylesheet" type="text/css" />
+
+</head>
+
+<body class="oneColFixCtrHdr">
+
+<div id="container">
+<div id="OuterBorder">
+  
+  <div id="header">
+    <img src="../wwwref/aea_banner.jpg" width="780" height="100" alt="AEA-Title" />
+<!-- end #header --></div>
+  
+  <div id="mainContent">
+    
+	
+   <!--end #mainContent-->  </div>
+     <div id="cgiContent">
+        <!-- IAN THE NEXT LINE IS WHERE YOU CGI CONTENT GOES --->
+        <CGIINSERT>
+    
+    <!-- Start of Test Data -->
+    <!-- End of Test Data -->
+    
+    <!-- end #cgiContent --> </div>
+  
+  <div id="footerInside">
+ <p><a href="t_c.html">TERMS & CONDITIONS</a> &nbsp;|&nbsp;  <a href="https://eventawards.shadedsolutions.com.au/privacy_policy.html">PRIVACY POLICY</a> &nbsp;|&nbsp; <a href="https://eventawards.shadedsolutions.com.au/refund_policy.html">REFUND POLICY</a> &nbsp;|&nbsp; <a href="http://www.eventawards.com.au/how_to_enter.htm">ENTRY COSTS</a> &nbsp;|&nbsp; <a href="http://www.eventawards.com.au/how_to_enter.htm">HOW TO ENTER</a> &nbsp;|&nbsp; <a href="http://www.eventawards.com.au/tips_faqs.htm" target="_blank">HELP &amp; FAQS</a> &nbsp;|&nbsp; <a href="http://www.eventawards.com.au/contact.htm">CONTACT US</a></p>
+  <!-- end #footerInside --></div>
+  
+  <!-- end #OuterBorder --> </div>
+  
+  <div id="footer">
+    <p>The Australian Event Awards User Portal is based on Jade by <a href="http://www.shadedsolutions.com.au" target="_blank">Shaded Solutions Technology</a></p>
+  <!-- end #footer --></div>
+  
+<!-- end #container --></div>
+</body>
+
+<script type="text/javascript">
+var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+</script>
+<script type="text/javascript">
+try {
+var pageTracker = _gat._getTracker("UA-10508733-2");
+pageTracker._trackPageview();
+} catch(err) {}</script>
+
+</html>

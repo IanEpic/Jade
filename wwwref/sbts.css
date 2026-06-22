@@ -1,0 +1,340 @@
+@charset "utf-8";
+/* CSS Document */
+
+.header {
+	font-size: 90%;
+	font-style: italic;
+}
+#container {
+	width: 783px;
+	font-family: Arial, Helvetica, sans-serif;
+	margin-top: 38px;
+	margin-right: auto;
+	margin-left: auto;
+	border-top-style: none;
+	border-right-style: none;
+	border-bottom-style: none;
+	border-left-style: none;
+}
+#header {
+	margin-top: 10px;
+	margin-left: 20px;
+	height: 35px;
+	width: 780px;
+}
+#body {
+	background-color: #FFF;
+}
+.container {
+	width: 780px;
+	margin-right: auto;
+	margin-left: auto;
+}
+#mainContent {
+	height: 45px;
+	width: 780px;
+	background-color: #FFF;
+}
+#mainContent p {
+	font-size: 90%;
+	padding: 0px;
+	color: #5C5C5B;
+}
+#mainContent h2 {
+	font-size: 140%;
+	text-align: center;
+}
+#mainContent a {
+	color: #057FFB;
+}
+#OuterBorder {
+	width: 780px;
+	border: 0px solid #0241B7;
+	margin-top: auto;
+	margin-bottom: auto;
+}
+#cgiContent {
+	text-align: center;
+	padding-bottom: 30px;
+	padding-top: 10px;
+	height: auto;
+	vertical-align: middle;
+	background-color: #FFF;
+}
+#cgiContent h1 {
+	font-size: 190%;
+}
+#cgiContent h2 {
+	font-size: 140%;
+}
+
+#cgiContent h3 {
+	font-size: 120%;
+	padding-top: 0px;
+
+
+}
+#cgiContent h6 {
+	font-size: 70%;
+	font-weight: bolder;
+}
+
+#cgiContent p {
+	font-size: 80%;
+}
+
+#cgiContent a {
+	color: #057FFB;
+}
+
+#cgiContent table {
+	border: 1px solid #000;
+	text-align: left;
+	margin-right: auto;
+	margin-left: auto;
+	padding-right: 5px;
+	padding-left: 5px;
+}
+#cgiContent #home li {
+	margin-left: 10px;
+}
+
+
+#cgiContent table table {
+	border: 0px;
+	text-align: left;
+	margin-right: auto;
+	margin-left: auto;
+		}
+#cgiContent form {
+	margin-right: auto;
+	margin-left: auto;
+}
+#cgiContent table a {
+	color: #788993;
+}
+#cgiContent table a:hover {
+	color: #927936;
+}
+
+#cgiContent table caption {
+	font-size: 110%;
+	text-align: center;
+	margin-bottom: 1px;
+	padding-bottom: 1px;
+}
+
+#cgiContent table td {
+	font-style: normal;
+	font-size: 85%;
+}
+
+#cgiContent table td i {
+	font-style: normal;
+	font-size: 70%;
+}
+
+#cgiContent table tr th {
+	font-size: 90%;
+}
+
+/***********HOME PAGE TABLES***********/
+#cgiContent table {
+}
+#cgiContent table#home {
+	border: 0px solid #000;
+	text-align: left;
+	margin-right: auto;
+	margin-left: auto;
+	padding-right: 5px;
+	padding-left: 0px;
+}
+
+#cgiContent table#home table {
+	border: 1px solid #000;
+	text-align: left;
+	margin-right: auto;
+	margin-left: auto;
+	padding-right: 5px;
+	padding-left: 5px;
+}
+
+#cgiContent table#home table table {
+	border: 0px;
+	text-align: left;
+	margin-right: auto;
+	margin-left: auto;
+		}
+
+#cgiContent table#home table a {
+	color: #788993;
+}
+#cgiContent table#home table a:hover {
+	color: #927936;
+}
+
+#cgiContent table#home table caption {
+	font-size: 110%;
+	text-align: center;
+	margin-bottom: 1px;
+	padding-bottom: 1px;
+}
+
+#cgiContent table#home table td {
+	font-style: normal;
+	font-size: 85%;
+}
+
+#cgiContent table#home table td i {
+	font-style: normal;
+	font-size: 60%;
+}
+
+#cgiContent table#home table tr th {
+	font-size: 90%;
+}
+
+
+/***********Horizontal Bar***********/
+#cgiContent ul#vertnav {
+	font-size: 80%;
+	list-style: none;
+	background-color: #272727;
+	margin-top: 0px;
+	margin-right: 0px;
+	margin-bottom: 0px;
+	border-top-style: none;
+	border-right-style: none;
+	border-bottom-style: none;
+	border-left-style: none;
+	float: left;
+	padding: 0px;
+	margin-left: 0px;
+}
+
+#cgiContent ul#vertnav li {
+	float: left;
+}
+#cgiContent ul#vertnav  a {
+	color: #CCC;
+	text-decoration: none;
+	width: 129px;
+	text-align: center;
+	font-size: 100%;
+	line-height: 2;
+	float: left;
+	border-right-width: 1px;
+	border-right-style: solid;
+	border-right-color: #000;
+}
+
+#cgiContent ul#vertnav a:hover {
+	background-color: #497CB3;
+}
+
+#cgiContent ul#vertnav_last a {
+	border-right-style: solid;
+	border-right-width: 1px;
+	border-right-color: #FFF;
+}
+
+/***********Horizontal Bar***********/
+
+/*********** Vertical Nav 2 **************/
+#cgiContent ul#vertnav2 {
+	background-color: #272727;
+	margin: 0px;
+	padding: 0px;
+	list-style-type: none;
+	font-size: 90%;
+	border-right-width: 1px;
+	border-bottom-width: 1px;
+	border-left-width: 1px;
+	border-right-style: solid;
+	border-bottom-style: solid;
+	border-left-style: solid;
+	border-right-color: #FFF;
+	border-bottom-color: #FFF;
+	border-left-color: #FFF;
+}
+#cgiContent ul#vertnav2 li {
+	margin: 0px;
+/**	padding-top: 5px;
+	padding-right: 0px;
+	padding-bottom: 5px;
+	padding-left: 0px;***/
+}
+#cgiContent ul#vertnav2 a {
+	color: #CCC;
+	font-size: 100%;
+	text-decoration: none;
+	height: 1%;
+	display: block;
+	padding-left: 15px;
+	padding-top: 7px;
+	padding-bottom: 7px;
+	border-top-width: 1px;
+	border-top-style: solid;
+	border-top-color: #000;
+}
+#cgiContent ul#vertnav2 a:hover {
+	background-color: #497CB3;
+}
+#cgiContent ul#vertnav2_last a {
+	border-bottom-style: solid;
+	border-bottom-width: 1px;
+	border-bottom-color: #FFF;
+}
+/*********** Vertical Nav **************/
+
+#footerInside a:link,
+#footerInside a:visited {
+	color: #999999;
+	text-decoration: none;
+}
+#footerInside a:hover,
+#footerInside a:active {
+	color: #999999;
+	text-decoration: underline;
+}
+#footerInside {
+	text-align: left;
+	padding-top: 5px;
+	padding-bottom: 10px;
+	background-color: #FFF;
+}
+#footerInside p {
+	font-family: "Trebuchet MS", Arial, sans-serif;
+	font-size: 60%;
+	line-height: 11px;
+	margin: 0; /* zeroing the margins of the first element in the footer will avoid the possibility of margin collapse - a space between divs */
+	padding: 0px; /* padding on this element will create space, just as the the margin would have, without the margin collapse issue */
+	color: #A4A7A6;
+	text-align: center;
+}
+#footer {
+	color: #000;
+	font-size: 70%;
+	text-align: right;
+	width: 780px;
+	padding-top: 10px;
+}
+#footer p a {
+	color: #CCC;
+}
+
+#footer a:link {
+	color: #000;
+	text-decoration: underline;
+
+#footer a:hover {
+	color: #000;
+	text-decoration: underline;
+}
+
+#footer a:visited {
+	color: #000;
+	text-decoration: none;
+	text-decoration: underline;
+
+}
