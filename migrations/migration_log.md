@@ -180,4 +180,4 @@ Finalists" action (preview → write `Entry.statefinalist`; read-back from DB af
 Also fixes the multi-select checkbox decode in `getEntryResponsesForText` (`~`-separated,
 not `,`), so the finalist-text AI sees multi-state events.
 
-- Applied to DEV: 2026-06-25 ✓  | PROD: pending
+- Applied to DEV: 2026-06-25 ✓  | PROD: 2026-06-25 ✓
