@@ -117,6 +117,10 @@ export async function getInvoicesByUser({ userId }) {
       FROM Invoice
       WHERE Invoice.userid  = @userId
         AND Invoice.deleted = 0
+        -- Hide orphan invoices with no live entries (e.g. duplicate invoices created
+        -- when an entrant generates one more than once) — they'd otherwise show a
+        -- phantom owing amount derived from the invoice's own stored totals.
+        AND EXISTS (SELECT 1 FROM Entry e WHERE e.invoiceid = Invoice.invoiceid AND e.deleted = 0)
       ORDER BY Invoice.invoiceid
     `);
     return result.recordset;
