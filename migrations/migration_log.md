@@ -151,3 +151,18 @@ Discounts UI), so the migration is idempotent and a no-op there. Lets admins rec
 pre-cutoff payments at the discounted amount (early-bird is applied at payment time).
 
 - DEV: already present (via UI) ✓  | PROD: 2026-06-25 ✓ (apply with this deploy)
+
+## 054 — Dirty-flag gate for background jobs
+
+`054_background_job_state.sql`
+
+Creates `BackgroundJobState (jobname PK, dirty, lastrun)`. A triggering event marks a
+job dirty; the recurring job skips its tick entirely when not dirty (no DB scan, no AI),
+so "nothing changed" = no work. Companion code: `services/jobState.js`
+(markJobDirty/isJobDirty/clearJobDirty); `recordScores` marks `commentReview` dirty on
+comment create/edit; `commentReviewJob` checks the flag, clears it before processing
+(claims the work, so a comment saved mid-run re-arms it), and re-arms if a full batch
+suggests more remain. Seed is dirty=1 only if unchecked comments already exist, else 0.
+Generalises to any future background job.
+
+- Applied to DEV: 2026-06-25 ✓  | PROD: pending

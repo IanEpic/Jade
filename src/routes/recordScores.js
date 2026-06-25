@@ -11,6 +11,7 @@ import JudgeEntryLink   from '../models/JudgeEntryLink.js';
 import Category         from '../models/Category.js';
 import JudgingModel     from '../models/JudgingModel.js';
 import { checkComments } from '../services/commentCheck.js';
+import { markJobDirty } from '../services/jobState.js';
 import { getEntryTextForContext } from '../queries/homeQueries.js';
 
 const router = Router();
@@ -95,6 +96,7 @@ router.post('/', async (req, res, next) => {
         }
 
         if (!commentsFailed) {
+            let commentWritten = false;
             for (const type of ['excel', 'improve', 'other']) {
                 const comment = body[`comment~${type}`] || '';
                 const existing = await JudgeComment.findOne({
@@ -105,10 +107,15 @@ router.post('/', async (req, res, next) => {
                 if (existing) {
                     // reviewchecked:false → the background cross-entry job re-evaluates the new text.
                     await existing.update({ comment, reviewrequested: reviewFlag, reviewreason: reviewFlag ? reviewReason : null, reviewchecked: false });
+                    commentWritten = true;
                 } else if (comment) {
                     await JudgeComment.create({ entryid, type, userid: user.userid, comment, deleted: false, reviewrequested: reviewFlag, reviewreason: reviewFlag ? reviewReason : null, reviewchecked: false });
+                    commentWritten = true;
                 }
             }
+            // A comment was created/edited — wake the background cross-entry review job
+            // (it skips its tick entirely while nothing is dirty). Never block the save.
+            if (commentWritten) markJobDirty('commentReview').catch(() => {});
             // Clear any rework flag now the judge has resubmitted acceptable comments.
             await JudgeEntryLink.update(
                 { commentreview: 0 },
