@@ -85,7 +85,7 @@ router.get('/', async (req, res, next) => {
             if (content === null) return;
         }
 
-        if (content === undefined && user.judge) {
+        if (content === undefined && (user.judge || user.chairperson)) {
             content = await handleJudgeAction(action, req, res, program, user);
         }
 

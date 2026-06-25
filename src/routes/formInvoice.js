@@ -289,7 +289,10 @@ router.post('/', async (req, res, next) => {
                 .input('postaladdressid', sql.Int,      postaladdressid)
                 .input('totalex',         sql.Money,    totals.subtotalEx)
                 .input('gst',             sql.Money,    totals.subtotalGst)
-                .input('ebdiscount',      sql.Money,    totals.ebDiscountInc)
+                // Early-bird is date-conditional — do NOT bake it into the invoice;
+                // owing stays at the full amount and the discount is applied at payment
+                // time (based on the payment date). Non-earlybird discounts still bake.
+                .input('ebdiscount',      sql.Money,    totals.appliedDiscount?.type === 'earlybird' ? 0 : totals.ebDiscountInc)
                 .input('partnerdiscount', sql.Money,    Math.abs(totals.partnerDiscountInc))
                 .input('promocode',       sql.VarChar,  promoCode)
                 .query(`

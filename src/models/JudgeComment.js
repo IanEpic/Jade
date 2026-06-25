@@ -12,6 +12,9 @@ JudgeComment.init(
     comment:     { type: DataTypes.TEXT },
     deleted:     { type: DataTypes.BOOLEAN, defaultValue: false },
     simplescore: { type: DataTypes.INTEGER },
+    reviewrequested: { type: DataTypes.BOOLEAN, defaultValue: false },
+    reviewreason:    { type: DataTypes.STRING },
+    reviewchecked:   { type: DataTypes.BOOLEAN, defaultValue: false },
   },
   {
     sequelize,

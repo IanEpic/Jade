@@ -47,4 +47,4 @@ style.
                                 span.badge-complete Complete
                             else
                                 span.badge-incomplete Incomplete
-                        td.act: a.btn-secondary(href='/viewEntry?entryid=' + entry.entryid) Judge
+                        td.act: a.btn-secondary(href='/viewEntry?entryid=' + entry.entryid)= (inCommentReview ? 'Rework' : (allScoresDone && allCommentsDone ? 'Review' : 'Judge'))

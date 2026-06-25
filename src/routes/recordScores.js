@@ -11,6 +11,7 @@ import JudgeEntryLink   from '../models/JudgeEntryLink.js';
 import Category         from '../models/Category.js';
 import JudgingModel     from '../models/JudgingModel.js';
 import { checkComments } from '../services/commentCheck.js';
+import { getEntryTextForContext } from '../queries/homeQueries.js';
 
 const router = Router();
 router.use(requireAuth);
@@ -63,15 +64,31 @@ router.post('/', async (req, res, next) => {
         const other   = body['comment~other']   || '';
 
         let commentsFailed = false;
+        let reviewFlag   = false;   // borderline → save but flag for admin review
+        let reviewReason = null;
+        // The AI guideline check applies to entrant-facing comments. For a regular
+        // judge a FAIL blocks. A lead judge / chairperson is never blocked — their
+        // comment always saves, but a FAIL or REVIEW flags it for admin review.
         if (excel || improve || other) {
             const program = req.program;
             if (program?.judgingmodelid) {
                 const jm = await JudgingModel.findByPk(program.judgingmodelid);
                 if (jm?.commentguidelines) {
-                    const feedback = await checkComments({ excel, improve, other, guidelines: jm.commentguidelines });
-                    if (feedback) {
-                        req.session.commentFeedback = { entryid, feedback };
-                        commentsFailed = true;
+                    // Pass the entry's content so the check can flag generic,
+                    // non-entry-specific comments (as REVIEW, not a block).
+                    const entryContext = await getEntryTextForContext({ entryId: entryid });
+                    const result = await checkComments({ excel, improve, other, guidelines: jm.commentguidelines, entryContext, examplesGood: jm.commentexamplesgood, examplesBad: jm.commentexamplesbad });
+                    if (result.verdict === 'fail') {
+                        if (leadjudgereview) {
+                            reviewFlag   = true;    // never block lead/chair — flag for admin instead
+                            reviewReason = result.message;
+                        } else {
+                            req.session.commentFeedback = { entryid, feedback: result.message };
+                            commentsFailed = true;
+                        }
+                    } else if (result.verdict === 'review') {
+                        reviewFlag   = true;        // does NOT block — proceeds as normal
+                        reviewReason = result.message;
                     }
                 }
             }
@@ -83,11 +100,25 @@ router.post('/', async (req, res, next) => {
                 const existing = await JudgeComment.findOne({
                     where: { entryid, type, userid: user.userid, deleted: false },
                 });
+                // Set/clear the admin-review flag on each saved comment so a clean
+                // resubmit clears a previously-flagged comment.
                 if (existing) {
-                    await existing.update({ comment });
+                    // reviewchecked:false → the background cross-entry job re-evaluates the new text.
+                    await existing.update({ comment, reviewrequested: reviewFlag, reviewreason: reviewFlag ? reviewReason : null, reviewchecked: false });
                 } else if (comment) {
-                    await JudgeComment.create({ entryid, type, userid: user.userid, comment, deleted: false });
+                    await JudgeComment.create({ entryid, type, userid: user.userid, comment, deleted: false, reviewrequested: reviewFlag, reviewreason: reviewFlag ? reviewReason : null, reviewchecked: false });
                 }
+            }
+            // Clear any rework flag now the judge has resubmitted acceptable comments.
+            await JudgeEntryLink.update(
+                { commentreview: 0 },
+                { where: { userid: user.userid, entryid, commentreview: 1 } },
+            );
+            // Comments passed — drop any stored guideline feedback so it doesn't
+            // re-appear next time this entry is opened (the AJAX path never reloads
+            // the GET that would otherwise clear it).
+            if (req.session.commentFeedback?.entryid === entryid) {
+                delete req.session.commentFeedback;
             }
         }
 
@@ -99,6 +130,13 @@ router.post('/', async (req, res, next) => {
         }
         if (commentsFailed) return res.redirect(`/viewEntry?entryid=${entryid}`);
         if (body.submit === 'Save Comments') return res.redirect('/home?action=reviewfinalists');
+        // Lead judge / chair adding their own comment during finalist review or
+        // winner nomination — return to the relevant nomination list.
+        if (leadjudgereview) {
+            return res.redirect(cat.winnernomination
+                ? '/home?action=nominatewinner'
+                : '/home?action=reviewfinalists');
+        }
         return res.redirect('/home?action=tojudge');
 
     } catch (err) { next(err); }

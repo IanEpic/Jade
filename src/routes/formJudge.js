@@ -10,10 +10,29 @@ import UserCredential    from '../models/UserCredential.js';
 import Category          from '../models/Category.js';
 import JudgeCategoryLink from '../models/JudgeCategoryLink.js';
 import { getPool, sql }  from '../config/database.js';
-import { encryptPassword, randomPassword } from '../services/helpers.js';
+import { encryptPassword, randomPassword, checkEmail } from '../services/helpers.js';
 
 const router = Router();
 router.use(requireAuth, requireAdmin);
+
+// Validate the judge detail fields. Returns an error string, or null if valid.
+function validateJudgeInput({ firstname, lastname, email }) {
+    if (!firstname || !firstname.trim()) return 'First name is required.';
+    if (!lastname  || !lastname.trim())  return 'Last name is required.';
+    if (!email     || !checkEmail(email.trim())) return 'A valid email address is required.';
+    return null;
+}
+
+// Redirect back to the judge form with an error message and the entered values preserved.
+function redirectWithError(res, { error, judgeid, firstname, lastname, email, cats }) {
+    const qs = new URLSearchParams({ action: 'judge', error });
+    if (judgeid) qs.set('judgeid', judgeid);
+    if (firstname) qs.set('firstname', firstname);
+    if (lastname)  qs.set('lastname', lastname);
+    if (email)     qs.set('email', email);
+    if (cats && cats.length) qs.set('cats', cats.join(','));
+    return res.redirect('/home?' + qs.toString());
+}
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -62,6 +81,9 @@ router.post('/', async (req, res, next) => {
 
         // ── Edit existing judge ───────────────────────────────────────────────
         if (judgeid) {
+            const err = validateJudgeInput(body);
+            if (err) return redirectWithError(res, { error: err, judgeid });
+
             const judge = await User.findByPk(judgeid);
             if (judge.credentialid) {
                 await UserCredential.update(
@@ -140,6 +162,16 @@ router.post('/', async (req, res, next) => {
             return res.redirect('/home?action=judges');
         }
 
+        // ── Validate new judge details ────────────────────────────────────────
+        const createErr = validateJudgeInput(body);
+        if (createErr) {
+            return redirectWithError(res, {
+                error: createErr,
+                firstname: body.firstname, lastname: body.lastname, email: body.email,
+                cats: submittedCatIds,
+            });
+        }
+
         // ── Check for existing user with that email ───────────────────────────
         const email = (Array.isArray(body.email) ? body.email[0] : (body.email || '')).trim();
         const existingCredential = await UserCredential.findOne({ where: { email } });
@@ -159,12 +191,21 @@ router.post('/', async (req, res, next) => {
         }
 
         // ── Create new judge user ─────────────────────────────────────────────
+        const firstname = (Array.isArray(body.firstname) ? body.firstname[0] : (body.firstname || '')).trim();
+        const lastname  = (Array.isArray(body.lastname)  ? body.lastname[0]  : (body.lastname  || '')).trim();
         const password   = randomPassword();
         const hashed     = await encryptPassword(password);
-        const [credential] = await UserCredential.findOrCreate({
+        const [credential, created] = await UserCredential.findOrCreate({
             where:    { email },
-            defaults: { email, password: hashed },
+            defaults: { email, password: hashed, firstname, lastname },
         });
+        // Existing credential (same email, different program) with blank names — backfill.
+        if (!created && (!credential.firstname || !credential.lastname)) {
+            await credential.update({
+                firstname: credential.firstname || firstname,
+                lastname:  credential.lastname  || lastname,
+            });
+        }
 
         const newUser = await User.create({
             credentialid: credential.credentialid,

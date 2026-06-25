@@ -1,5 +1,6 @@
-﻿//- viewEntry/scoreform.pug
-//- Equiv of $scoreform in viewEntry.cgi — full judging score form.
+//- viewEntry/scoreform.pug
+//- Equiv of $scoreform in viewEntry.cgi — full judging score form, grouped into
+//- inner-cards: Overall Judging Basis / Scores / Comments.
 
 - let jm = scorePanel.judgingModel || {}
 - let minVal = parseFloat(jm.minscore) || 0
@@ -11,66 +12,70 @@
 each s in (scorePanel.scores || [])
     - scoreMap[s.criteriaid] = s.score
 
-tr: td(colspan='2'): b Overall Judging Basis
-tr: td(colspan='2')= category.description
-tr: td(colspan='2'): hr
-tr: td(colspan='2')
-    b Judges Score Sheet
-    br
-    != jm.judgeinstructions || ''
+.ve-subcard
+    .ve-subcard-title Overall Judging Basis
+    div= category.description
 
-tr: td(colspan='2')
-    form(method='POST' action='/recordScores')
-        input(type='hidden' name='entryid' value=entry.entryid)
-        input(type='hidden' name='userid'  value=user.userid)
-        table(width='600')
-            tr(align='left' valign='top')
-                th(align='left') Criteria
-                th Score
+form(method='POST' action='/recordScores')
+    input(type='hidden' name='entryid' value=entry.entryid)
+    input(type='hidden' name='userid'  value=user.userid)
 
-            each c in (scorePanel.criteria || [])
-                if !c.weight
-                    tr: td(colspan='2')!= c.description
-                else
-                    tr
-                        td!= c.description
-                        td
-                            select(name='score~' + c.criteriaid)
-                                option(value='') Select
-                                if jm.nullscoreallowed
-                                    option(value=jm.nullscorevalue selected=(scoreMap[c.criteriaid] === jm.nullscorevalue))= jm.nullscorelabel
-                                each val in scoreOptions
-                                    option(value=val selected=(scoreMap[c.criteriaid] == val))= val
-                    tr: td(colspan='2'): hr
+    .ve-subcard
+        .ve-subcard-title Scores
+        if jm.judgeinstructions
+            div(style='margin-bottom:10px')!= jm.judgeinstructions
+        table.ve-score-table
+            thead
+                tr
+                    th Criteria
+                    th
+                        | Score
+                        span.ve-req *
+            tbody
+                each c in (scorePanel.criteria || [])
+                    if !c.weight
+                        tr.crit-section: td(colspan='2')!= c.description
+                    else
+                        tr
+                            td!= c.description
+                            td.score-cell
+                                select(name='score~' + c.criteriaid)
+                                    option(value='') Select
+                                    if jm.nullscoreallowed
+                                        option(value=jm.nullscorevalue selected=(scoreMap[c.criteriaid] === jm.nullscorevalue))= jm.nullscorelabel
+                                    each val in scoreOptions
+                                        option(value=val selected=(scoreMap[c.criteriaid] == val))= val
 
-            if jm.commentsallowed
-                tr: td(colspan='2') &nbsp;
-                tr: td(colspan='2')
-                    b Entrants consistently tell us that constructive feedback from judges is vitally important to them. Please bear this in mind as you provide your responses below. Your responses will be passed directly to the entrant without editing. Your identity will not be revealed to the entrant (but may be revealed to other judges).
-                tr: td(colspan='2')
+    if jm.commentsallowed
+        .ve-subcard
+            .ve-subcard-title Comments
+            p Entrants consistently tell us that constructive feedback from judges is vitally important to them. Please bear this in mind as you provide your responses below. Your responses will be passed directly to the entrant without editing. Your identity will not be revealed to the entrant (but may be revealed to other judges).
+            .ve-comment-field
+                label
                     | Please provide a message to the entrant highlighting areas in which this entrant has excelled:
-                    br
-                    textarea(name='comment~excel' rows='5' cols='80')= scorePanel.excel
-                tr: td(colspan='2')
-                    | If this entry does not win its category, the entrant will benefit from your advice on areas in which they could improve next year:
-                    br
-                    textarea(name='comment~improve' rows='5' cols='80')= scorePanel.improve
-                tr: td(colspan='2')
-                    | Do you have any other constructive comments that may assist this entrant?
-                    br
-                    textarea(name='comment~other' rows='5' cols='80')= scorePanel.other
-                tr: td(colspan='2'): hr
+                    span.ve-req *
+                textarea(name='comment~excel' rows='5')= scorePanel.excel
+            .ve-comment-field
+                label
+                    | The entrant will benefit from your advice on areas in which they could improve next year:
+                    span.ve-req *
+                textarea(name='comment~improve' rows='5')= scorePanel.improve
+            .ve-comment-field
+                label Do you have any other constructive comments that may assist this entrant?
+                textarea(name='comment~other' rows='5')= scorePanel.other
 
-            tr: td(colspan='2')
-                - let feedbackStyle = 'background:#c0392b;color:#fff;padding:12px;margin-bottom:8px;' + (scorePanel.commentFeedback ? '' : 'display:none;')
-                div#comment-feedback(style=feedbackStyle)
-                    b Your comments could not be saved — please review the feedback below and make changes before resubmitting:
-                    br
-                    br
-                    span#comment-feedback-text= scorePanel.commentFeedback || ''
+    - let feedbackStyle = 'background:#c0392b;color:#fff;padding:12px;margin-bottom:8px;border-radius:4px;' + (scorePanel.commentFeedback ? '' : 'display:none;')
+    div#comment-feedback(style=feedbackStyle)
+        b Your comments could not be saved — please review the feedback below and make changes before resubmitting:
+        br
+        br
+        span#comment-feedback-text= scorePanel.commentFeedback || ''
 
-            tr: td(colspan='2' align='center')
-                button#score-submit.btn(type='submit')= jm.submitbuttonlabel || 'Save Scores'
-            tr: td(colspan='2'): hr
+    .ve-req-note
+        span.ve-req *
+        |  All scores and the "excel" and "improve" comments are required to complete judging this entry. You can save your progress and return later to finish.
+
+    .ve-judge-submit
+        button#score-submit.btn(type='submit')= jm.submitbuttonlabel || 'Save Scores'
 
 script(src='/js/score-form.js?v=' + buildHash)

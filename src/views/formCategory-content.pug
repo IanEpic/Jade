@@ -46,6 +46,14 @@ form.cat-form(method='POST' action='/formCategory')
             tr
                 td GST $
                 td: input(type='text' name='gst' value=(category ? category.gst : '') size='10' maxlength='9')
+            if categoryTypes && categoryTypes.length
+                tr
+                    td Category type
+                    td
+                        select(name='categorytypeid' style='padding:5px 8px')
+                            option(value='') — none —
+                            each t in categoryTypes
+                                option(value=t.categorytypeid selected=(category && category.categorytypeid === t.categorytypeid))= t.name
 
     //- ── Flags ────────────────────────────────────────────────────────────────
     fieldset

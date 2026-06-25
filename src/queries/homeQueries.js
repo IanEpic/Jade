@@ -31,12 +31,20 @@ export async function getAllEntriesByUser({ userId }) {
         .input('userId', sql.Int, userId)
         .query(`
       SELECT Entry.*,
-             COALESCE(Entry.costex, Category.costex) AS costex,
-             COALESCE(Entry.gst,    Category.gst)    AS gst,
-             Entrant.name AS entrantname, Category.name AS categoryname
+             COALESCE(Entry.costex, Category.costex) AS effcostex,
+             COALESCE(Entry.gst,    Category.gst)    AS effgst,
+             Entrant.name AS entrantname, Category.name AS categoryname,
+             Invoice.deleted    AS invoicedeleted,
+             Invoice.ebdiscount AS invebdiscount,
+             -- total inc-GST cost of all entries on this invoice, to prorate the
+             -- invoice-level early-bird discount back onto each entry's displayed cost
+             (SELECT SUM(COALESCE(e2.costex, c2.costex) + COALESCE(e2.gst, c2.gst))
+                FROM Entry e2 INNER JOIN Category c2 ON e2.categoryid = c2.categoryid
+               WHERE e2.invoiceid = Entry.invoiceid AND e2.deleted = 0) AS invtotalcost
       FROM Entry
         INNER JOIN Entrant  ON Entry.entrantid  = Entrant.entrantid
         INNER JOIN Category ON Entry.categoryid = Category.categoryid
+        LEFT  JOIN Invoice  ON Entry.invoiceid  = Invoice.invoiceid
       WHERE Entry.userid  = @userId
         AND Entry.deleted = 0
       ORDER BY Entry.entryid
@@ -114,7 +122,8 @@ export async function getInvoicesByUser({ userId }) {
     return result.recordset;
 }
 
-// Equiv: EPIC::JADE::Payment->search(userid => $user, ewayTrxnStatus => 'True')
+// Successful card payments (ewayTrxnStatus='True') plus manual payments (EFT/cheque,
+// which have no eWay status). Excludes only failed card attempts (status='False').
 export async function getPaymentsByUser({ userId }) {
     const pool = await getPool();
     const result = await pool.request()
@@ -122,8 +131,8 @@ export async function getPaymentsByUser({ userId }) {
         .query(`
       SELECT Payment.*
       FROM Payment
-      WHERE Payment.userid          = @userId
-        AND Payment.ewayTrxnStatus  = 'True'
+      WHERE Payment.userid = @userId
+        AND (Payment.ewayTrxnStatus = 'True' OR Payment.ewayTrxnStatus IS NULL)
       ORDER BY Payment.paymentid
     `);
     return result.recordset;
@@ -212,6 +221,24 @@ export async function getCatsOpenForReviewOrNomination({ programId }) {
         AND finalistreview = 1
         AND deleted        = 0
       ORDER BY orda, categoryid
+    `);
+    return result.recordset;
+}
+
+// Categories in the winner-nomination phase, with the lead judge's name.
+// leadUserId given → only that lead's categories; null → all in the program.
+export async function getWinnerNominationCats({ programId, leadUserId = null }) {
+    const pool = await getPool();
+    const req = pool.request().input('programId', sql.Int, programId);
+    let where = 'c.programid = @programId AND c.winnernomination = 1 AND c.deleted = 0';
+    if (leadUserId != null) { req.input('leadUserId', sql.Int, leadUserId); where += ' AND c.userid = @leadUserId'; }
+    const result = await req.query(`
+      SELECT c.*, uc.firstname AS leadfirstname, uc.lastname AS leadlastname
+      FROM Category c
+        LEFT JOIN [User]          u  ON u.userid       = c.userid
+        LEFT JOIN UserCredential  uc ON uc.credentialid = u.credentialid
+      WHERE ${where}
+      ORDER BY uc.lastname, uc.firstname, c.orda, c.categoryid
     `);
     return result.recordset;
 }
@@ -487,9 +514,10 @@ export async function getJudgesForCategory({ categoryId }) {
     const result = await pool.request()
         .input('categoryId', sql.Int, categoryId)
         .query(`
-      SELECT [User].*
+      SELECT [User].*, uc.firstname, uc.lastname, uc.email
       FROM [User]
         INNER JOIN JudgeCategoryLink ON [User].userid = JudgeCategoryLink.userid
+        LEFT  JOIN UserCredential uc ON uc.credentialid = [User].credentialid
       WHERE JudgeCategoryLink.categoryid = @categoryId
         AND [User].deleted = 0
     `);
@@ -544,6 +572,100 @@ export async function getCriteriaForCategory({ categoryId }) {
       ORDER BY orda, criteriaid
     `);
     return result.recordset;
+}
+
+// All judge↔entry links for a category's entries (for the allocation matrix).
+export async function getJudgeEntryLinksForCategory({ categoryId }) {
+    const pool = await getPool();
+    const result = await pool.request()
+        .input('categoryId', sql.Int, categoryId)
+        .query(`
+      SELECT jel.entryid, jel.userid
+      FROM JudgeEntryLink jel
+        INNER JOIN Entry ON Entry.entryid = jel.entryid
+      WHERE Entry.categoryid = @categoryId
+        AND Entry.deleted = 0
+    `);
+    return result.recordset;
+}
+
+// Categories a user leads: head judge (Category.userid) — or ALL program
+// categories when they are a chairperson (includeAll).
+export async function getCategoriesLedByUser({ userId, programId, includeAll = false }) {
+    const pool = await getPool();
+    const req = pool.request().input('programId', sql.Int, programId);
+    let where = 'programid = @programId AND deleted = 0';
+    if (!includeAll) { req.input('userId', sql.Int, userId); where += ' AND userid = @userId'; }
+    const result = await req.query(`SELECT * FROM Category WHERE ${where} ORDER BY orda, categoryid`);
+    return result.recordset;
+}
+
+// ── Background comment-review job helpers ─────────────────────────────────────
+
+// Comments the background cross-entry job hasn't checked yet (reviewchecked = 0).
+export async function getUncheckedJudgeComments({ limit = 25 }) {
+    const pool = await getPool();
+    const result = await pool.request()
+        .input('limit', sql.Int, limit)
+        .query(`
+      SELECT TOP (@limit) commentid, entryid, userid, type, comment
+      FROM JudgeComment
+      WHERE reviewchecked = 0 AND deleted = 0
+        AND comment IS NOT NULL AND LEN(LTRIM(RTRIM(comment))) > 0
+      ORDER BY commentid
+    `);
+    return result.recordset;
+}
+
+// The same judge's other comments of the same type on OTHER entries (repetition check).
+export async function getJudgeOtherComments({ userId, type, excludeEntryId, limit = 15 }) {
+    const pool = await getPool();
+    const result = await pool.request()
+        .input('userId',         sql.Int, userId)
+        .input('type',           sql.VarChar, type)
+        .input('excludeEntryId', sql.Int, excludeEntryId)
+        .input('limit',          sql.Int, limit)
+        .query(`
+      SELECT TOP (@limit) comment
+      FROM JudgeComment
+      WHERE userid = @userId AND type = @type AND entryid <> @excludeEntryId
+        AND deleted = 0 AND comment IS NOT NULL AND LEN(LTRIM(RTRIM(comment))) > 0
+      ORDER BY commentid DESC
+    `);
+    return result.recordset.map(r => r.comment);
+}
+
+// A compact text summary of an entry's free-text responses (for the specificity check).
+export async function getEntryTextForContext({ entryId, maxChars = 1500 }) {
+    const pool = await getPool();
+    const result = await pool.request()
+        .input('entryId', sql.Int, entryId)
+        .query(`
+      SELECT q.questiontext, q.orda, r.value
+      FROM Response r
+        INNER JOIN Question q ON q.questionid = r.questionid
+      WHERE r.entryid = @entryId AND r.deleted = 0
+        AND q.inputtype IN ('textfield','textarea')
+        AND r.value IS NOT NULL AND LEN(LTRIM(RTRIM(r.value))) > 0
+      ORDER BY q.orda, q.questionid
+    `);
+    let out = '';
+    for (const row of result.recordset) {
+        const piece = `Q: ${row.questiontext}\nA: ${row.value}\n\n`;
+        if (out.length + piece.length > maxChars) { out += piece.slice(0, Math.max(0, maxChars - out.length)); break; }
+        out += piece;
+    }
+    return out.trim();
+}
+
+// The JudgeEntryLink row for a specific judge+entry (for the commentreview flag)
+export async function getJudgeEntryLink({ entryId, userId }) {
+    const pool = await getPool();
+    const result = await pool.request()
+        .input('entryId', sql.Int, entryId)
+        .input('userId',  sql.Int, userId)
+        .query(`SELECT TOP 1 * FROM JudgeEntryLink WHERE entryid = @entryId AND userid = @userId`);
+    return result.recordset[0] || null;
 }
 
 // Judge comments for a specific entry and judge
@@ -960,3 +1082,30 @@ export async function getPaymentsForInvoice({ invoiceId }) {
     return result.recordset;
 }
 
+
+// Outstanding invoices for the Receive Payment screen: invoices in the program that
+// still have at least one unaccepted entry, with amount paid so far, entry counts,
+// and the entrant's name. Invoice amounts are the FULL amount (EB discount is shown
+// as guidance, applied at payment time per admin discretion).
+export async function getOutstandingInvoices({ programId }) {
+    const pool = await getPool();
+    const result = await pool.request()
+        .input('programId', sql.Int, programId)
+        .query(`
+      SELECT i.invoiceid, i.userid, i.invoicee, i.email, i.date,
+             i.totalex, i.gst, i.ebdiscount, i.partnerdiscount, i.multientryadjustment,
+             ISNULL((SELECT SUM(pa.amount) FROM PaymentAllocation pa WHERE pa.invoiceid = i.invoiceid), 0) AS paid,
+             (SELECT COUNT(*) FROM Entry e WHERE e.invoiceid = i.invoiceid AND e.deleted = 0) AS entrycount,
+             (SELECT COUNT(*) FROM Entry e WHERE e.invoiceid = i.invoiceid AND e.deleted = 0
+                AND (e.entryaccepted IS NULL OR e.entryaccepted = 0)) AS unaccepted,
+             uc.firstname, uc.lastname, uc.organisation
+      FROM Invoice i
+        INNER JOIN [User] u ON u.userid = i.userid
+        LEFT  JOIN UserCredential uc ON uc.credentialid = u.credentialid
+      WHERE u.programid = @programId AND i.deleted = 0
+        AND EXISTS (SELECT 1 FROM Entry e WHERE e.invoiceid = i.invoiceid AND e.deleted = 0
+                      AND (e.entryaccepted IS NULL OR e.entryaccepted = 0))
+      ORDER BY i.date, i.invoiceid
+    `);
+    return result.recordset;
+}

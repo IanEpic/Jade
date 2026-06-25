@@ -8,6 +8,8 @@
     var chkAcc          = document.getElementById('flags-entryaccepted');
     var chkOpn          = document.getElementById('flags-entryopen');
     var chkFin          = document.getElementById('flags-finalised');
+    var chkFinalist     = document.getElementById('flags-finalist');
+    var finalistNote    = document.getElementById('flags-finalist-note');
     var selCat          = document.getElementById('flags-overridecatid');
     var origNote        = document.getElementById('flags-original-note');
     var catFieldset     = document.getElementById('flags-catoverride-fieldset');
@@ -61,12 +63,11 @@
     }
 
     // ── Flash a button with a temporary label ────────────────────────────────
-    function flashBtn(btn, label, ms) {
+    function flashBtn(btn, label, restore, ms) {
         if (!btn) return;
-        var orig = btn.textContent;
         btn.textContent = label;
         btn.disabled = false;
-        setTimeout(function () { btn.textContent = orig; }, ms || 1500);
+        setTimeout(function () { btn.textContent = restore || label; }, ms || 1500);
     }
 
     // ── Update a table row after a successful flags AJAX save ────────────────
@@ -74,6 +75,7 @@
         row.setAttribute('data-entryaccepted', data.entryaccepted ? '1' : '0');
         row.setAttribute('data-entryopen',     data.entryopen     ? '1' : '0');
         row.setAttribute('data-finalised',     data.finalised     ? '1' : '0');
+        row.setAttribute('data-finalist',      data.finalist      ? '1' : '0');
         row.setAttribute('data-categoryid',    String(data.categoryid   || ''));
         row.setAttribute('data-originalcatid', String(data.originalcatid != null ? data.originalcatid : ''));
 
@@ -123,16 +125,17 @@
             fetch(flagsForm.action, {
                 method:  'POST',
                 headers: { 'X-Requested-With': 'XMLHttpRequest' },
-                body:    new FormData(flagsForm),
+                // urlencoded (not multipart) so express.urlencoded parses req.body
+                body:    new URLSearchParams(new FormData(flagsForm)),
             })
             .then(function (r) { return r.json(); })
             .then(function (data) {
-                if (!data.ok) { flashBtn(saveBtn, 'Error'); return; }
+                if (!data.ok) { flashBtn(saveBtn, 'Error', 'Save'); return; }
                 if (row) { updateRowFromFlags(row, data); updateEntryOpenBadge(row); }
                 resortTable();
-                flashBtn(saveBtn, '✓ Saved');
+                flashBtn(saveBtn, '✓ Saved', 'Save');
             })
-            .catch(function () { flashBtn(saveBtn, 'Error'); });
+            .catch(function () { flashBtn(saveBtn, 'Error', 'Save'); });
         });
     }
 
@@ -155,11 +158,11 @@
             fetch(transferForm.action, {
                 method:  'POST',
                 headers: { 'X-Requested-With': 'XMLHttpRequest' },
-                body:    new FormData(transferForm),
+                body:    new URLSearchParams(new FormData(transferForm)),
             })
             .then(function (r) { return r.json(); })
             .then(function (data) {
-                if (!data.ok) { flashBtn(transferBtn, 'Error'); return; }
+                if (!data.ok) { flashBtn(transferBtn, 'Error', 'Transfer Payment'); return; }
 
                 // Update source row → now unpaid
                 var srcRow = document.querySelector('tr[data-entryid="' + sourceId + '"]');
@@ -183,7 +186,7 @@
                 wrap.style.display = 'none';
                 idFld.value = '';
             })
-            .catch(function () { flashBtn(transferBtn, 'Error'); });
+            .catch(function () { flashBtn(transferBtn, 'Error', 'Transfer Payment'); });
         });
     }
 
@@ -261,6 +264,7 @@
         var accepted    = row.getAttribute('data-entryaccepted')   === '1';
         var open        = row.getAttribute('data-entryopen')        === '1';
         var final       = row.getAttribute('data-finalised')        === '1';
+        var finalist    = row.getAttribute('data-finalist')         === '1';
         var origcatid   = row.getAttribute('data-originalcatid')   || '';
         var origcatname = row.getAttribute('data-originalcatname') || '';
         var catname     = row.getAttribute('data-categoryname')    || '';
@@ -271,6 +275,23 @@
         chkAcc.checked = accepted;
         chkOpn.checked = open;
         chkFin.checked = final;
+        if (chkFinalist) chkFinalist.checked = finalist;
+
+        // Advisory: how many OTHER entries in this category are already finalists.
+        if (finalistNote) {
+            var others = Array.from(document.querySelectorAll('.el-table tbody tr')).filter(function (r) {
+                return r.getAttribute('data-categoryid') === categoryid
+                    && r.getAttribute('data-entryid') !== entryid
+                    && r.getAttribute('data-finalist') === '1';
+            }).length;
+            if (others > 0) {
+                finalistNote.textContent = 'This category already has ' + others + ' finalist' + (others === 1 ? '' : 's') + '.';
+                finalistNote.classList.add('warn');
+            } else {
+                finalistNote.textContent = 'No other finalists in this category yet.';
+                finalistNote.classList.remove('warn');
+            }
+        }
 
         // Category Override: only when entries are CLOSED
         if (catFieldset) catFieldset.style.display = catOpen ? 'none' : '';
@@ -359,6 +380,10 @@
                 rows.forEach(function (row) {
                     row.classList.toggle('hidden', row.getAttribute('data-finalised') !== '1');
                 });
+            } else if (q === ':finalist') {
+                rows.forEach(function (row) {
+                    row.classList.toggle('hidden', row.getAttribute('data-finalist') !== '1');
+                });
             } else if (q.charAt(0) === ':') {
                 // Unknown command — show all
                 rows.forEach(function (row) { row.classList.remove('hidden'); });
@@ -415,7 +440,7 @@
         var btn = entryopen ? batchOpen : batchClose;
         if (btn) { btn.disabled = true; btn.textContent = 'Saving…'; }
 
-        var fd = new FormData();
+        var fd = new URLSearchParams();
         ids.forEach(function (id) { fd.append('entryids', id); });
         fd.append('entryopen', entryopen ? '1' : '0');
 

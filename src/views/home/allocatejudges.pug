@@ -1,44 +1,69 @@
 //- home/allocatejudges.pug
-//- Equiv of $allocatejudges in home.cgi.
+//- Equiv of $allocatejudges in home.cgi — judge↔entry allocation matrix per category.
 
-form(method='POST' action='/judgeAllocation')
-    table(width='640')
-        tr
-            td(align='left' colspan='3'): b ALLOCATE JUDGES
+style.
+    .alloc-wrap { max-width: 940px; margin: 0 auto; }
+    .alloc-wrap h3 { color: #c48f06; font-size: 18px; text-align: center; margin-bottom: 16px; }
+    .alloc-cat { border: 1px solid #2a2a2a; border-radius: 4px; margin-bottom: 16px; padding: 12px 16px; }
+    .alloc-cat h4 { color: #c48f06; font-size: 15px; margin: 0 0 10px; }
+    .alloc-table { width: 100%; border-collapse: collapse; }
+    .alloc-table th { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: #c48f06; border-bottom: 1px solid #555; padding: 6px 10px; text-align: left; }
+    .alloc-table td { padding: 6px 10px; border-bottom: 1px solid #222; font-size: 13px; color: #ccc; vertical-align: middle; }
+    .alloc-table tr:hover td { background: rgba(255,255,255,0.03); }
+    .alloc-table .judge-col { text-align: center; width: 44px; white-space: nowrap; padding-left: 4px; padding-right: 4px; }
+    .alloc-table .id-col { color: #888; width: 1%; white-space: nowrap; }
+    .alloc-table input[type=checkbox], .alloc-table input[type=radio] { accent-color: #c48f06; width: 15px; height: 15px; cursor: pointer; }
+    .alloc-table tr.lead-row td, .alloc-table tr.lead-row th { background: #1a1a1a; border-bottom: 1px solid #333; }
+    .alloc-table .lead-label { color: #aaa; font-weight: 600; text-transform: none; font-size: 12px; }
+    .alloc-empty { color: #888; font-style: italic; font-size: 13px; padding: 4px 0; }
+    .lead-clear { background: none; border: 1px solid #555; color: #aaa; border-radius: 3px; font-size: 11px; padding: 1px 6px; margin-left: 8px; cursor: pointer; vertical-align: middle; }
+    .lead-clear:hover { border-color: #cf9702; color: #cf9702; }
+    .alloc-actions { text-align: center; margin-top: 14px; }
+    .alloc-actions a, .alloc-actions button { margin: 0 6px; }
 
+.alloc-wrap
+    h3 Allocate Judges
+
+    form(method='POST' action='/judgeAllocation')
         each cat in content.cats
-            tr: td(colspan='3')
-                br
-                b= cat.name
-            tr
-                th(align='left') EntryID
-                th(align='left') Entrant
-                each judge in cat.judges
-                    th= judge.lastname.substring(0,3)
+            .alloc-cat
+                h4= cat.name
+                if !cat.judges || !cat.judges.length
+                    .alloc-empty No judges assigned to this category yet.
+                else if !cat.entries || !cat.entries.length
+                    .alloc-empty No entries in this category yet.
+                else
+                    table.alloc-table
+                        thead
+                            tr
+                                th.id-col Entry
+                                th Entrant
+                                each judge in cat.judges
+                                    th.judge-col(title=(judge.firstname || '') + ' ' + (judge.lastname || ''))= (judge.firstname || '').substring(0, 1) + '.' + (judge.lastname || '').substring(0, 2)
+                        tbody
+                            tr.lead-row
+                                th.lead-label(colspan='2')
+                                    | Lead Judge
+                                    button.lead-clear(type='button' data-cat=cat.categoryid title='Clear lead judge') Clear
+                                each judge in cat.judges
+                                    td.judge-col
+                                        input(type='radio' name='hj~' + cat.categoryid value=judge.userid checked=(cat.userid === judge.userid))
+                            each entry in cat.entries
+                                - var displayName = entry.finalisttext || entry.entrantname
+                                tr
+                                    td.id-col= entry.entryid
+                                    td= displayName
+                                    each judge in cat.judges
+                                        td.judge-col
+                                            input(type='checkbox' name='judge' value=judge.userid + '~' + entry.entryid checked=(entry.assignedJudgeIds && entry.assignedJudgeIds.has(judge.userid)))
 
-            //- Lead judge radio row
-            tr
-                th(colspan='2' align='left') Lead Judge
-                each judge in cat.judges
-                    td
-                        input(type='radio'
-                            name='hj~' + cat.categoryid
-                            value=judge.userid
-                            checked=(cat.userid === judge.userid))
+        .alloc-actions
+            a.btn-secondary(href='/home') Cancel
+            button.btn(type='submit') Save Allocation
 
-            each entry in cat.entries
-                - let displayName = entry.finalisttext || entry.entrantname
-                tr
-                    td= entry.entryid
-                    td= displayName
-                    each judge in cat.judges
-                        td
-                            input(type='checkbox'
-                                name='judge'
-                                value=judge.userid + '~' + entry.entryid)
-
-        tr
-            td(colspan='3')
-                a(href='/home') Cancel
-                | &nbsp;
-                button(type='submit') Save Allocation
+script.
+    document.querySelectorAll('.lead-clear').forEach(function (b) {
+        b.addEventListener('click', function () {
+            document.querySelectorAll('input[name="hj~' + b.dataset.cat + '"]').forEach(function (r) { r.checked = false; });
+        });
+    });

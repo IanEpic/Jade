@@ -4,8 +4,24 @@ style.
     .ve-wrap { max-width: 900px; margin: 0 auto; font-size: 14px; }
     .ve-wrap h2 { text-align: center; color: #c48f06; font-size: 20px; font-weight: 600; margin: 0 0 4px; }
     .ve-wrap .ve-meta { text-align: center; color: #aaa; font-size: 13px; margin: 0 0 18px; }
-    .ve-card { border: 1px solid #555; border-radius: 4px; padding: 16px 20px; margin-bottom: 14px; box-shadow: 0 1px 3px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.07); }
+    .ve-card { border: 1px solid #555; border-radius: 4px; padding: 16px 20px; margin-bottom: 14px; box-shadow: 0 1px 3px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.07); text-align: left; }
     .ve-card-title { color: #c48f06; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; margin: 0 0 12px; padding-bottom: 8px; border-bottom: 1px solid #333; }
+    .ve-subcard { border: 1px solid #3a3a3a; border-radius: 4px; padding: 12px 16px; margin-bottom: 12px; background: rgba(255,255,255,0.02); }
+    .ve-subcard-title { color: #c48f06; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; margin: 0 0 10px; }
+    .ve-subcard p { margin: 0 0 8px; }
+    .ve-score-table { width: 100%; border-collapse: collapse; }
+    .ve-score-table th { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: #c48f06; border-bottom: 1px solid #555; padding: 6px 10px; text-align: left; }
+    .ve-score-table th:last-child { text-align: center; }
+    .ve-score-table td { padding: 6px 10px; border-bottom: 1px solid #2a2a2a; color: #ccc; text-align: left; vertical-align: top; }
+    .ve-score-table td.score-cell { width: 150px; white-space: nowrap; text-align: center; }
+    .ve-score-table .crit-section td { color: #eee; font-weight: 600; border-bottom: none; padding-top: 12px; }
+    .ve-comment-field { margin-bottom: 14px; }
+    .ve-comment-field label { display: block; color: #bbb; font-size: 13px; margin-bottom: 5px; }
+    .ve-comment-field textarea { width: 100%; box-sizing: border-box; background: #111; color: #fff; border: 1px solid #555; border-radius: 3px; padding: 7px 9px; font-family: inherit; font-size: 14px; }
+    .ve-comment-field textarea:focus { border-color: #c48f06; outline: none; }
+    .ve-judge-submit { text-align: center; margin-top: 8px; }
+    .ve-req { color: #c44; margin-left: 3px; }
+    .ve-req-note { font-size: 12px; color: #888; margin: 4px 0 12px; }
     .ve-criteria-table { width: auto; min-width: 340px; border-collapse: collapse; margin: 0 auto; }
     .ve-criteria-table th { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: #c48f06; border-bottom: 1px solid #555; padding: 5px 12px; text-align: left; }
     .ve-criteria-table td { padding: 5px 12px; border-bottom: 1px solid #2a2a2a; color: #ccc; text-align: left; }
@@ -87,10 +103,16 @@ else
             case scorePanel.type
                 when 'scoreform'
                     .ve-card
+                        p.ve-card-title Judging
                         include viewEntry/scoreform.pug
                 when 'editcomment'
                     .ve-card
+                        p.ve-card-title Judging
                         include viewEntry/editcomment.pug
+                when 'oversight'
+                    .ve-card
+                        p.ve-card-title Judging — all judges
+                        include viewEntry/oversight.pug
                 when 'hjcomment'
                     .ve-card
                         include viewEntry/hjcomment.pug
@@ -104,6 +126,10 @@ else
         //- ── Bottom actions ──────────────────────────────────────────────────
         if !scorePanel || scorePanel.type !== 'entrant'
             .ve-form-actions
+                if scorePanel && scorePanel.type === 'oversight'
+                    a.btn-secondary(href='/home?action=leadjudge') Check Judging
+                else if scorePanel && scorePanel.type === 'hjcomment' && scorePanel.backUrl
+                    a.btn-secondary(href=scorePanel.backUrl)= scorePanel.backLabel
                 a.btn-secondary(href='/home') Home
                 button.btn-secondary.btn-print(type='button') Print
 

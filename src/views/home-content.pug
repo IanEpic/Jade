@@ -130,9 +130,49 @@ table(width='780' id='home' style='margin-left: auto; margin-right: auto; displa
                 when 'home/tojudge'
                     include home/tojudge.pug
 
+                //- ── Comments to Revise (judge) ───────────────────────────────
+                when 'home/revisecomments'
+                    include home/revisecomments.pug
+
+                //- ── Lead-judge / chairperson oversight ───────────────────────
+                when 'home/leadjudge'
+                    include home/leadjudge.pug
+
                 //- ── Review Nominees (finalist review) ────────────────────────
                 when 'home/reviewfinalists'
                     include home/reviewfinalists.pug
+
+                //- ── Nominate Winners (winner nomination) ─────────────────────
+                when 'home/nominatewinner'
+                    include home/nominatewinner.pug
+
+                //- ── Review Nominations (admin summary) ───────────────────────
+                when 'home/reviewnominations'
+                    include home/reviewnominations.pug
+
+                //- ── Finalists by Category (admin) ────────────────────────────
+                when 'home/finalistlist'
+                    include home/finalistlist.pug
+
+                //- ── Finalist Text generation/edit (admin) ────────────────────
+                when 'home/finalisttextadmin'
+                    include home/finalisttextadmin.pug
+
+                //- ── Category Types (admin setup) ─────────────────────────────
+                when 'home/categorytypes'
+                    include home/categorytypes.pug
+
+                //- ── AI Rules: Finalist Text Rules ────────────────────────────
+                when 'home/finalisttextrules'
+                    include home/finalisttextrules.pug
+
+                //- ── AI Rules: Judging Guidelines ─────────────────────────────
+                when 'home/judgingguidelines'
+                    include home/judgingguidelines.pug
+
+                //- ── Receive Payment (admin) ──────────────────────────────────
+                when 'home/receivepayment'
+                    include home/receivepayment.pug
 
                 //- ── Wildcard Nomination ──────────────────────────────────────
                 when 'home/wildcardnomination'
@@ -209,6 +249,10 @@ table(width='780' id='home' style='margin-left: auto; margin-right: auto; displa
                 //- ── Admin: Judge Progress Check ──────────────────────────────
                 when 'home/judgecheck'
                     include home/judgecheck.pug
+
+                //- ── Admin: Review Judge Comments ─────────────────────────────
+                when 'home/reviewcomments'
+                    include home/reviewcomments.pug
 
                 //- ── Admin: Finalist Entries ──────────────────────────────────
                 when 'home/finalistentries'

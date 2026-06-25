@@ -60,6 +60,7 @@ router.post('/', async (req, res, next) => {
                 wildcarddecision: bool('wildcarddecision'),
                 winnernomination: bool('winnernomination'),
                 adminonly:        bool('adminonly'),
+                categorytypeid:   body.categorytypeid ? parseInt(body.categorytypeid) : null,
             });
             await category.update({ orda: category.categoryid });
 
@@ -86,6 +87,7 @@ router.post('/', async (req, res, next) => {
             wildcarddecision: bool('wildcarddecision'),
             winnernomination: bool('winnernomination'),
             adminonly:        bool('adminonly'),
+            categorytypeid:   body.categorytypeid ? parseInt(body.categorytypeid) : null,
         });
 
         // Eligibility links — replace all, preserving submitted order via eord~ID

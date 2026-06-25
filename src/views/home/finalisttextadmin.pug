@@ -1,0 +1,47 @@
+//- home/finalisttextadmin.pug
+//- Admin: generate & edit finalist text for every accepted entry, grouped by category.
+//- "Generate Missing" fills blanks via AI (one request per entry); each row saves on edit.
+
+style.
+    .ft-wrap { max-width: 880px; margin: 0 auto; }
+    .ft-wrap h2 { text-align: center; color: #c48f06; font-size: 20px; font-weight: 600; margin: 0 0 6px; }
+    .ft-intro { text-align: center; color: #aaa; font-size: 13px; margin: 0 0 12px; }
+    .ft-toolbar { text-align: center; margin-bottom: 16px; }
+    #ft-progress { font-size: 13px; color: #c48f06; margin-left: 10px; }
+    .ft-card { border: 1px solid #555; border-radius: 4px; padding: 12px 18px; margin-bottom: 14px; box-shadow: 0 1px 3px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.07); }
+    .ft-card-title { color: #c48f06; font-size: 14px; font-weight: 600; margin: 0 0 8px; padding-bottom: 6px; border-bottom: 1px solid #333; }
+    .ft-row { display: flex; align-items: flex-start; gap: 10px; padding: 6px 0; border-bottom: 1px solid #222; }
+    .ft-row:last-child { border-bottom: none; }
+    .ft-entrant { width: 170px; flex-shrink: 0; color: #999; font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding-top: 6px; }
+    .ft-view { flex-shrink: 0; color: #c9b27a; text-decoration: underline; text-underline-offset: 2px; font-size: 12px; padding-top: 6px; white-space: nowrap; }
+    .ft-view:hover { color: #cf9702; }
+    .ft-input { flex: 1; background: #111; color: #fff; border: 1px solid #555; border-radius: 3px; padding: 6px 8px; font-size: 13px; font-family: inherit; line-height: 1.4; resize: none; overflow: hidden; box-sizing: border-box; }
+    .ft-input:focus { border-color: #c48f06; outline: none; }
+    .ft-input.blank { border-color: #7a5a00; }
+    .ft-save { flex-shrink: 0; }
+    .ft-status { width: 18px; flex-shrink: 0; font-size: 13px; text-align: center; }
+    .ft-none { color: #888; font-style: italic; font-size: 13px; }
+
+.ft-wrap
+    h2 Finalist Text
+    p.ft-intro #{content.total} accepted entr#{content.total === 1 ? 'y' : 'ies'} · #[span#ft-blank-count #{content.blanks}] without text. Generated text is a starting point — review and edit as needed.
+
+    .ft-toolbar
+        button.btn#ft-generate(type='button' disabled=(content.blanks === 0)) Generate Missing
+        span#ft-progress
+
+    if !content.cats.length
+        p.ft-none No accepted entries.
+
+    each cat in content.cats
+        .ft-card
+            .ft-card-title #{cat.name} (#{cat.entries.length})
+            each e in cat.entries
+                .ft-row(data-entryid=e.entryid)
+                    span.ft-entrant(title=e.entrantname)= e.entrantname
+                    a.ft-view(href='/viewEntry?entryid=' + e.entryid target='_blank' rel='noopener' title='Open entry in a new tab') View ↗
+                    textarea.ft-input(rows='2' class=(e.finalisttext ? '' : 'blank') data-entryid=e.entryid)= e.finalisttext
+                    button.btn-secondary.ft-save(type='button' data-entryid=e.entryid) Save
+                    span.ft-status(data-entryid=e.entryid)
+
+script(src='/js/home-finalisttextadmin.js?v=' + buildHash)

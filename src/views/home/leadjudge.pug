@@ -1,0 +1,87 @@
+//- home/leadjudge.pug
+//- Lead-judge / chairperson oversight of their categories during judging:
+//- per-judge progress grid, flagged comments, and links into entries.
+
+- const ljCommentsAllowed = content.judgingModel.commentsallowed
+
+style.
+    .lj-wrap { max-width: 820px; margin: 0 auto; }
+    .lj-wrap h2 { text-align: center; color: #c48f06; font-size: 20px; font-weight: 600; margin: 0 0 6px; }
+    .lj-intro { text-align: center; color: #aaa; font-size: 13px; margin: 0 0 18px; }
+    .lj-card { border: 1px solid #555; border-radius: 4px; padding: 14px 18px; margin-bottom: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.07); }
+    .lj-card-title { color: #c48f06; font-size: 14px; font-weight: 600; margin: 0 0 10px; padding-bottom: 8px; border-bottom: 1px solid #333; }
+    .lj-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .lj-table th { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: #c48f06; border-bottom: 1px solid #555; padding: 5px 8px; text-align: left; }
+    .lj-table td { padding: 5px 8px; border-bottom: 1px solid #222; color: #ccc; }
+    .lj-table .c { text-align: center; width: 70px; }
+    .lj-judge-row td { background: #1a1a1a; font-weight: 600; }
+    .lj-entry-row { cursor: pointer; }
+    .lj-entry-row:hover td { background: rgba(255,255,255,0.05); }
+    .lj-entry .id { color: #888; margin-right: 6px; }
+    .lj-chev { text-align: right; color: #888; width: 18px; }
+    .lj-entry-row:hover .lj-chev { color: #cf9702; }
+    .lj-yes { color: #4caf50; }
+    .lj-no  { color: #e55; }
+    .lj-none { color: #888; font-style: italic; font-size: 13px; }
+    .lj-flagged { margin-top: 12px; border-top: 1px solid #333; padding-top: 10px; }
+    .lj-flagged-title { color: #c48f06; font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px; }
+    .lj-flag { background: #2a1a00; border-left: 3px solid #c48f06; padding: 6px 10px; margin-bottom: 6px; border-radius: 2px; font-size: 13px; }
+    .lj-flag .who { color: #e0b060; }
+    .lj-flag .reason { color: #c48f06; font-style: italic; }
+
+.lj-wrap
+    h2 Check Judging
+    p.lj-intro= content.isChair ? 'Judging oversight for all categories (chairperson).' : 'Judging oversight for the categories you lead.'
+
+    if !content.cats.length
+        p.lj-none You are not set as lead judge for any category.
+
+    each cat in content.cats
+        .lj-card
+            .lj-card-title= cat.name
+            if !cat.judges.length
+                p.lj-none No judges have entries allocated in this category.
+            else
+                table.lj-table
+                    thead
+                        tr
+                            th Judge / Entry
+                            th.c Scores
+                            if ljCommentsAllowed
+                                th.c Comments
+                            th.lj-chev
+                    tbody
+                        each judge in cat.judges
+                            tr.lj-judge-row
+                                td(colspan=ljCommentsAllowed ? 4 : 3)= judge.firstname + ' ' + judge.lastname
+                            each entry in judge.entries
+                                - var scoresOk = cat.criteria.filter(c => c.weight).every(c => entry.scores.some(s => s.criteriaid === c.criteriaid))
+                                - var excelOk = entry.comments.some(c => c.type === 'excel' && c.comment)
+                                - var improveOk = entry.comments.some(c => c.type === 'improve' && c.comment)
+                                - var commentsOk = !ljCommentsAllowed || (excelOk && improveOk)
+                                tr.lj-entry-row(data-href='/viewEntry?entryid=' + entry.entryid)
+                                    td.lj-entry
+                                        span.id= entry.entryid
+                                        = entry.entrantname
+                                    td.c(class=scoresOk ? 'lj-yes' : 'lj-no')= scoresOk ? 'Yes' : 'No'
+                                    if ljCommentsAllowed
+                                        td.c(class=commentsOk ? 'lj-yes' : 'lj-no')= commentsOk ? 'Yes' : 'No'
+                                    td.lj-chev ›
+
+            if cat.flagged.length
+                .lj-flagged
+                    .lj-flagged-title Flagged comments (#{cat.flagged.length})
+                    each f in cat.flagged
+                        .lj-flag
+                            .who= f.judge + ' — ' + f.entrant + ' (' + (f.type === 'excel' ? 'Excelled' : f.type === 'improve' ? 'Could improve' : 'Other') + ')'
+                            div= f.comment
+                            if f.reason
+                                .reason= f.reason
+
+script.
+    document.querySelectorAll('.lj-entry-row').forEach(function (r) {
+        r.addEventListener('click', function () {
+            window.location = (window.JADE_BASE || '') + r.getAttribute('data-href');
+        });
+    });
+

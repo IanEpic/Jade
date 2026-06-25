@@ -1,0 +1,54 @@
+//- home/categorytypes.pug
+//- Admin (Setup): create / rename / delete category types and assign categories to
+//- them. The per-type AI rules are edited under Admin → AI Rules → Finalist Text Rules.
+
+style.
+    .ct-wrap { max-width: 820px; margin: 0 auto; }
+    .ct-wrap h2 { text-align: center; color: #c48f06; font-size: 20px; font-weight: 600; margin: 0 0 6px; }
+    .ct-intro { text-align: center; color: #aaa; font-size: 13px; margin: 0 0 18px; }
+    .ct-card { border: 1px solid #555; border-radius: 4px; padding: 14px 18px; margin-bottom: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.07); }
+    .ct-card-title { color: #c48f06; font-size: 14px; font-weight: 600; margin: 0 0 10px; padding-bottom: 8px; border-bottom: 1px solid #333; }
+    .ct-label { font-size: 12px; color: #999; margin-bottom: 4px; }
+    input.ct-name { background: #111; color: #fff; border: 1px solid #555; border-radius: 3px; padding: 6px 9px; font-size: 13px; font-weight: 600; }
+    input.ct-name:focus { border-color: #c48f06; outline: none; }
+    .ct-type { display: flex; align-items: center; gap: 8px; border: 1px solid #3a3a3a; border-radius: 4px; padding: 8px 12px; margin-bottom: 8px; }
+    .ct-type input.ct-name { flex: 1; }
+    .ct-status { font-size: 13px; min-width: 16px; }
+    .ct-grid { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .ct-grid td { padding: 5px 8px; border-bottom: 1px solid #222; color: #ccc; }
+    .ct-grid td.sel { width: 200px; text-align: right; }
+    .ct-grid select { background: #111; color: #fff; border: 1px solid #555; border-radius: 3px; padding: 4px 6px; font-size: 13px; }
+    .ct-grid select:focus { border-color: #c48f06; outline: none; }
+
+.ct-wrap
+    h2 Category Types
+    p.ct-intro Define the category groups and assign each category to one. Edit the AI generation rules under Admin → AI Rules → Finalist Text Rules.
+
+    .ct-card
+        .ct-card-title Types
+        #ct-type-list
+            each t in content.types
+                .ct-type(data-typeid=t.categorytypeid)
+                    input.ct-name(type='text' value=t.name data-typeid=t.categorytypeid)
+                    button.btn-secondary.ct-type-save(type='button' data-typeid=t.categorytypeid) Rename
+                    button.btn-danger.ct-type-delete(type='button' data-typeid=t.categorytypeid data-confirm='Delete this category type? Categories using it will be unassigned.') Delete
+                    span.ct-status(data-typeid=t.categorytypeid)
+        .ct-type(style='border-style:dashed')
+            input.ct-name#ct-new-name(type='text' placeholder='New type name (e.g. Best Event)')
+            button.btn#ct-add(type='button') Add Type
+            span.ct-status#ct-add-status
+
+    .ct-card
+        .ct-card-title Assign Categories
+        table.ct-grid
+            each c in content.categories
+                tr
+                    td= c.name
+                    td.sel
+                        select.ct-assign(data-categoryid=c.categoryid)
+                            option(value='') — none —
+                            each t in content.types
+                                option(value=t.categorytypeid selected=(c.categorytypeid === t.categorytypeid))= t.name
+                        span.ct-status(data-categoryid=c.categoryid)
+
+script(src='/js/home-categorytypes.js?v=' + buildHash)

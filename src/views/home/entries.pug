@@ -39,8 +39,13 @@ style.
                     th(style='width:80px')
             tbody
                 each entry in content.entries
-                    - let cost = (parseFloat(entry.costex) || 0) + (parseFloat(entry.gst) || 0)
-                    - let costDisplay = cost === 0 ? '' : content.currency(cost)
+                    - let cost = (parseFloat(entry.effcostex) || 0) + (parseFloat(entry.effgst) || 0)
+                    //- Once a discount has been applied to the invoice (at payment time),
+                    //- prorate it back onto this entry so the cost shows the post-discount amount.
+                    - let invEb = parseFloat(entry.invebdiscount) || 0
+                    - let invTotal = parseFloat(entry.invtotalcost) || 0
+                    - let netCost = (invEb > 0 && invTotal > 0) ? cost - (invEb * cost / invTotal) : cost
+                    - let costDisplay = cost === 0 ? '' : content.currency(netCost)
                     - let pmt = entry.entryaccepted ? 'Paid' : (entry.invoiceid && !entry.invoicedeleted ? 'Invoiced' : 'Unpaid')
                     - let finalisedLabel = entry.finalised ? ' · Finalised' : ' · Editing'
                     - let statusClass = entry.entryaccepted ? 'status-paid' : (entry.invoiceid && !entry.invoicedeleted ? 'status-invoiced' : 'status-unpaid')

@@ -66,15 +66,28 @@ async function calcEntryTotals(program, entries, { status = null, promoCode = nu
     };
 }
 
-function calcInvoiceTotals(invoices) {
-    // Reads stored discount values from the invoice — no DB lookup needed
+// Early-bird is NOT baked into the invoice — it's applied at PAYMENT time. So when an
+// entrant pays online we compute the best early-bird discount that's still valid *today*
+// and apply it to the charge (and record it on the invoice). Invoices that already carry
+// a stored ebdiscount (legacy / admin-applied) keep that value.
+function invoiceFull(inv) {
+    return (parseFloat(inv.totalex)||0) + (parseFloat(inv.gst)||0)
+         - (parseFloat(inv.partnerdiscount)||0) - (parseFloat(inv.multientryadjustment)||0);
+}
+function ebForInvoice(ebDiscounts, inv) {
+    const stored = parseFloat(inv.ebdiscount) || 0;
+    if (stored > 0) return stored;                       // already applied/baked
+    if (!ebDiscounts.length) return 0;                   // no EB valid today
+    return computeBestDiscount(ebDiscounts, inv.cnt || 1, invoiceFull(inv))?.discountInc || 0;
+}
+async function calcInvoiceTotals(program, invoices) {
+    const ebDiscounts = (await getApplicableDiscounts(program.programid, new Date()))
+        .filter(d => d.type === 'earlybird');
     let total = 0;
     for (const inv of invoices) {
-        let t = (parseFloat(inv.totalex)||0) + (parseFloat(inv.gst)||0) - (parseFloat(inv.partnerdiscount)||0);
-        t -= (parseFloat(inv.ebdiscount)||0);
-        total += t - (parseFloat(inv.paid)||0);
+        total += invoiceFull(inv) - ebForInvoice(ebDiscounts, inv) - (parseFloat(inv.paid)||0);
     }
-    return { chargeAmt: total };
+    return { chargeAmt: total, ebDiscounts };
 }
 
 async function getEntriesWithNames(entryIds) {
@@ -98,7 +111,8 @@ async function getInvoicesWithPaid(invoiceIds) {
     const pool = await getPool();
     const r = await pool.request().query(`
         SELECT i.*,
-               ISNULL((SELECT SUM(pa.amount) FROM PaymentAllocation pa WHERE pa.invoiceid = i.invoiceid), 0) AS paid
+               ISNULL((SELECT SUM(pa.amount) FROM PaymentAllocation pa WHERE pa.invoiceid = i.invoiceid), 0) AS paid,
+               (SELECT COUNT(*) FROM Entry e WHERE e.invoiceid = i.invoiceid AND e.deleted = 0) AS cnt
         FROM Invoice i
         WHERE i.invoiceid IN (${invoiceIds.join(',')}) AND i.deleted = 0
     `);
@@ -181,7 +195,7 @@ router.post('/', async (req, res, next) => {
                 chargeAmt = totals.chargeAmt;
             } else if (invoiceIds.length) {
                 invoices  = await getInvoicesWithPaid(invoiceIds);
-                totals    = calcInvoiceTotals(invoices);
+                totals    = await calcInvoiceTotals(program, invoices);
                 chargeAmt = totals.chargeAmt;
             } else {
                 return res.redirect(`/formPaymentOptions?pmtoption=${body.pmtoption||1}&action=nodata`);
@@ -244,7 +258,7 @@ router.post('/', async (req, res, next) => {
                 let invoices = invoiceIds.length ? await getInvoicesWithPaid(invoiceIds) : [];
                 let totals   = entryIds.length
                     ? await calcEntryTotals(program, entries, { status: body.status })
-                    : calcInvoiceTotals(invoices);
+                    : await calcInvoiceTotals(program, invoices);
                 return renderInHome(req, res, 'home/payment', {
                     user, program, entries, invoices, totals, chargeAmt,
                     pmtoption: body.pmtoption, status: body.status || '',
@@ -311,7 +325,18 @@ router.post('/', async (req, res, next) => {
                 const invoices = await getInvoicesWithPaid(invoiceIds);
                 let allEntries = [];
 
+                // Early-bird still valid today is applied at payment time and recorded on
+                // the invoice (so the owing balance reconciles with what was charged).
+                const ebDiscounts = (await getApplicableDiscounts(program.programid, new Date()))
+                    .filter(d => d.type === 'earlybird');
+
                 for (const inv of invoices) {
+                    const eb = ebForInvoice(ebDiscounts, inv);
+                    if (eb > 0 && (parseFloat(inv.ebdiscount) || 0) === 0) {
+                        await pool.request().input('id', sql.Int, inv.invoiceid).input('eb', sql.Money, eb)
+                            .query('UPDATE Invoice SET ebdiscount = @eb WHERE invoiceid = @id');
+                    }
+
                     await pool.request()
                         .input('invoiceid',  sql.Int,   inv.invoiceid)
                         .input('paymentid',  sql.Int,   paymentid)

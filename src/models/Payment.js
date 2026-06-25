@@ -32,6 +32,7 @@ Payment.init(
     directDepositRef:    { type: DataTypes.STRING },
     refunded:            { type: DataTypes.BOOLEAN },
     report:              { type: DataTypes.BOOLEAN },
+    processedby:         { type: DataTypes.INTEGER },
   },
   { sequelize, modelName: 'Payment', tableName: 'Payment', timestamps: false }
 );

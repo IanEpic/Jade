@@ -1,0 +1,106 @@
+//- home/nominatewinner.pug
+//- Winner-nomination phase.
+//-   Lead judge / admin → editable: pick ONE winner per category (radio).
+//-   Chairperson        → read-only: every category's nominated winner, grouped by lead judge.
+
+style.
+    .nw-wrap { max-width: 820px; margin: 0 auto; }
+    .nw-wrap h2 { text-align: center; color: #c48f06; font-size: 20px; font-weight: 600; margin: 0 0 6px; }
+    .nw-intro { text-align: center; color: #aaa; font-size: 13px; margin: 0 0 18px; }
+    .nw-card { border: 1px solid #555; border-radius: 4px; padding: 14px 18px; margin-bottom: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.07); }
+    .nw-card-title { color: #c48f06; font-size: 14px; font-weight: 600; margin: 0 0 2px; }
+    .nw-lead { color: #888; font-size: 12px; margin: 0 0 10px; padding-bottom: 8px; border-bottom: 1px solid #333; }
+    .nw-lead-group { color: #e0b060; font-size: 15px; font-weight: 600; margin: 22px 0 10px; border-bottom: 1px solid #444; padding-bottom: 4px; }
+    .nw-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    .nw-table td { padding: 6px 8px; border-bottom: 1px solid #222; color: #ccc; vertical-align: middle; }
+    .nw-table td.score { text-align: right; width: 70px; color: #aaa; }
+    .nw-table td.act { width: 60px; text-align: right; }
+    .nw-table td.act a { color: #c9b27a; text-decoration: underline; text-underline-offset: 2px; }
+    .nw-table td.act a:hover { color: #cf9702; }
+    .nw-table tr.is-winner td { background: rgba(196,143,6,0.10); }
+    .nw-table label { cursor: pointer; display: flex; align-items: center; gap: 6px; }
+    .nw-table input[type=radio] { accent-color: #c48f06; }
+    .badge { font-size: 11px; padding: 1px 8px; border-radius: 3px; font-weight: 600; }
+    .badge-winner { background: #5a3a00; color: #ffcf70; }
+    .nw-none { color: #888; font-style: italic; font-size: 13px; }
+    .nw-clear-wrap { margin-top: 8px; }
+    .nw-actions { text-align: center; margin-top: 14px; }
+    .nw-ok { background:#1a4a1a; color:#fff; padding:8px 12px; border-left:4px solid #4caf50; margin-bottom:14px; }
+
+.nw-wrap
+    h2 Winner Nomination
+
+    if content.readOnly
+        p.nw-intro Winner nominations for each category, grouped by lead judge. Read-only — changes are made by the lead judge or an admin.
+    else
+        p.nw-intro For each category you lead, select the entry to nominate as the category winner. You can open an entry to review scores and comments, and add a comment of your own.
+
+    if content.saved
+        p.nw-ok Winner nominations saved.
+
+    if !content.cats.length
+        p.nw-none No categories are open for winner nomination.
+
+    //- ── Chair: read-only, grouped by lead judge ─────────────────────────────
+    if content.readOnly
+        - var lastLead = null
+        each cat in content.cats
+            if cat.leadName !== lastLead
+                - lastLead = cat.leadName
+                .nw-lead-group= cat.leadName
+            .nw-card
+                .nw-card-title= cat.name
+                if !cat.finalists.length
+                    p.nw-none No finalists in this category.
+                else
+                    table.nw-table
+                        each entry in cat.finalists
+                            - var nm = entry.finalisttext || entry.entrantname
+                            - var isWin = entry.entryid === cat.nominatedId
+                            tr(class=isWin ? 'is-winner' : '')
+                                td
+                                    if isWin
+                                        span.badge.badge-winner(style='margin-right:10px') Winner
+                                    = nm
+                                td.score= cat.scoreMap[entry.entryid] != null ? cat.scoreMap[entry.entryid].toFixed(2) : ''
+                                td.act: a(href='/viewEntry?entryid=' + entry.entryid + '&task=review') View
+
+    //- ── Lead judge / admin: editable form ───────────────────────────────────
+    else
+        form(method='POST' action='/nominatewinner')
+            each cat in content.cats
+                .nw-card
+                    .nw-card-title= cat.name
+                    if content.isAdmin
+                        p.nw-lead Lead judge: #{cat.leadName}
+                    if !cat.finalists.length
+                        p.nw-none No finalists in this category.
+                    else
+                        table.nw-table
+                            each entry in cat.finalists
+                                - var nm = entry.finalisttext || entry.entrantname
+                                - var isWin = entry.entryid === cat.nominatedId
+                                tr(class=isWin ? 'is-winner' : '')
+                                    td
+                                        label
+                                            input(type='radio' name='but~' + cat.categoryid value=entry.entryid checked=isWin)
+                                            span= nm
+                                    td.score= cat.scoreMap[entry.entryid] != null ? cat.scoreMap[entry.entryid].toFixed(2) : ''
+                                    td.act: a(href='/viewEntry?entryid=' + entry.entryid + '&task=review') View
+                        div.nw-clear-wrap: button.btn-secondary.nw-clear(type='button' data-cat=cat.categoryid) Clear selection
+
+            if content.cats.length
+                .nw-actions
+                    button.btn(type='submit') Save Winner Nominations
+
+        script(nonce=nonce).
+            document.querySelectorAll('.nw-clear').forEach(function (b) {
+                b.addEventListener('click', function () {
+                    var cat = b.getAttribute('data-cat');
+                    document.querySelectorAll('input[name="but~' + cat + '"]').forEach(function (r) {
+                        r.checked = false;
+                        var tr = r.closest('tr');
+                        if (tr) tr.classList.remove('is-winner');
+                    });
+                });
+            });

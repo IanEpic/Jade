@@ -17,6 +17,7 @@ Category.init(
     wildcarddecision: { type: DataTypes.BOOLEAN },
     scoreready:       { type: DataTypes.BOOLEAN },
     userid:           { type: DataTypes.INTEGER },
+    categorytypeid:   { type: DataTypes.INTEGER },
     costex:           { type: DataTypes.DECIMAL(19, 4) },
     gst:              { type: DataTypes.DECIMAL(19, 4) },
     orda:             { type: DataTypes.FLOAT },

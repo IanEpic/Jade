@@ -38,7 +38,7 @@ router.post('/', async (req, res, next) => {
             }
         }
 
-        res.redirect('/home');
+        res.redirect('/home?action=reviewfinalists&saved=1');
 
     } catch (err) { next(err); }
 });

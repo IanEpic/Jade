@@ -1,0 +1,122 @@
+//- home/receivepayment.pug
+//- Admin: record an EFT or credit-card payment against one or more outstanding
+//- invoices. One payment can cover several invoices; amounts are allocated per
+//- invoice and entries can be accepted even if the amount doesn't match exactly.
+
+style.
+    .rp-wrap { max-width: 960px; margin: 0 auto; }
+    .rp-wrap h2 { text-align: center; color: #c48f06; font-size: 20px; font-weight: 600; margin: 0 0 6px; }
+    .rp-intro { text-align: center; color: #aaa; font-size: 13px; margin: 0 0 16px; }
+    .rp-ok { background:#1a4a1a; color:#fff; padding:8px 12px; border-left:4px solid #4caf50; margin-bottom:14px; }
+    .rp-none { color: #888; font-style: italic; font-size: 13px; }
+    .rp-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-bottom: 16px; }
+    .rp-table th { font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: #c48f06; border-bottom: 1px solid #555; padding: 6px 8px; text-align: left; }
+    .rp-table th.num, .rp-table td.num { text-align: right; }
+    .rp-table th.ctr, .rp-table td.ctr { text-align: center; }
+    .rp-table td { padding: 6px 8px; border-bottom: 1px solid #222; color: #ccc; vertical-align: middle; }
+    .rp-eb { color: #c48f06; font-size: 12px; }
+    .rp-amt { width: 90px; background: #111; color: #fff; border: 1px solid #555; border-radius: 3px; padding: 5px 7px; font-size: 13px; text-align: right; }
+    .rp-amt:focus { border-color: #c48f06; outline: none; }
+    .rp-card { border: 1px solid #555; border-radius: 4px; padding: 14px 18px; margin-bottom: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.07); }
+    .rp-card-title { color: #c48f06; font-size: 14px; font-weight: 600; margin: 0 0 12px; padding-bottom: 8px; border-bottom: 1px solid #333; }
+    .rp-row { display: flex; gap: 18px; flex-wrap: wrap; align-items: flex-end; margin-bottom: 10px; }
+    .rp-field { display: flex; flex-direction: column; gap: 4px; }
+    .rp-field label { font-size: 12px; color: #999; }
+    .rp-field input, .rp-field select { background: #111; color: #fff; border: 1px solid #555; border-radius: 3px; padding: 6px 8px; font-size: 13px; }
+    .rp-field input:focus, .rp-field select:focus { border-color: #c48f06; outline: none; }
+    .rp-field input[type=date]::-webkit-calendar-picker-indicator { filter: invert(1); opacity: 0.85; cursor: pointer; }
+    .rp-field input:disabled { opacity: 0.45; cursor: not-allowed; }
+    .rp-methods label { font-size: 13px; color: #ccc; margin-right: 16px; cursor: pointer; }
+    .rp-methods input { accent-color: #c48f06; margin-right: 5px; }
+    #card-fields { display: none; }
+    .rp-total { text-align: right; font-size: 14px; color: #fff; margin: 10px 0; }
+    .rp-total b { color: #c48f06; }
+    .rp-actions { text-align: center; margin-top: 12px; }
+
+.rp-wrap
+    h2 Receive Payment
+    p.rp-intro Record an EFT or credit-card payment against outstanding invoices. One payment can cover several invoices; tick &ldquo;Accept&rdquo; to accept the entries even if the amount doesn&rsquo;t match exactly.
+
+    if content.saved
+        p.rp-ok Payment recorded.
+    if content.carderror
+        p(style='background:#3a1a1a; color:#fdd; padding:8px 12px; border-left:4px solid #c44; margin-bottom:14px') Card payment failed: #{content.carderror}
+    if content.allocerror
+        p(style='background:#3a1a1a; color:#fdd; padding:8px 12px; border-left:4px solid #c44; margin-bottom:14px') The total allocated must equal the amount received. Nothing was recorded — please adjust and resubmit.
+
+    if !content.invoices.length
+        p.rp-none No outstanding invoices.
+    else
+        form(method='POST' action='/receivePayment')
+            input(type='hidden' id='rp-ebdate' value=(content.ebDate || ''))
+
+            .rp-card
+                .rp-card-title Payment Details
+                .rp-row.rp-methods
+                    label
+                        input(type='radio' name='method' value='eft' checked)
+                        | EFT / Manual
+                    label
+                        input(type='radio' name='method' value='card')
+                        | Credit Card
+                .rp-row
+                    .rp-field
+                        label(for='rp-date') Payment date
+                        input#rp-date(type='date' name='paymentdate' value=content.today)
+                    .rp-field
+                        label(for='rp-received') Amount received $
+                        input#rp-received(type='text' inputmode='decimal' name='amountreceived' style='width:120px')
+                #eft-fields.rp-row
+                    .rp-field(style='flex:1')
+                        label(for='rp-ref') Statement reference
+                        input#rp-ref(type='text' name='directDepositRef' placeholder='Bank statement reference' style='min-width:280px')
+                #card-fields
+                    .rp-row
+                        .rp-field(style='flex:1')
+                            label Cardholder name
+                            input(type='text' name='ewayCardHoldersName' style='min-width:240px')
+                        .rp-field
+                            label Card number
+                            input(type='text' name='ewayCardNumber' autocomplete='off')
+                    .rp-row
+                        .rp-field
+                            label Expiry month
+                            select(name='ewayCardExpiryMonth')
+                                each m in ['01','02','03','04','05','06','07','08','09','10','11','12']
+                                    option(value=m)= m
+                        .rp-field
+                            label Expiry year
+                            select(name='ewayCardExpiryYear')
+                                each y in content.ccYears
+                                    option(value=String(y))= y
+                        .rp-field
+                            label CVN
+                            input(type='text' name='ewayCVN' style='width:70px' autocomplete='off')
+
+            table.rp-table
+                thead
+                    tr
+                        th Invoice
+                        th Entrant
+                        th.ctr Entries
+                        th.num Full
+                        th.num Discounted
+                        th.num Allocate $
+                tbody
+                    each inv in content.invoices
+                        tr
+                            td= inv.invoiceno
+                            td= inv.entrant
+                            td.ctr= inv.entrycount
+                            td.num $#{inv.full.toFixed(2)}
+                            td.num.rp-owe(data-invid=inv.invoiceid) $#{inv.balance.toFixed(2)}
+                            td.num: input.rp-amt(type='text' inputmode='decimal' name='amt~' + inv.invoiceid data-invid=inv.invoiceid data-balance=inv.balance data-ebdiscount=inv.ebDiscount value='')
+
+            if content.ebDate
+                p.rp-eb(style='text-align:right; margin:0 0 12px') Early-bird amount applies to payments dated on or before #{content.ebDate}.
+
+            .rp-total Total allocated: <b id='rp-total'>$0.00</b>
+            .rp-actions
+                button.btn(type='submit' name='submit' value='Record Payment') Record Payment
+
+        script(src='/js/home-receivepayment.js?v=' + buildHash)

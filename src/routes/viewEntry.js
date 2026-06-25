@@ -18,6 +18,7 @@ import Category     from '../models/Category.js';
 import Response     from '../models/Response.js';
 import { getPool, sql } from '../config/database.js';
 import { getCriteria } from '../queries/categoryQueries.js';
+import { getJudgesForCategory } from '../queries/homeQueries.js';
 import { truncateContentWords } from '../services/helpers.js';
 
 const FILESTORE_ROOT        = process.env.FILESTORE_ROOT || 'C:/Data/LocalJadeFilestore';
@@ -72,6 +73,15 @@ async function getJudgeEntryLinks(userId, entryId) {
     return result.recordset;
 }
 
+// The set of judge userids actually allocated to an entry (for lead oversight).
+async function getEntryJudgeIds(entryId) {
+    const pool = await getPool();
+    const result = await pool.request()
+        .input('entryId', sql.Int, entryId)
+        .query(`SELECT userid FROM JudgeEntryLink WHERE entryid = @entryId`);
+    return new Set(result.recordset.map(r => r.userid));
+}
+
 async function getJudgeCategoryLinks(userId, categoryId) {
     const pool = await getPool();
     const result = await pool.request()
@@ -108,7 +118,7 @@ async function getAllJudgeComments(entryId) {
     const result = await pool.request()
         .input('entryId', sql.Int, entryId)
         .query(`
-            SELECT jc.*, uc.firstname, uc.lastname
+            SELECT jc.*, uc.firstname, uc.lastname, u.chairperson
             FROM JudgeComment jc
             LEFT JOIN [User] u ON jc.userid = u.userid
             LEFT JOIN UserCredential uc ON uc.credentialid = u.credentialid
@@ -178,17 +188,24 @@ router.get('/', async (req, res, next) => {
         const mejudge      = await getJudgeEntryLinks(user.userid, entry.entryid);
         const wildcardNoms = await getWildcardNominations(entry.entryid);
         let mejudgecat = [];
-        if (category.finalistreview && (entry.finalist || wildcardNoms.length)) {
+        // During finalist review a category judge may review finalists, entries
+        // nominated for reconsideration, AND any non-finalist they personally judged
+        // (so they can look before nominating it from the review list).
+        if (category.finalistreview && (entry.finalist || wildcardNoms.length || mejudge.length)) {
             mejudgecat = await getJudgeCategoryLinks(user.userid, entry.categoryid);
         }
         const leadjudgereview =
             (category.finalistreview || category.winnernomination) &&
             (category.userid === user.userid || user.chairperson);
 
+        // Lead judge (head of this category) or chairperson — may oversee the
+        // category's entries at any phase, including during round-one judging.
+        const isLead = category.userid === user.userid || user.chairperson;
+
         const isOwner      = entry.userid === user.userid;
         const canView      = isOwner || user.admin || user.viewentries ||
                              user.reviewer || user.simplejudge ||
-                             mejudge.length || mejudgecat.length || leadjudgereview;
+                             mejudge.length || mejudgecat.length || leadjudgereview || isLead;
 
         if (!canView) {
             return res.renderInShell('viewEntry', {
@@ -257,8 +274,10 @@ router.get('/', async (req, res, next) => {
             }
         }
 
-        // Filter out omitforjudging if judge view — always hidden for any judge, regardless of judging state
-        const isJudgeView = mejudge.length > 0;
+        // Filter out omitforjudging if judge view — always hidden for any judge, regardless of judging state.
+        // Includes lead-judge / chairperson review of entries they didn't personally judge
+        // (finalist review & winner nomination), so non-judging questions stay hidden for them too.
+        const isJudgeView = mejudge.length > 0 || mejudgecat.length > 0 || leadjudgereview || isLead;
         const visibleQuestions = questions.filter(q =>
             !q.deleted && (!isJudgeView || !q.omitforjudging)
         );
@@ -301,18 +320,62 @@ router.get('/', async (req, res, next) => {
                 entry,
                 user,
             };
+        } else if (isLead && !category.finalistreview && !category.winnernomination) {
+            // Lead-judge oversight during the judging phase: all judges' scores
+            // and comments for this entry, read-only.
+            const catJudges   = await getJudgesForCategory({ categoryId: entry.categoryid });
+            const allocated   = await getEntryJudgeIds(entry.entryid);
+            const allComments = await getAllJudgeComments(entry.entryid);
+            const judges = await Promise.all(catJudges.filter(j => allocated.has(j.userid)).map(async j => ({
+                name:     ((j.firstname || '') + ' ' + (j.lastname || '')).trim() || ('Judge ' + j.userid),
+                scores:   await getScoresForJudge(entry.entryid, j.userid),
+                comments: allComments.filter(c => c.userid === j.userid),
+            })));
+            scorePanel = { type: 'oversight', judges, criteria, entry };
         } else if (mejudgecat.length || user.chairperson || leadjudgereview) {
-            // Head judge comment form
+            // Lead-judge / chairperson review during finalist review & winner nomination.
             const allComments = await getAllJudgeComments(entry.entryid);
             const myComments  = allComments.filter(c => c.userid === user.userid);
+            const isLeadOrChair = category.userid === user.userid || user.chairperson;
+            // Everyone reviewing the entry sees the full per-judge breakdown
+            // (name + scores + comments) — finalist review & winner nomination.
+            const catJudges = await getJudgesForCategory({ categoryId: entry.categoryid });
+            const allocated = await getEntryJudgeIds(entry.entryid);
+            const judges = await Promise.all(catJudges.filter(j => allocated.has(j.userid)).map(async j => ({
+                name:     ((j.firstname || '') + ' ' + (j.lastname || '')).trim() || ('Judge ' + j.userid),
+                scores:   await getScoresForJudge(entry.entryid, j.userid),
+                comments: allComments.filter(c => c.userid === j.userid),
+            })));
+            // Lead-judge / co-chair review comments (entrant-facing) so they can see
+            // each other's. Excludes the current viewer (their own is in the edit box
+            // below) and allocated judges (already shown in the breakdown above).
+            let leadChairNotes = [];
+            if (isLeadOrChair) {
+                leadChairNotes = allComments
+                    .filter(c => c.type === 'other' && c.comment
+                        && c.userid !== user.userid
+                        && (c.userid === category.userid || c.chairperson)
+                        && !allocated.has(c.userid))
+                    .map(c => ({
+                        name:    ((c.firstname || '') + ' ' + (c.lastname || '')).trim() || ('User ' + c.userid),
+                        role:    c.userid === category.userid ? 'Lead judge' : 'Co-chair',
+                        comment: c.comment,
+                    }));
+            }
             scorePanel = {
                 type:       'hjcomment',
                 allComments,
                 myComments,
+                judges,
+                leadChairNotes,
+                criteria,
                 wildcardNoms,
-                isLeadOrChair: category.userid === user.userid || user.chairperson,
+                isLeadOrChair,
                 canAddComment: (category.finalistreview || category.winnernomination) &&
                                (category.userid === user.userid || user.chairperson),
+                backUrl:   category.winnernomination ? '/home?action=nominatewinner'
+                         : category.finalistreview   ? '/home?action=reviewfinalists' : null,
+                backLabel: category.winnernomination ? 'Winner Nominations' : 'Review Nominees',
                 entry,
             };
         } else if (user.reviewer) {

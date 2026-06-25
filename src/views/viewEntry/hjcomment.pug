@@ -1,76 +1,88 @@
 //- viewEntry/hjcomment.pug
-//- Equiv of $hjjudgecommentform in viewEntry.cgi.
+//- Lead-judge / chairperson review of an entry during finalist review & winner
+//- nomination. Clean card layout (matches the judging-phase oversight panel).
+//-   • Lead / chair → per-judge breakdown: scores + named comments.
+//-   • Regular category judge → comments grouped by type, WITHOUT attribution.
+//-   • Lead / chair may add their own comment (canAddComment).
 
-- let excelComments   = scorePanel.allComments.filter(c => c.type === 'excel')
-- let improveComments = scorePanel.allComments.filter(c => c.type === 'improve')
-- let otherComments   = scorePanel.allComments.filter(c => c.type === 'other' && c.userid !== user.userid)
-- let myComments      = scorePanel.myComments
+- var excelComments   = scorePanel.allComments.filter(c => c.type === 'excel'   && c.comment)
+- var improveComments = scorePanel.allComments.filter(c => c.type === 'improve' && c.comment)
+- var otherComments   = scorePanel.allComments.filter(c => c.type === 'other'   && c.comment && c.userid !== user.userid)
+- var allCriteria     = scorePanel.criteria || []
 
-table(width='600')
-    tr(align='left' valign='top')
-        td(colspan='2'): h2 Round One Judging Comments:
+style.
+    .hj-ctype { font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: #888; margin-top: 8px; }
+    .hj-comment { white-space: pre-wrap; color: #ddd; margin-top: 2px; }
+    .hj-note { font-size: 12px; color: #c48f06; margin: 2px 0 8px; }
+    .hj-form textarea { width: 100%; box-sizing: border-box; background: #111; color: #fff; border: 1px solid #555; border-radius: 4px; padding: 8px 10px; font-family: inherit; font-size: 14px; margin: 6px 0 10px; }
+    .hj-form textarea:focus { border-color: #c48f06; outline: none; }
 
-        td(colspan='2')
-            b Judges Comments highlighting areas in which this entrant has excelled:
-            br
-            br
+//- ── Lead / chair: per-judge breakdown ───────────────────────────────────────
+if scorePanel.judges && scorePanel.judges.length
+    each j in scorePanel.judges
+        .ve-subcard
+            .ve-subcard-title= j.name
+            if allCriteria.length
+                table.ve-score-table
+                    thead
+                        tr
+                            th Criteria
+                            th Score
+                    tbody
+                        each c in allCriteria
+                            - var s = (j.scores || []).find(x => x.criteriaid === c.criteriaid)
+                            tr
+                                td!= c.description
+                                td.score-cell= s ? s.score : ''
+            each type in ['excel', 'improve', 'other']
+                - var cm = (j.comments || []).find(x => x.type === type && x.comment)
+                if cm
+                    .hj-ctype= type === 'excel' ? 'Excelled' : (type === 'improve' ? 'Could improve' : 'Other')
+                    .hj-comment= cm.comment
+            if !(j.scores && j.scores.length) && !(j.comments && j.comments.some(c => c.comment))
+                div(style='color:#888;font-style:italic') Not yet judged.
+
+//- ── Regular category judge: comments only, anonymised ───────────────────────
+else
+    .ve-subcard
+        .ve-subcard-title Judges' Comments
+        if excelComments.length
+            .hj-ctype Areas in which this entrant excelled
             each c in excelComments
-                if scorePanel.isLeadOrChair
-                    b= 'Judge: ' + c.lastname + ': '
-                br
-                = c.comment
-                br
-                br
-
-        td(colspan='2'): hr
-
-        td(colspan='2')
-            b Judges Comments highlighting areas in which this entrant could improve next year:
-            br
-            br
+                .hj-comment= c.comment
+        if improveComments.length
+            .hj-ctype Areas to improve next year
             each c in improveComments
-                if scorePanel.isLeadOrChair
-                    b= 'Judge: ' + c.lastname + ': '
-                br
-                = c.comment
-                br
-                br
-
-        td(colspan='2'): hr
-
-        td(colspan='2')
-            b Other comments from the Judges:
-            br
-            br
+                .hj-comment= c.comment
+        if otherComments.length
+            .hj-ctype Other comments
             each c in otherComments
-                if scorePanel.isLeadOrChair
-                    b= 'Judge: ' + c.lastname + ': '
-                br
-                = c.comment
-                br
-                br
+                .hj-comment= c.comment
 
-        td(colspan='2'): hr
+//- ── Finalist review nomination reasons ──────────────────────────────────────
+if scorePanel.wildcardNoms && scorePanel.wildcardNoms.length
+    .ve-subcard
+        .ve-subcard-title Review Nomination Reasons
+        each nom in scorePanel.wildcardNoms
+            if scorePanel.isLeadOrChair
+                .hj-ctype= 'Judge: ' + (nom.lastname || '')
+            .hj-comment= nom.reason
 
-        //- Wildcard nominations
-        if scorePanel.wildcardNoms && scorePanel.wildcardNoms.length
-            td(colspan='2') Finalist Review Nomination Comments:
-            each nom in scorePanel.wildcardNoms
-                td(colspan='2')
-                    b= 'Judge: ' + (nom.lastname || '') + ': '
-                    br
-                    = nom.reason
-            td(colspan='2'): hr
+//- ── Lead judge & co-chair comments (entrant-facing, shared between them) ─────
+if scorePanel.leadChairNotes && scorePanel.leadChairNotes.length
+    .ve-subcard
+        .ve-subcard-title Lead Judge &amp; Co-chair Comments
+        each n in scorePanel.leadChairNotes
+            .hj-ctype= n.name + ' — ' + n.role
+            .hj-comment= n.comment
 
-        //- Lead judge / chair comment form
-        if scorePanel.canAddComment
-            td(colspan='2' align='center')
-                form(method='POST' action='/recordScores')
-                    input(type='hidden' name='entryid' value=entry.entryid)
-                    input(type='hidden' name='userid'  value=user.userid)
-                    div(align='left') Add your own comments for the entrant:
-                    br
-                    textarea(name='comment~other' rows='10' cols='80')= myComments.map(c => c.comment).join('\n\n')
-                    br
-                    br
-                    button.btn(type='submit') Save Comments
+//- ── Lead judge / chair own comment ──────────────────────────────────────────
+if scorePanel.canAddComment
+    .ve-subcard.hj-form
+        .ve-subcard-title Your Comment for the Entrant
+        .hj-note These comments are shown to the entrant after judging — write them for the entrant, not as notes to other judges or co-chairs.
+        form(method='POST' action='/recordScores')
+            input(type='hidden' name='entryid' value=entry.entryid)
+            input(type='hidden' name='userid'  value=user.userid)
+            textarea(name='comment~other' rows='6' placeholder='Add your own comment for the entrant (optional)…')= scorePanel.myComments.map(c => c.comment).join('\n\n')
+            div: button.btn(type='submit') Save Comment

@@ -14,6 +14,7 @@ import sequelize from './config/sequelize.js';
 import { countContentWords } from './services/helpers.js';
 import { setupAssociations } from './models/associations.js';
 import { autoCloseAllPrograms } from './services/autoClose.js';
+import { startCommentReviewJob } from './services/commentReviewJob.js';
 import { resolveProgram } from './middleware/resolveProgram.js';
 import rootLoginRouter   from './routes/rootLogin.js';
 import programRouter from './routes/program.js';
@@ -146,7 +147,10 @@ const BUILD_HASH = (() => {
 app.use((req, res, next) => {
   res.locals.currentYear = new Date().getFullYear();
   res.locals.env         = process.env.NODE_ENV || 'development';
-  res.locals.buildHash   = BUILD_HASH;
+  // In prod, the git commit hash gives stable caching. In dev it never changes
+  // for uncommitted work, so esbuild rebuilds get masked by the browser cache —
+  // use a per-request value so dev always fetches the latest CSS/JS bundles.
+  res.locals.buildHash   = isProd ? BUILD_HASH : Date.now().toString(36);
   res.locals.countContentWords = countContentWords;
   next();
 });
@@ -385,6 +389,10 @@ async function start() {
     // Runs immediately on startup and then every minute.
     autoCloseAllPrograms().catch(console.error);
     setInterval(() => autoCloseAllPrograms().catch(console.error), 60 * 1000);
+
+    // Background cross-entry comment-review job (repetition / entry-specificity).
+    // No-op unless BACKGROUND_JOBS=true — set on ONE node only in prod.
+    startCommentReviewJob();
   } catch (err) {
     console.error('Failed to start:', err);
     process.exit(1);

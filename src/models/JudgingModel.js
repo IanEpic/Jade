@@ -18,6 +18,9 @@ JudgingModel.init(
     commentsrequired:    { type: DataTypes.BOOLEAN },
     submitbuttonlabel:   { type: DataTypes.STRING },
     commentguidelines:   { type: DataTypes.TEXT },
+    commentexamplesgood: { type: DataTypes.TEXT },
+    commentexamplesbad:  { type: DataTypes.TEXT },
+    finalisttextrules:   { type: DataTypes.TEXT },
   },
   {
     sequelize,

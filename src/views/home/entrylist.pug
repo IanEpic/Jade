@@ -27,6 +27,8 @@ style.
     .flags-select { display: flex; flex-direction: column; gap: 6px; }
     .flags-select label { font-size: 13px; color: #ccc; }
     .flags-select .flags-original { font-size: 12px; color: #888; margin-top: 2px; }
+    .flags-finalist-note { font-size: 12px; color: #888; margin: 8px 0 0; }
+    .flags-finalist-note.warn { color: #c48f06; }
     .flags-select select { background: #111; color: #fff; border: 1px solid #555; border-radius: 4px; padding: 5px 8px; font-size: 13px; max-width: 340px; }
     .flags-select select:focus { border-color: #c48f06; outline: none; }
     .transfer-ac { position: relative; max-width: 420px; }
@@ -70,6 +72,10 @@ if user && user.admin
                     label
                         input(type='checkbox' name='finalised' id='flags-finalised')
                         | Finalised
+                    label(title='Awards finalist status — e.g. an additional finalist chosen at the review teleconference')
+                        input(type='checkbox' name='finalist' id='flags-finalist')
+                        | Finalist
+                p.flags-finalist-note#flags-finalist-note
             fieldset#flags-catoverride-fieldset
                 legend Category Override
                 .flags-select
@@ -105,7 +111,7 @@ if user && user.admin
 
 form(data-nosubmit)
     .el-toolbar
-        input#entry-search(type='text' placeholder='Search… or :unpaid :invoiced :finalised :open' data-filter='.el-table tbody tr')
+        input#entry-search(type='text' placeholder='Search… or :unpaid :invoiced :finalised :finalist :open' data-filter='.el-table tbody tr')
 
     table.el-table
         thead
@@ -129,6 +135,7 @@ form(data-nosubmit)
                     data-entryaccepted=entry.entryaccepted ? '1' : '0'
                     data-entryopen=entry.entryopen ? '1' : '0'
                     data-finalised=entry.finalised ? '1' : '0'
+                    data-finalist=entry.finalist ? '1' : '0'
                     data-originalcatid=entry.originalcatid || ''
                     data-originalcatname=origCat ? origCat.name : ''
                     data-categoryname=entry.categoryname || ''

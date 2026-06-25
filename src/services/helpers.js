@@ -231,7 +231,7 @@ export function escapeChars(input) {
 
 // Replaces: checkemail($email)
 export function checkEmail(email) {
-    return /^[a-zA-Z0-9][\w+\-.']* @(?:[\w-]+\.)+[a-zA-Z]{2,}$/.test(email);
+    return /^[a-zA-Z0-9][\w+\-.']*@(?:[\w-]+\.)+[a-zA-Z]{2,}$/.test(email);
 }
 
 // Replaces: is_integer($val)

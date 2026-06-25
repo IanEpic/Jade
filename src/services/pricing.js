@@ -24,16 +24,23 @@ export async function getEntrycost(entryId, userId) {
  */
 export async function getApplicableDiscounts(programId, date = new Date(), code = null) {
     const pool = await getPool();
+    // Compare on the calendar DATE only. Build a 'YYYY-MM-DD' from the date's LOCAL
+    // components so the driver doesn't shift the day across the UTC boundary — otherwise
+    // the time-of-day of an online payment could land it on the wrong side of validto.
+    const d = date instanceof Date ? date : new Date(date);
+    const ymd = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
     const r = await pool.request()
-        .input('programid', sql.Int,      programId)
-        .input('now',       sql.DateTime, date)
+        .input('programid', sql.Int,        programId)
+        .input('now',       sql.VarChar(10), ymd)
         .query(`
             SELECT * FROM ProgramDiscount
             WHERE programid = @programid
               AND active = 1
-              AND (validfrom IS NULL OR validfrom <= @now)
+              AND (validfrom IS NULL OR CAST(validfrom AS DATE) <= CAST(@now AS DATE))
               AND (
-                    (type = 'earlybird' AND (validto IS NULL OR validto >= @now))
+                    -- validto is INCLUSIVE of the whole day (compare calendar dates so the
+                    -- time-of-day of an online payment doesn't exclude same-day payers)
+                    (type = 'earlybird' AND (validto IS NULL OR CAST(validto AS DATE) >= CAST(@now AS DATE)))
                  OR  type = 'code'
               )
               AND (maxuses IS NULL OR usecount < maxuses)
@@ -69,6 +76,21 @@ export function computeBestDiscount(discounts, entryCount, subtotalInc) {
         }
     }
     return best;
+}
+
+/**
+ * The program's active early-bird discount row (regardless of whether the window is
+ * still open), so the Receive Payment screen can show the discounted amount and apply
+ * it when a payment is dated on/before validto. Returns the row or null.
+ */
+export async function getEarlyBirdDiscount(programId) {
+    const pool = await getPool();
+    const r = await pool.request()
+        .input('programid', sql.Int, programId)
+        .query(`SELECT TOP 1 * FROM ProgramDiscount
+                WHERE programid = @programid AND active = 1 AND type = 'earlybird'
+                ORDER BY validto DESC`);
+    return r.recordset[0] || null;
 }
 
 /**

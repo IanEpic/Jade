@@ -29,6 +29,7 @@ import finaliseEntryRouter    from './finaliseEntry.js';
 import formJudgeRouter        from './formJudge.js';
 import judgeAllocationRouter  from './judgeAllocation.js';
 import judgeEmailRouter       from './judgeEmail.js';
+import judgeReworkRouter      from './judgeRework.js';
 import judgetcRouter          from './judgetc.js';
 import nominateWinnerRouter   from './nominatewinner.js';
 import nominateWildcardRouter from './nominatewildcard.js';
@@ -48,6 +49,10 @@ import reportActiveUsersRouter    from './reportActiveUsers.js';
 import reportPaidNotFinalisedRouter from './reportPaidNotFinalised.js';
 import reportFinalisedNotPaidRouter from './reportFinalisedNotPaid.js';
 import reportEntriesByCategoryRouter from './reportEntriesByCategory.js';
+import reportFinalistsRouter        from './reportFinalists.js';
+import finalistTextRouter          from './finalistText.js';
+import categoryTypesRouter         from './categoryTypes.js';
+import receivePaymentRouter        from './receivePayment.js';
 
 const router = Router({ mergeParams: true });
 
@@ -102,6 +107,7 @@ router.use('/finaliseEntry',       finaliseEntryRouter);
 router.use('/formJudge',           formJudgeRouter);
 router.use('/judgeAllocation',     judgeAllocationRouter);
 router.use('/judgeEmail',          judgeEmailRouter);
+router.use('/judgeRework',         judgeReworkRouter);
 router.use('/judgetc',             judgetcRouter);
 router.use('/nominatewinner',      nominateWinnerRouter);
 router.use('/nominatewildcard',    nominateWildcardRouter);
@@ -120,6 +126,10 @@ router.use('/reportActiveUsers',      reportActiveUsersRouter);
 router.use('/reportPaidNotFinalised', reportPaidNotFinalisedRouter);
 router.use('/reportFinalisedNotPaid', reportFinalisedNotPaidRouter);
 router.use('/reportEntriesByCategory', reportEntriesByCategoryRouter);
+router.use('/reportFinalists',         reportFinalistsRouter);
+router.use('/finalistText',            finalistTextRouter);
+router.use('/categoryTypes',           categoryTypesRouter);
+router.use('/receivePayment',          receivePaymentRouter);
 
 // ── Compatibility shims ───────────────────────────────────────────────────────
 // Legacy .cgi URLs that may still appear in bookmarks.
@@ -133,7 +143,7 @@ router.get('/response/:entryid/:page', (req, res) =>
 );
 
 // ── Emulation ─────────────────────────────────────────────────────────────────
-router.get('/emulate', (req, res) => {
+router.get('/emulate', (req, res, next) => {
     const { userId } = req.query;
     if (!req.session?.userId) return res.redirect('/login');
     if (userId && req.session.adminUserId) {
@@ -144,7 +154,13 @@ router.get('/emulate', (req, res) => {
     } else {
         req.session.emulateUserId = null;
     }
-    res.redirect(`/${req.program.slug}/home`);
+    // Persist the session before redirecting — the store is async (MssqlStore),
+    // so without this the next GET /home can read the old session and miss the
+    // emulation state until a manual refresh.
+    req.session.save(err => {
+        if (err) return next(err);
+        res.redirect(`/${req.program.slug}/home`);
+    });
 });
 
 export default router;

@@ -90,7 +90,7 @@
         var btn = paymentsopen ? btnPayOpen : btnPayClose;
         if (btn) { btn.disabled = true; btn.textContent = 'Saving…'; }
 
-        var fd = new FormData();
+        var fd = new URLSearchParams();
         ids.forEach(function (id) { fd.append('userids', id); });
         fd.append('paymentsopen', paymentsopen ? '1' : '0');
 

@@ -24,7 +24,7 @@ router.post('/', async (req, res, next) => {
         const user = req.user;
         if (!user.admin) return res.status(403).send('Forbidden');
 
-        const { entryid, entryaccepted, entryopen, finalised, overridecatid } = req.body;
+        const { entryid, entryaccepted, entryopen, finalised, finalist, overridecatid } = req.body;
         if (!entryid) return isAjax(req) ? res.json({ ok: false }) : res.redirect('/home?action=entrylist');
 
         const entry = await Entry.findByPk(entryid);
@@ -34,6 +34,7 @@ router.post('/', async (req, res, next) => {
             entryaccepted: entryaccepted === 'on' ? 1 : 0,
             entryopen:     entryopen     === 'on' ? 1 : 0,
             finalised:     finalised     === 'on' ? 1 : 0,
+            finalist:      finalist      === 'on' ? 1 : 0,
         };
 
         if (overridecatid) {
@@ -61,6 +62,7 @@ router.post('/', async (req, res, next) => {
                 entryaccepted: entry.entryaccepted,
                 entryopen:    entry.entryopen,
                 finalised:    entry.finalised,
+                finalist:     entry.finalist,
                 categoryid:   entry.categoryid,
                 originalcatid: entry.originalcatid ?? null,
             });

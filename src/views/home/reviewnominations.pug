@@ -1,0 +1,43 @@
+//- home/reviewnominations.pug
+//- Admin summary of finalist-review nominations, grouped by category (lead judge).
+//- Helps an admin see which entries need a review meeting, with who nominated and why.
+
+style.
+    .rn-wrap { max-width: 820px; margin: 0 auto; }
+    .rn-wrap h2 { text-align: center; color: #c48f06; font-size: 20px; font-weight: 600; margin: 0 0 6px; }
+    .rn-intro { text-align: center; color: #aaa; font-size: 13px; margin: 0 0 18px; }
+    .rn-card { border: 1px solid #555; border-radius: 4px; padding: 14px 18px; margin-bottom: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.07); }
+    .rn-card-title { color: #c48f06; font-size: 14px; font-weight: 600; margin: 0 0 2px; }
+    .rn-lead { color: #888; font-size: 12px; margin: 0 0 10px; padding-bottom: 8px; border-bottom: 1px solid #333; }
+    .rn-entry { padding: 8px 0; border-bottom: 1px solid #222; }
+    .rn-entry:last-child { border-bottom: none; }
+    .rn-entry-head { display: flex; justify-content: space-between; align-items: center; }
+    .rn-entry-name { color: #e0b060; font-size: 14px; }
+    .rn-entry-head a { color: #c9b27a; text-decoration: underline; text-underline-offset: 2px; font-size: 13px; }
+    .rn-entry-head a:hover { color: #cf9702; }
+    .rn-nom { margin: 4px 0 0 12px; }
+    .rn-nom-by { font-size: 12px; color: #999; }
+    .rn-nom-reason { color: #ccc; white-space: pre-wrap; margin-top: 1px; }
+    .rn-none { color: #888; font-style: italic; font-size: 13px; }
+
+.rn-wrap
+    h2 Review Nominations
+    p.rn-intro Non-finalists nominated for reconsideration during finalist review, grouped by category and lead judge — for organising the review meeting.
+
+    if !content.cats.length
+        p.rn-none No entries have been nominated for review.
+
+    each cat in content.cats
+        .rn-card
+            .rn-card-title= cat.name
+            .rn-lead Lead judge: #{cat.leadName}
+            each entry in cat.entries
+                .rn-entry
+                    .rn-entry-head
+                        span.rn-entry-name= entry.name
+                        a(href='/viewEntry?entryid=' + entry.entryid + '&task=review') View
+                    each nom in entry.noms
+                        .rn-nom
+                            .rn-nom-by Nominated by #{nom.name}
+                            if nom.reason
+                                .rn-nom-reason= nom.reason

@@ -21,8 +21,10 @@ router.post('/', async (req, res, next) => {
         const { excel = '', improve = '', other = '' } = req.body;
         if (!excel && !improve && !other) return res.json({ ok: true });
 
-        const feedback = await checkComments({ excel, improve, other, guidelines: jm.commentguidelines });
-        if (feedback) return res.json({ ok: false, feedback });
+        const result = await checkComments({ excel, improve, other, guidelines: jm.commentguidelines, examplesGood: jm.commentexamplesgood, examplesBad: jm.commentexamplesbad });
+        // Only a clear violation blocks the judge here; a 'review' (borderline) result
+        // is saved silently and surfaced to admins, so it must not nag the judge.
+        if (result.verdict === 'fail') return res.json({ ok: false, feedback: result.message });
         return res.json({ ok: true });
 
     } catch (err) { next(err); }

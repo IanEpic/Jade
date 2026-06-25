@@ -1,0 +1,38 @@
+//- home/revisecomments.pug
+//- Judge view: entries sent back by an admin for comment revision.
+//- Opening an entry shows the comments-only edit panel (scores read-only).
+
+style.
+    .rv-wrap { max-width: 900px; margin: 0 auto; }
+    .rv-wrap h2 { text-align: center; color: #c48f06; font-size: 20px; font-weight: 600; margin: 0 0 6px; }
+    .rv-intro { text-align: center; color: #aaa; font-size: 13px; margin: 0 0 18px; }
+    .rv-card { border: 1px solid #555; border-radius: 4px; padding: 16px 20px 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.07); }
+    .rv-card-title { color: #c48f06; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; margin: 0 0 10px; padding-bottom: 8px; border-bottom: 1px solid #333; }
+    .rv-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    .rv-table th { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: #c48f06; border-bottom: 1px solid #555; padding: 6px 10px; text-align: left; }
+    .rv-table td { padding: 7px 10px; border-bottom: 1px solid #2a2a2a; vertical-align: middle; }
+    .rv-table tr:hover td { background: rgba(255,255,255,0.04); }
+    .rv-table td.act { text-align: center; width: 80px; }
+    .rv-none { color: #888; font-style: italic; }
+
+.rv-wrap
+    h2 Comments to Revise
+    p.rv-intro These entries have been sent back for you to revise your comments. Scores cannot be changed.
+
+    .rv-card
+        p.rv-card-title Flagged Entries
+        if !content.entries.length
+            p.rv-none You have no comments to revise.
+        else
+            table.rv-table
+                thead
+                    tr
+                        th Entrant
+                        th Category
+                        th.act
+                tbody
+                    each entry in content.entries
+                        tr
+                            td= entry.finalisttext || entry.entrantname
+                            td= entry.categoryname
+                            td.act: a.btn-secondary(href='/viewEntry?entryid=' + entry.entryid) Revise

@@ -25,8 +25,10 @@ import { loadAddressesForCredential } from '../../services/addressService.js';
 import JudgeCategoryLink       from '../../models/JudgeCategoryLink.js';
 import UserCredential          from '../../models/UserCredential.js';
 import JudgingModel            from '../../models/JudgingModel.js';
+import CategoryType            from '../../models/CategoryType.js';
 import { currency, PASSWORD_RULES } from '../../services/helpers.js';
 import { translate }           from '../../services/translate.js';
+import { buildWinnerNomination } from './winnerNomination.js';
 import {
     getAllCategories,
     getQuestionsByType,
@@ -39,6 +41,8 @@ import {
     getCriteriaForCategory,
     getScoreForEntryCriteriaJudge,
     getJudgeCommentsForEntryByJudge,
+    getJudgeEntryLink,
+    getJudgeEntryLinksForCategory,
     getAllUsersForProgram,
     getActiveSessionUserIds,
     getEntryStats,
@@ -50,7 +54,11 @@ import {
     getActiveUsersReport,
     getPaidNotFinalisedReport,
     getFinalisedNotPaidReport,
+    getFinalistsForProgram,
+    getOutstandingInvoices,
 } from '../../queries/homeQueries.js';
+import { getEarlyBirdDiscount, computeBestDiscount } from '../../services/pricing.js';
+import { getReviewNominationsForProgram } from '../../queries/entryQueries.js';
 
 async function loadJudgingModel(judgingmodelid) {
     if (!judgingmodelid) return {};
@@ -59,6 +67,146 @@ async function loadJudgingModel(judgingmodelid) {
 }
 
 export async function handleAdminAction(action, req, res, program, user) {
+
+    if (action === 'nominatewinner') {
+        return buildWinnerNomination({ program, user, saved: req.query.saved === '1' });
+    }
+
+    if (action === 'receivepayment') {
+        // Outstanding invoices for admin to record EFT / card payments against.
+        const raw = await getOutstandingInvoices({ programId: program.programid });
+        const eb  = await getEarlyBirdDiscount(program.programid);
+        const num = id => (program.invoicenoprecursor || '') + String(id).padStart(5, '0');
+        const invoices = raw.map(r => {
+            const full   = (+r.totalex || 0) + (+r.gst || 0) - (+r.partnerdiscount || 0)
+                         - (+r.multientryadjustment || 0) - (+r.ebdiscount || 0);
+            const ebDisc = eb ? (computeBestDiscount([eb], r.entrycount, full)?.discountInc || 0) : 0;
+            const paid   = +r.paid || 0;
+            return {
+                invoiceid:  r.invoiceid,
+                invoiceno:  num(r.invoiceid),
+                entrant:    r.invoicee || `${r.firstname || ''} ${r.lastname || ''}`.trim() || r.organisation || ('User ' + r.userid),
+                entrycount: r.entrycount,
+                unaccepted: r.unaccepted,
+                full:       +full.toFixed(2),
+                ebDiscount: +ebDisc.toFixed(2),
+                ebAmount:   +(full - ebDisc).toFixed(2),
+                paid:       +paid.toFixed(2),
+                balance:    +(full - paid).toFixed(2),
+            };
+        });
+        const thisYear = new Date().getFullYear();
+        return {
+            view: 'home/receivepayment',
+            invoices,
+            ebDate:  eb?.validto ? new Date(eb.validto).toISOString().slice(0, 10) : null,
+            today:   new Date().toISOString().slice(0, 10),
+            ccYears: Array.from({ length: 11 }, (_, i) => thisYear + i),
+            saved:   req.query.saved === '1',
+            carderror: req.query.carderror || null,
+            allocerror: req.query.allocerror === '1',
+        };
+    }
+
+    if (action === 'categorytypes') {
+        // Setup: create/rename/delete types + assign categories (no rules).
+        const [types, categories] = await Promise.all([
+            CategoryType.findAll({ where: { programid: program.programid, deleted: false }, order: [['orda', 'ASC']] }),
+            Category.findAll({ where: { programid: program.programid, deleted: false }, order: [['orda', 'ASC'], ['categoryid', 'ASC']] }),
+        ]);
+        return {
+            view: 'home/categorytypes',
+            types:      types.map(t => ({ categorytypeid: t.categorytypeid, name: t.name })),
+            categories: categories.map(c => ({ categoryid: c.categoryid, name: c.name, categorytypeid: c.categorytypeid })),
+        };
+    }
+
+    if (action === 'finalisttextrules') {
+        // AI Rules: program-wide finalist-text rules + per-type rules.
+        const [types, jm] = await Promise.all([
+            CategoryType.findAll({ where: { programid: program.programid, deleted: false }, order: [['orda', 'ASC']] }),
+            program.judgingmodelid ? JudgingModel.findByPk(program.judgingmodelid) : null,
+        ]);
+        return {
+            view: 'home/finalisttextrules',
+            types:       types.map(t => t.toJSON()),
+            globalRules: jm?.finalisttextrules || '',
+        };
+    }
+
+    if (action === 'judgingguidelines') {
+        // AI Rules: the comment-check guidelines + good/bad examples the AI uses.
+        const jm = program.judgingmodelid ? await JudgingModel.findByPk(program.judgingmodelid) : null;
+        return {
+            view: 'home/judgingguidelines',
+            guidelines:   jm?.commentguidelines   || '',
+            examplesGood: jm?.commentexamplesgood || '',
+            examplesBad:  jm?.commentexamplesbad  || '',
+        };
+    }
+
+    if (action === 'finalisttextadmin') {
+        // Editable list of accepted entries + their finalist text, grouped by category.
+        const all = await getAllEntriesForProgram({ programId: program.programid });
+        const accepted = all.filter(e => e.entryaccepted);
+        const catMap = new Map();
+        let blanks = 0;
+        for (const e of accepted) {
+            if (!catMap.has(e.categoryid)) {
+                catMap.set(e.categoryid, { categoryid: e.categoryid, name: e.categoryname, entries: [] });
+            }
+            const ft = e.finalisttext || '';
+            if (!ft) blanks++;
+            catMap.get(e.categoryid).entries.push({
+                entryid: e.entryid, entrantname: e.entrantname, finalisttext: ft,
+            });
+        }
+        return { view: 'home/finalisttextadmin', cats: [...catMap.values()], total: accepted.length, blanks };
+    }
+
+    if (action === 'finalistlist') {
+        // Finalists grouped by category, with an Excel export.
+        const rows = await getFinalistsForProgram({ programId: program.programid });
+        const catMap = new Map();
+        for (const r of rows) {
+            if (!catMap.has(r.categoryid)) {
+                catMap.set(r.categoryid, { categoryid: r.categoryid, name: r.categoryname, finalists: [] });
+            }
+            catMap.get(r.categoryid).finalists.push({
+                entryid:     r.entryid,
+                name:        r.finalisttext || r.entrantname,
+                entrantname: r.entrantname,
+            });
+        }
+        return { view: 'home/finalistlist', cats: [...catMap.values()], total: rows.length };
+    }
+
+    if (action === 'reviewnominations') {
+        // Admin summary of finalist-review nominations, grouped by category (lead
+        // judge) → entry → nominators, to help organise the review meeting.
+        const rows = await getReviewNominationsForProgram({ programId: program.programid });
+        const catMap = new Map();
+        for (const r of rows) {
+            if (!catMap.has(r.categoryid)) {
+                catMap.set(r.categoryid, {
+                    categoryid: r.categoryid,
+                    name:       r.categoryname,
+                    leadName:   ((r.leadfirst || '') + ' ' + (r.leadlast || '')).trim() || '—',
+                    entries:    new Map(),
+                });
+            }
+            const cat = catMap.get(r.categoryid);
+            if (!cat.entries.has(r.entryid)) {
+                cat.entries.set(r.entryid, { entryid: r.entryid, name: r.finalisttext || r.entrantname, noms: [] });
+            }
+            cat.entries.get(r.entryid).noms.push({
+                name:   ((r.nomfirst || '') + ' ' + (r.nomlast || '')).trim() || ('User ' + r.nominatorid),
+                reason: r.reason,
+            });
+        }
+        const cats = [...catMap.values()].map(c => ({ ...c, entries: [...c.entries.values()] }));
+        return { view: 'home/reviewnominations', cats };
+    }
 
     if (action === 'program') {
         const isEntriesOpenDefault  = !!program.entriesopendefault;
@@ -157,10 +305,15 @@ export async function handleAdminAction(action, req, res, program, user) {
             criteria = await Criteria.findAll({ where: { categoryid }, order: [['orda', 'ASC'], ['criteriaid', 'ASC']] });
         }
 
+        const categoryTypes = await CategoryType.findAll({
+            where: { programid: program.programid, deleted: false }, order: [['orda', 'ASC']],
+        });
+
         return {
             view:      'home/category',
             category:  category ? category.toJSON() : null,
             criteria, questions, eligibilities,
+            categoryTypes: categoryTypes.map(t => t.toJSON()),
             isNew:     !categoryid,
             saved:     req.query.saved === '1',
         };
@@ -253,10 +406,18 @@ export async function handleAdminAction(action, req, res, program, user) {
             getAllCategories({ programId: program.programid }),
             getJudgesForProgram({ programId: program.programid, useSimplejudging: program.usesimplejudging }),
         ]);
+        const allEntries = await getAllEntriesForProgram({ programId: program.programid });
         const catData = await Promise.all(cats.map(async cat => {
             const catJudges  = await getJudgesForCategory({ categoryId: cat.categoryid });
-            const catEntries = (await getAllEntriesForProgram({ programId: program.programid }))
-                .filter(e => e.categoryid === cat.categoryid && e.entryaccepted);
+            const links      = await getJudgeEntryLinksForCategory({ categoryId: cat.categoryid });
+            const byEntry    = new Map();
+            for (const l of links) {
+                if (!byEntry.has(l.entryid)) byEntry.set(l.entryid, new Set());
+                byEntry.get(l.entryid).add(l.userid);
+            }
+            const catEntries = allEntries
+                .filter(e => e.categoryid === cat.categoryid && e.entryaccepted)
+                .map(e => ({ ...e, assignedJudgeIds: byEntry.get(e.entryid) || new Set() }));
             return { ...cat, judges: catJudges, entries: catEntries };
         }));
         return { view: 'home/allocatejudges', cats: catData, allJudges: judges, translate };
@@ -293,6 +454,39 @@ export async function handleAdminAction(action, req, res, program, user) {
             return { ...cat, judges: judgeData, criteria };
         }));
         return { view: 'home/judgecheck', cats: catData, judgingModel };
+    }
+
+    if (action === 'reviewcomments') {
+        // Admin review queue — grouped by judge, showing ONLY comments flagged for
+        // human review (reviewrequested). Per judge: batch-select entries to send
+        // back for rework; per comment: clear the flag (optionally learn from it).
+        const judges = await getJudgesForProgram({ programId: program.programid, useSimplejudging: program.usesimplejudging });
+        const judgeData = await Promise.all(judges.map(async judge => {
+            const entries = await getEntriesAssignedToJudge({ userId: judge.userid });
+            const entryData = await Promise.all(entries.map(async entry => {
+                const comments = (await getJudgeCommentsForEntryByJudge({ entryId: entry.entryid, userId: judge.userid }))
+                    .filter(c => c.reviewrequested);
+                if (!comments.length) return null;
+                const link = await getJudgeEntryLink({ entryId: entry.entryid, userId: judge.userid });
+                return {
+                    entryid:       entry.entryid,
+                    entrantname:   entry.finalisttext || entry.entrantname,
+                    categoryname:  entry.categoryname,
+                    comments,
+                    commentreview: link && link.commentreview ? 1 : 0,
+                };
+            }));
+            const flagged = entryData.filter(Boolean);
+            return flagged.length
+                ? { userid: judge.userid, firstname: judge.firstname, lastname: judge.lastname, entries: flagged }
+                : null;
+        }));
+        return {
+            view:    'home/reviewcomments',
+            judges:  judgeData.filter(Boolean),
+            sent:    req.query.sent === '1',
+            cleared: req.query.cleared === '1',
+        };
     }
 
     if (action === 'users') {
@@ -364,25 +558,41 @@ export async function handleAdminAction(action, req, res, program, user) {
         if (judgeid) {
             const judge = await User.findByPk(judgeid);
             if (!judge) { res.redirect('/home?action=judge'); return null; }
-            const [linkedLinks, hjCats] = await Promise.all([
+            const [linkedLinks, hjCats, credential] = await Promise.all([
                 JudgeCategoryLink.findAll({ where: { userid: judgeid } }),
                 Category.findAll({ where: { userid: judgeid, programid: program.programid, deleted: false } }),
+                judge.credentialid ? UserCredential.findByPk(judge.credentialid) : null,
             ]);
             const linkedSet = new Set(linkedLinks.map(l => l.categoryid));
             const hjSet     = new Set(hjCats.map(c => c.categoryid));
+            const judgeJson = judge.toJSON();
+            // firstname/lastname/email live on UserCredential (migration 036).
+            judgeJson.firstname = credential?.firstname || '';
+            judgeJson.lastname  = credential?.lastname  || '';
+            judgeJson.email     = credential?.email     || '';
             return {
                 view: 'home/formJudge',
-                judge: judge.toJSON(),
+                judge: judgeJson,
                 categories: categories.map(c => ({ ...c.toJSON(), linked: linkedSet.has(c.categoryid), headjudge: hjSet.has(c.categoryid) })),
                 isNew: false, existingUser: null, prefill: null,
+                error: req.query.error || null,
             };
         }
 
         // Conflict redirect from POST: ?conflict=1&existinguserid=X&email=…&firstname=…&lastname=…&cats=1,2,3
-        const existingUser = req.query.conflict && req.query.existinguserid
-            ? (await User.findByPk(parseInt(req.query.existinguserid)))?.toJSON() ?? null
-            : null;
-        const prefill = req.query.conflict
+        let existingUser = null;
+        if (req.query.conflict && req.query.existinguserid) {
+            const eu = await User.findByPk(parseInt(req.query.existinguserid));
+            if (eu) {
+                existingUser = eu.toJSON();
+                // firstname/lastname/email live on UserCredential (migration 036)
+                const cred = eu.credentialid ? await UserCredential.findByPk(eu.credentialid) : null;
+                existingUser.firstname = cred?.firstname || '';
+                existingUser.lastname  = cred?.lastname  || '';
+                existingUser.email     = cred?.email     || req.query.email || '';
+            }
+        }
+        const prefill = (req.query.conflict || req.query.error)
             ? { firstname: req.query.firstname || '', lastname: req.query.lastname || '', email: req.query.email || '' }
             : null;
         const preselectedCats = req.query.cats
@@ -394,6 +604,7 @@ export async function handleAdminAction(action, req, res, program, user) {
             judge: null,
             categories: categories.map(c => ({ ...c.toJSON(), linked: preselectedCats.has(c.categoryid), headjudge: false })),
             isNew: true, existingUser, prefill,
+            error: req.query.error || null,
         };
     }
 
