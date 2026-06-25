@@ -12,6 +12,7 @@ import CategoryType from '../models/CategoryType.js';
 import JudgingModel from '../models/JudgingModel.js';
 import { getFinalistTextExamples, getEntryResponsesForText } from '../queries/entryQueries.js';
 import { generateFinalistText } from '../services/finalistText.js';
+import { resolveEventStates } from '../services/eventStates.js';
 
 const router = Router();
 router.use(requireAuth, requireAdmin);
@@ -45,8 +46,12 @@ router.post('/generate', async (req, res, next) => {
             typeName:    type?.name || '',
             typeRules:   type?.rules || '',
         });
-        await entry.update({ finalisttext: text });
-        res.json({ ok: true, entryid, text });
+        // Also resolve & store the event's state(s) now (structured checkbox, AI fallback)
+        // so the State-Finalist tool can read it later without re-processing every entry.
+        let eventstates = entry.eventstates;
+        try { eventstates = await resolveEventStates({ entryId: entryid, responses }); } catch { /* keep prior */ }
+        await entry.update({ finalisttext: text, eventstates });
+        res.json({ ok: true, entryid, text, eventstates });
     } catch (err) { next(err); }
 });
 

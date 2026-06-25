@@ -166,3 +166,18 @@ suggests more remain. Seed is dirty=1 only if unchecked comments already exist, 
 Generalises to any future background job.
 
 - Applied to DEV: 2026-06-25 ✓  | PROD: 2026-06-25 ✓
+
+## 055 — Entry.eventstates for the State-Finalist tool
+
+`055_entry_eventstates.sql`
+
+Adds `Entry.eventstates` (NVARCHAR(100), nullable) — the state(s)/territory an event ran
+in, decoded from the structured "In which states or territories…" checkbox (comma-joined
+codes e.g. `NSW, VIC`, or `NATIONAL` for 4+, or `UNKNOWN`). Populated at finalist-text time
+and by the State-Finalist tool's preview. Companion code (deterministic, no AI):
+`services/eventStates.js`, `services/stateFinalists.js`, the Admin → Tools → "Get State
+Finalists" action (preview → write `Entry.statefinalist`; read-back from DB after).
+Also fixes the multi-select checkbox decode in `getEntryResponsesForText` (`~`-separated,
+not `,`), so the finalist-text AI sees multi-state events.
+
+- Applied to DEV: 2026-06-25 ✓  | PROD: pending

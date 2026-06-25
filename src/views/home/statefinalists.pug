@@ -1,0 +1,95 @@
+-
+    var slug        = program.slug
+    var baseUrl     = '/' + slug + '/home?action=statefinalists'
+    var minRawScore = content.minRawScore
+    var categories  = content.categories
+    var unresolved  = content.unresolved
+    var ensured     = content.ensured || {}
+
+style.
+    .sf-wrap { max-width: 900px; margin: 0 auto; }
+    .sf-wrap h2 { text-align: center; color: #c48f06; margin-bottom: 6px; }
+    .sf-intro { text-align: center; color: #aaa; font-size: 13px; margin: 0 auto 16px; max-width: 760px; }
+    .sf-options { display: flex; align-items: center; gap: 24px; margin-bottom: 18px; flex-wrap: wrap; padding: 10px 14px; background: #1a1a1a; border: 1px solid #444; border-radius: 4px; }
+    .sf-options label { display: flex; align-items: center; gap: 6px; font-size: 13px; color: #bbb; }
+    .sf-options input[type=number] { width: 64px; background: #111; color: #fff; border: 1px solid #555; border-radius: 4px; padding: 4px 8px; font-size: 13px; }
+    .sf-meta { font-size: 12px; color: #888; margin-left: auto; }
+    .sf-card { border: 1px solid #3a3a3a; border-radius: 6px; margin-bottom: 18px; overflow: hidden; }
+    .sf-card-header { background: #1e1e1e; padding: 9px 16px; font-size: 13px; font-weight: 600; color: #c48f06; border-bottom: 1px solid #333; }
+    .sf-cat { width: 100%; border-collapse: collapse; }
+    .sf-cat td { padding: 7px 0; font-size: 13px; line-height: 1.45; vertical-align: top; border-top: 1px solid #222; }
+    .sf-cat tr:first-child td { border-top: none; }
+    .sf-cat tr.state-start:not(:first-child) td { border-top: 1px solid #383838; }
+    .sf-cat td.sf-state-col { width: 1%; white-space: nowrap; padding-left: 16px; padding-right: 18px; }
+    .sf-cat tr:not(.state-start) td.sf-state-col { border-top: none; }
+    .sf-cat td.sf-ft { color: #ededed; padding-right: 14px; }
+    .sf-cat td.sf-sc { text-align: right; white-space: nowrap; color: #9a9a9a; font-variant-numeric: tabular-nums; width: 64px; padding-right: 16px; }
+    .sf-cat tr.is-national td.sf-ft { color: #898989; }
+    .sf-cat tr.is-national td.sf-sc { color: #6e6e6e; }
+    .sf-state-code { display: inline-block; min-width: 34px; text-align: center; font-size: 11px; font-weight: 700; letter-spacing: .03em; color: #7fb8e0; background: #14242e; border: 1px solid #1e3a48; border-radius: 3px; padding: 2px 3px; }
+    .nat-badge { display: inline-block; margin-left: 8px; font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: #7fb8e0; background: #15303f; border: 1px solid #1e4257; border-radius: 3px; padding: 1px 5px; vertical-align: 1px; white-space: nowrap; }
+    .sf-warn { background: #3a2a1a; border-left: 4px solid #c48f06; color: #f0d9a8; padding: 10px 14px; font-size: 13px; margin-bottom: 16px; }
+    .sf-warn ul { margin: 6px 0 0; padding-left: 18px; }
+    .sf-ok { background:#1a4a1a; border-left:4px solid #4c4; color:#cfc; padding:10px 14px; font-size:13px; margin-bottom:16px; }
+    .sf-saved { background:#16252e; border-left:4px solid #3a6e8a; color:#bcd; padding:10px 14px; font-size:13px; margin-bottom:16px; }
+    .form-actions { margin-top: 20px; display: flex; gap: 8px; align-items: center; justify-content: center; }
+
+.sf-wrap
+    h2 State / Territory Finalists
+    p.sf-intro Best Event categories only. Run this <b>after</b> Calc Final Scores. For each state, the top 2 eligible entries that ran there are taken; the non-national-finalists among them become that state&rsquo;s finalists. National (4+ state) events and entries below the minimum raw score are excluded.
+
+    if content.wrote
+        .sf-ok State finalists written to the database — #{content.wroteCount} entr#{content.wroteCount === 1 ? 'y' : 'ies'} flagged across their states. (Entrants see these in the portal.)
+
+    if content.saved
+        p.sf-saved Saved state finalists, loaded from the database (#{content.finalistCount} entr#{content.finalistCount === 1 ? 'y' : 'ies'}). Re-calculate if scores or finalists have changed.
+    else
+        .sf-options
+            label
+                | Min raw score
+                input(type='number' id='sfMinRaw' min='0' max='10' step='0.01' value=minRawScore)
+            span.sf-meta
+                | states resolved: #{ensured.filled || 0} · national: #{ensured.national || 0} · unknown: #{ensured.unknown || 0}
+
+        if unresolved && unresolved.length
+            .sf-warn
+                | #{unresolved.length} eligible entr#{unresolved.length === 1 ? 'y has' : 'ies have'} no determinable state (the &ldquo;states&rdquo; checkbox was left blank). Fix the entry&rsquo;s state checkbox, then re-run — they&rsquo;re excluded until then.
+                ul
+                    each u in unresolved
+                        li #{u.entrant || ('Entry ' + u.entryid)} — #{u.categoryname} (#[a(href='/' + slug + '/viewEntry?entryid=' + u.entryid target='_blank' style='color:#c48f06') #{u.entryid}])
+
+    if !categories || !categories.length
+        p(style='color:#aaa;') No state finalists found. Make sure Calc Final Scores has been run and the Best Event entries have their state checkbox completed.
+    else
+        each cat in categories
+            .sf-card
+                .sf-card-header= cat.categoryname
+                table.sf-cat
+                    each sb in cat.states
+                        each e, i in sb.entries
+                            tr(class=(i === 0 ? 'state-start ' : '') + (e.national ? 'is-national' : ''))
+                                td.sf-state-col
+                                    if i === 0
+                                        span.sf-state-code= sb.state
+                                td.sf-ft
+                                    = e.finalisttext || e.entrant || ('Entry ' + e.entryid)
+                                    if e.national
+                                        span.nat-badge National Finalist
+                                td.sf-sc= e.finalscore != null ? e.finalscore.toFixed(2) : ''
+
+        .form-actions
+            if content.saved
+                a.btn(href=baseUrl + '&recalc=1') Re-calculate State Finalists
+                a.btn-secondary(href='/' + slug + '/home?action=program') Done
+            else
+                form(method='POST' action=baseUrl + '&confirm=1&minRawScore=' + minRawScore)
+                    button.btn(type='submit') Write State Finalists
+                a.btn-secondary(href='/' + slug + '/home?action=program') Cancel
+
+script.
+    document.addEventListener('change', function (e) {
+        if (e.target.id === 'sfMinRaw') {
+            var v = e.target.value || 2.85;
+            location.href = (window.JADE_BASE || '') + '/home?action=statefinalists&minRawScore=' + v;
+        }
+    });

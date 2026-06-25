@@ -212,10 +212,10 @@ export async function buildSidebar(user, program, data) {
         panels.tools = {
             back: 'admin', backLabel: '< Admin',
             items: [
-                { href: '#', label: 'Export PR Info' },
-                { href: url('/home?action=calcfinalscores'), label: 'Calc Final Scores' },
                 { href: url('/home?action=finalisttextadmin'), label: 'Finalist Text' },
-                { href: '#', label: 'Create Category' },
+                { href: url('/home?action=calcfinalscores'), label: 'Calc Final Scores' },
+                { href: url('/home?action=statefinalists'), label: 'Get State Finalists' },
+                { href: '#', label: 'Export PR Info' },
             ],
         };
         const statsPrograms = await getStatsPrograms();

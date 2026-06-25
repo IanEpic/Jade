@@ -161,8 +161,12 @@ export async function getEntryResponsesForText({ entryId }) {
         if (r.inputtype === 'drop down list' || r.inputtype === 'radio') {
             v = optName.get(String(r.value).trim()) || '';
         } else if (r.inputtype === 'checkbox') {
-            v = String(r.value).split(/[,;]+/)
-                .map(tok => optName.get(tok.replace(/~cb$/i, '').trim()) || '')
+            // Checkbox answers are tilde-separated option ids ending in a "cb" marker,
+            // e.g. "12871~12874~12877~cb". (Splitting on commas dropped multi-selects.)
+            v = String(r.value).split(/[~,;]+/)
+                .map(tok => tok.trim())
+                .filter(tok => tok && tok.toLowerCase() !== 'cb')
+                .map(tok => optName.get(tok) || '')
                 .filter(Boolean).join(', ');
         }
         // Cap each value — the finalist text is built from short identifying fields
