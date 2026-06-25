@@ -1,30 +1,29 @@
 //- viewEntry/entrantpanel.pug
-//- Generates tr rows directly (same structure as other panels).
+//- Entrant's own view: finalisation box + bottom actions. Uses divs (the parent
+//- .ve-card is plain markup, not a table, so legacy tr/td align='center' won't work).
 
 if scorePanel.canFinalise
-    tr: td(colspan='2')
-        div(style='border:2px solid #c48f06; padding:10px; margin-bottom:10px;')
-            form(method='POST' action='/finaliseEntry')
-                input(type='hidden' name='entryid' value=entry.entryid)
-                label
-                    input#finalise-checkbox(type='checkbox' name='finalise' checked=entry.finalised)
-                    |  This entry is complete and ready for judging
-                br
-                br
-                button#finalise-record.btn(type='button') Record
-    tr: td(colspan='2' align='center')
+    .ve-finalise-box
+        form(method='POST' action='/finaliseEntry')
+            input(type='hidden' name='entryid' value=entry.entryid)
+            label
+                input#finalise-checkbox(type='checkbox' name='finalise' checked=entry.finalised)
+                |  This entry is complete and ready for judging
+            br
+            br
+            button#finalise-record.btn(type='button') Record
+    .ve-form-actions
         a.btn-secondary(href='/home') Home
         a.btn-secondary(href='/home?action=entries') My Entries
         button.btn-secondary.btn-print(type='button') Print
         a#edit-entry-btn.btn-secondary(href='/' + slug + '/formResponses?entryid=' + entry.entryid style=entry.finalised ? 'display:none' : '') Edit Entry
 else
-    tr: td(colspan='2')
-        div(style='border:2px solid #c48f06; padding:10px; margin-bottom:10px;')
-            if entry.finalised
-                | This entry is complete and ready for judging
-            else
-                | Entry not complete and ready for judging
-    tr: td(colspan='2' align='center')
+    .ve-finalise-box
+        if entry.finalised
+            | This entry is complete and ready for judging
+        else
+            | Entry not complete and ready for judging
+    .ve-form-actions
         a.btn-secondary(href='/home') Home
         a.btn-secondary(href='/home?action=entries') My Entries
         button.btn-secondary.btn-print(type='button') Print
