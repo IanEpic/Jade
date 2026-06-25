@@ -165,4 +165,4 @@ comment create/edit; `commentReviewJob` checks the flag, clears it before proces
 suggests more remain. Seed is dirty=1 only if unchecked comments already exist, else 0.
 Generalises to any future background job.
 
-- Applied to DEV: 2026-06-25 ✓  | PROD: pending
+- Applied to DEV: 2026-06-25 ✓  | PROD: 2026-06-25 ✓
