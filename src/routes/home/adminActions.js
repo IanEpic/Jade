@@ -167,6 +167,11 @@ export async function handleAdminAction(action, req, res, program, user) {
         return { view: 'home/citationrules', citationRules: jm?.citationrules || '' };
     }
 
+    if (action === 'allentrydata') {
+        // Reports: landing page for the All Entry Data Excel export (download via /reportAllEntryData).
+        return { view: 'home/allentrydata' };
+    }
+
     if (action === 'prexport') {
         // Tools: Export PR Info — request a background zip of accepted entries' high-res media.
         const latest = await getLatestPrExport(program.programid);

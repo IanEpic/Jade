@@ -1,0 +1,19 @@
+//- home/allentrydata.pug
+//- Admin (Reports): landing page for the All Entry Data Excel export.
+
+-
+    var slug = program.slug
+
+style.
+    .aed-wrap { max-width: 620px; margin: 0 auto; text-align: center; }
+    .aed-wrap h2 { color: #c48f06; margin-bottom: 10px; }
+    .aed-box { border: 1px solid #3a3a3a; border-radius: 6px; padding: 26px; background: #1a1a1a; }
+    .aed-msg { color: #ccc; font-size: 14px; line-height: 1.6; margin: 0 auto 22px; max-width: 480px; }
+    .aed-actions { display: flex; gap: 10px; justify-content: center; align-items: center; flex-wrap: wrap; }
+
+.aed-wrap
+    h2 All Entry Data
+    .aed-box
+        p.aed-msg This is an MS Excel based report showing all entry form data from the <strong>#{program.name || program.slug}</strong> program (one row per accepted entry, one column per question). Click below to download.
+        .aed-actions
+            a.btn(href='/' + slug + '/reportAllEntryData') Download Excel
