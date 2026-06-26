@@ -12,6 +12,8 @@ import FinalScoreCriteria      from '../../models/FinalScoreCriteria.js';
 import { calcFinalScores }     from '../../services/finalScores.js';
 import { computeStateFinalists, writeStateFinalists, ensureEventStates, loadSavedStateFinalists } from '../../services/stateFinalists.js';
 import { computeBestState, DEFAULT_POPULATIONS, saveBestState, loadBestState } from '../../services/bestState.js';
+import { getCitationData, getStateAward } from '../../services/citation.js';
+import { getVoScriptItems } from '../../services/voScript.js';
 import { STATES as AU_STATES } from '../../services/eventStates.js';
 import sequelize               from '../../config/sequelize.js';
 import User                    from '../../models/User.js';
@@ -140,7 +142,7 @@ export async function handleAdminAction(action, req, res, program, user) {
         ]);
         return {
             view: 'home/categorytypes',
-            types:      types.map(t => ({ categorytypeid: t.categorytypeid, name: t.name })),
+            types:      types.map(t => ({ categorytypeid: t.categorytypeid, name: t.name, feedsto: t.feedsto })),
             categories: categories.map(c => ({ categoryid: c.categoryid, name: c.name, categorytypeid: c.categorytypeid })),
         };
     }
@@ -156,6 +158,32 @@ export async function handleAdminAction(action, req, res, program, user) {
             types:       types.map(t => t.toJSON()),
             globalRules: jm?.finalisttextrules || '',
         };
+    }
+
+    if (action === 'citationrules') {
+        // AI Rules: program-wide winner-citation rules (length, tone, style).
+        const jm = program.judgingmodelid ? await JudgingModel.findByPk(program.judgingmodelid) : null;
+        return { view: 'home/citationrules', citationRules: jm?.citationrules || '' };
+    }
+
+    if (action === 'voscript') {
+        // Tools: editable Finalist VO Script — tweak the wording, save, export to Word.
+        const { items, saved } = await getVoScriptItems(program.programid);
+        return { view: 'home/voscript', items, saved };
+    }
+
+    if (action === 'headlinewinners') {
+        // Judging: pick the winner of each headline award from its feeder-category winners.
+        const { headlines } = await getCitationData(program.programid);
+        return { view: 'home/headlinewinners', headlines };
+    }
+
+    if (action === 'citations') {
+        // Tools: winner citations for the awards night. Per-winner generate/regenerate/edit
+        // + headline citations + Word export. AJAX via /citation routes.
+        const { categories, headlines } = await getCitationData(program.programid);
+        const stateAward = await getStateAward(program.programid);
+        return { view: 'home/citations', categories, headlines, stateAward };
     }
 
     if (action === 'judgingguidelines') {

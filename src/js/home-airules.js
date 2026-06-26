@@ -55,6 +55,14 @@
             .catch(function () { flash(document.getElementById('ar-guidelines-status'), false); });
     });
 
+    // Winner Citation Rules (length / tone)
+    var cSave = document.getElementById('ar-citation-save');
+    if (cSave) cSave.addEventListener('click', function () {
+        post('/categoryTypes/citationrules', { rules: document.getElementById('ar-citation').value })
+            .then(function (d) { flash(document.getElementById('ar-citation-status'), d.ok); })
+            .catch(function () { flash(document.getElementById('ar-citation-status'), false); });
+    });
+
     // Per-type rules (Finalist Text Rules)
     document.addEventListener('click', function (e) {
         var btn = e.target.closest('.ar-type-save');

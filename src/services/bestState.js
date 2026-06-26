@@ -166,11 +166,14 @@ async function fetchAbsPopulationsOnce() {
 
 export async function saveBestState(programId, result, userId = null, popMeta = null) {
     const pool = await getPool();
+    // Preserve a hand-generated State/Territory Award citation across recalculations.
+    const existing = await loadBestState(programId);
     const snapshot = JSON.stringify({
         rows: result.rows, winner: result.winner, populations: result.populations,
         minPoints: result.minPoints, entryCount: result.entryCount,
         nationalCount: result.nationalCount, unresolvedCount: result.unresolvedCount,
         popMeta: popMeta || result.popMeta || null,
+        statecitation: result.statecitation ?? existing?.snapshot?.statecitation ?? null,
     });
     await pool.request()
         .input('p', sql.Int, programId)
@@ -185,6 +188,19 @@ export async function saveBestState(programId, result, userId = null, popMeta = 
                 INSERT (programid, snapshot, computedby, computedat)
                 VALUES (@p, @s, @u, SYSUTCDATETIME());
         `);
+}
+
+// Save (or clear) the State/Territory Award citation into the existing snapshot.
+export async function saveStateCitation(programId, text) {
+    const stored = await loadBestState(programId);
+    if (!stored) return false;
+    const snap = { ...stored.snapshot, statecitation: text || null };
+    const pool = await getPool();
+    await pool.request()
+        .input('p', sql.Int, programId)
+        .input('s', sql.NVarChar(sql.MAX), JSON.stringify(snap))
+        .query('UPDATE dbo.BestStateResult SET snapshot = @s WHERE programid = @p');
+    return true;
 }
 
 export async function loadBestState(programId) {

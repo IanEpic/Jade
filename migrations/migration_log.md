@@ -205,3 +205,19 @@ population figures used (+ ABS refresh metadata), and the entry counts. Companio
 `beststate` admin action. `computedat` is stored UTC (`SYSUTCDATETIME`) and formatted client-side.
 
 - Applied to DEV: 2026-06-26 ✓  | PROD: 2026-06-26 ✓
+
+## 058–063 — Awards-night output: VO script, headline mapping, winner citations
+
+`058_categorytype_feedsto.sql` — `CategoryType.feedsto` (a type feeds its winners into a headline category).
+`059_seed_feedsto.sql` — seeds the feeder→headline mapping by name for 1055 & 1056 (Best Event→Australian Event of the Year, Industry→Event Supplier, Management→Event Agency).
+`060_entry_citation.sql` — `Entry.citation`, `Entry.headlinecitation`, `JudgingModel.citationrules`.
+`061_entry_headlinewinner.sql` — `Entry.headlinewinner` (marks the headline-award winner among feeder winners).
+`062_voscript.sql` — `VoScript` table (editable Finalist VO Script snapshot per program).
+`063_seed_citationrules_1056.sql` — seeds citation rule "50-70 words in total" (NB: 1055 & 1056 share JudgingModel #1, so this applies to both).
+
+Companion code: Finalist VO Script tool (editable + Word export), Citations tool (AI winner citations,
+per-winner generate/edit/regenerate, headline + State/Territory citations, Word export), Headline
+Winners page (Admin→Judging), Citation Rules page (Admin→AI Rules), Category Types "feeds winners
+into" dropdown. New dependency: `docx` (run `npm install` on deploy).
+
+- Applied to DEV: 2026-06-26 ✓  | PROD: 2026-06-26 ✓

@@ -55,10 +55,19 @@
 
     document.addEventListener('change', function (e) {
         var sel = e.target.closest('.ct-assign');
-        if (!sel) return;
-        var cid = sel.getAttribute('data-categoryid');
-        post('/categoryTypes/assign', { categoryid: cid, categorytypeid: sel.value })
-            .then(function (d) { flash(statusBy('categoryid', cid), d.ok ? '✓' : '✕', d.ok ? null : '#f88'); })
-            .catch(function () { flash(statusBy('categoryid', cid), '✕', '#f88'); });
+        if (sel) {
+            var cid = sel.getAttribute('data-categoryid');
+            post('/categoryTypes/assign', { categoryid: cid, categorytypeid: sel.value })
+                .then(function (d) { flash(statusBy('categoryid', cid), d.ok ? '✓' : '✕', d.ok ? null : '#f88'); })
+                .catch(function () { flash(statusBy('categoryid', cid), '✕', '#f88'); });
+            return;
+        }
+        var feed = e.target.closest('.ct-feedsto');
+        if (feed) {
+            var tid = feed.getAttribute('data-typeid');
+            post('/categoryTypes/feedsto', { categorytypeid: tid, feedsto: feed.value })
+                .then(function (d) { flash(statusBy('typeid', tid), d.ok ? '✓' : '✕', d.ok ? null : '#f88'); })
+                .catch(function () { flash(statusBy('typeid', tid), '✕', '#f88'); });
+        }
     });
 }());

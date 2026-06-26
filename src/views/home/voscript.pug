@@ -1,0 +1,50 @@
+//- home/voscript.pug
+//- Admin (Tools): editable Finalist VO Script. Derived from finalist text; admins tweak the
+//- wording for pronunciation, save, then export to Word. "Regenerate" rebuilds from finalist
+//- text (discarding edits).
+
+-
+    var slug = program.slug
+
+style.
+    .vo-wrap { max-width: 880px; margin: 0 auto; }
+    .vo-wrap h2 { text-align: center; color: #c48f06; margin-bottom: 6px; }
+    .vo-intro { text-align: center; color: #aaa; font-size: 13px; margin: 0 auto 16px; max-width: 760px; line-height: 1.5; }
+    .vo-toolbar { display: flex; gap: 8px; justify-content: center; align-items: center; margin-bottom: 16px; flex-wrap: wrap; }
+    .vo-status { font-size: 12px; color: #9ab; }
+    .vo-saved { background:#16252e; border-left:4px solid #3a6e8a; color:#bcd; padding:8px 14px; font-size:13px; margin-bottom:14px; }
+    .vo-card { border: 1px solid #3a3a3a; border-radius: 6px; margin-bottom: 12px; overflow: hidden; }
+    .vo-body { padding: 10px 14px; }
+    .vo-head-label { font-size: 11px; color: #888; margin-bottom: 3px; }
+    input.vo-head { width: 100%; box-sizing: border-box; background: #1a1a1a; color: #ededed; border: 1px solid #555; border-radius: 3px; padding: 6px 9px; font-size: 13px; font-weight: 600; margin-bottom: 8px; }
+    input.vo-head:focus, textarea.vo-text:focus { border-color: #c48f06; outline: none; }
+    textarea.vo-text { width: 100%; box-sizing: border-box; background: #111; color: #ededed; border: 1px solid #555; border-radius: 3px; padding: 8px 10px; font-family: inherit; font-size: 13px; line-height: 1.5; resize: vertical; overflow: hidden; }
+    .vo-note { color: #b07a3a; font-size: 12px; margin-top: 4px; }
+
+.vo-wrap
+    h2 Finalist VO Script
+    p.vo-intro One line per nominee (read out in reverse-entry order). Edit the headings or lines for pronunciation, then Save. Export to Word when you’re happy. Regenerate rebuilds the script from the current finalist text and discards edits.
+
+    .vo-toolbar
+        button.btn#vo-save(type='button') Save
+        a.btn-secondary(href='/' + slug + '/voScript/export') Export to Word
+        button.btn-secondary#vo-regen(type='button') Regenerate from Finalist Text
+        a.btn-secondary(href='/' + slug + '/home?action=program') Back to Admin
+        span.vo-status#vo-status
+
+    if content.saved
+        p.vo-saved Showing your saved, edited script. Regenerate to rebuild from the current finalist text.
+
+    #vo-list
+        each c in content.items
+            .vo-card(data-categoryid=c.categoryid)
+                .vo-body
+                    .vo-head-label Category heading
+                    input.vo-head(type='text' value=c.heading)
+                    -
+                        var displayBody = (c.body || '').split('\n').map(function (l) { return l.trim() ? '• ' + l.trim() : l; }).join('\n')
+                    textarea.vo-text(rows='3')= displayBody
+                    if c.note && !(c.body && c.body.trim())
+                        .vo-note= c.note
+
+script(src='/js/home-voscript.js?v=' + buildHash)

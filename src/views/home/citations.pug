@@ -1,0 +1,100 @@
+//- home/citations.pug
+//- Admin (Tools): winner citations for the awards night. Each category winner gets a
+//- two-part citation (description + judges' praise). Headline awards get a distinct
+//- citation per nominee. Generate/regenerate/edit per row; warnings where winners are missing.
+
+-
+    var slug = program.slug
+
+style.
+    .ci-wrap { max-width: 880px; margin: 0 auto; }
+    .ci-wrap h2 { text-align: center; color: #c48f06; margin-bottom: 6px; }
+    .ci-intro { text-align: center; color: #aaa; font-size: 13px; margin: 0 auto 16px; max-width: 760px; line-height: 1.5; }
+    .ci-toolbar { display: flex; gap: 8px; justify-content: center; align-items: center; margin-bottom: 18px; flex-wrap: wrap; }
+    .ci-progress { font-size: 12px; color: #9ab; }
+    .ci-sec-title { color: #c48f06; font-size: 14px; font-weight: 700; margin: 22px 0 8px; padding-bottom: 4px; border-bottom: 1px solid #333; }
+    .ci-card { border: 1px solid #3a3a3a; border-radius: 6px; margin-bottom: 12px; overflow: hidden; }
+    .ci-head { background: #1e1e1e; padding: 8px 14px; border-bottom: 1px solid #333; }
+    .ci-cat { font-size: 13px; font-weight: 600; color: #ddd; }
+    .ci-winner { font-size: 12px; color: #9ab; font-style: italic; margin-top: 2px; }
+    .ci-body { padding: 10px 14px; }
+    textarea.ci-text { width: 100%; box-sizing: border-box; background: #111; color: #ededed; border: 1px solid #555; border-radius: 3px; padding: 8px 10px; font-family: inherit; font-size: 13px; line-height: 1.45; resize: vertical; min-height: 90px; }
+    textarea.ci-text:focus { border-color: #c48f06; outline: none; }
+    .ci-row-actions { margin-top: 6px; display: flex; gap: 8px; align-items: center; }
+    .ci-status { font-size: 12px; }
+    .ci-warn { background: #3a2a1a; border-left: 4px solid #c48f06; color: #f0d9a8; padding: 8px 14px; font-size: 13px; }
+    .ci-nominee-name { font-size: 12px; font-weight: 600; color: #bcd; margin: 4px 0; }
+    .ci-win-tag { display:inline-block; margin-left:8px; font-size:9px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:#7fe07f; background:#173017; border:1px solid #2e6e2e; border-radius:3px; padding:1px 5px; }
+    .ci-spin { width: 13px; height: 13px; border: 2px solid #3a6e8a; border-top-color: transparent; border-radius: 50%; display: inline-block; vertical-align: -2px; margin-right: 5px; animation: ci-spin .8s linear infinite; }
+    @keyframes ci-spin { to { transform: rotate(360deg); } }
+
+.ci-wrap
+    h2 Winner Citations
+    p.ci-intro Run this once winners are recorded. Each citation is a short celebratory description plus “The judges said:” praise from the judging comments. Set length and tone under Admin → AI Rules → Citation Rules. Categories without a recorded winner show a warning.
+
+    .ci-toolbar
+        button.btn#ci-genall(type='button') Generate All Missing
+        button.btn-secondary#ci-stop(type='button' style='display:none') Stop
+        a.btn-secondary(href='/' + slug + '/citation/export') Export to Word
+        a.btn-secondary(href='/' + slug + '/home?action=program') Back to Admin
+        span.ci-progress#ci-progress
+
+    .ci-sec-title Category Winners
+    if !content.categories.length
+        .ci-warn No categories with finalists yet. Run Calc Final Scores and winner nomination first.
+    each c in content.categories
+        .ci-card
+            .ci-head
+                .ci-cat= c.category
+                if c.winner
+                    .ci-winner= c.winner.finalisttext || c.winner.entrant
+            .ci-body
+                if c.winner
+                    textarea.ci-text(data-entryid=c.winner.entryid data-headline='0')= c.winner.citation || ''
+                    .ci-row-actions
+                        button.btn-secondary.ci-gen(type='button' data-entryid=c.winner.entryid data-headline='0') Generate
+                        button.btn-secondary.ci-save(type='button' data-entryid=c.winner.entryid data-headline='0') Save
+                        span.ci-status(data-entryid=c.winner.entryid data-headline='0')
+                else
+                    .ci-warn No winner recorded — run after winner nomination.
+
+    if content.headlines && content.headlines.length
+        .ci-sec-title Headline Awards
+        p.ci-intro(style='margin-bottom:10px') Headline citations are written to differ from the category citation each nominee already received earlier in the evening.
+        each h in content.headlines
+            -
+                var hw = (h.nominees || []).filter(function (n) { return n.headlinewinner; })
+            .ci-card
+                .ci-head
+                    span.ci-cat= h.category
+                .ci-body
+                    if !h.nominees.length
+                        .ci-warn No winners recorded yet — run after winner nomination.
+                    else if !hw.length
+                        .ci-warn No winner selected yet — choose one under Admin → Judging → Headline Winners.
+                    each n in hw
+                        .ci-nominee-name
+                            = n.entrant
+                            span.ci-win-tag 🏆 Winner
+                        textarea.ci-text(data-entryid=n.entryid data-headline='1')= n.headlinecitation || ''
+                        .ci-row-actions
+                            button.btn-secondary.ci-gen(type='button' data-entryid=n.entryid data-headline='1') Generate
+                            button.btn-secondary.ci-save(type='button' data-entryid=n.entryid data-headline='1') Save
+                            span.ci-status(data-entryid=n.entryid data-headline='1')
+
+    .ci-sec-title State or Territory Award
+    if !content.stateAward
+        .ci-warn Run Calc Best State first to determine the winning state.
+    else
+        .ci-card
+            .ci-head
+                span.ci-cat= 'State or Territory Award ' + content.stateAward.year
+                span.ci-winner= content.stateAward.stateFull
+            .ci-body
+                textarea.ci-text#ci-state-text= content.stateAward.citation || ''
+                .ci-row-actions
+                    button.btn-secondary#ci-state-gen(type='button') Generate
+                    button.btn-secondary#ci-state-save(type='button') Save
+                    span.ci-status#ci-state-status
+
+script(src='/js/home-citations.js?v=' + buildHash)

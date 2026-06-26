@@ -33,6 +33,9 @@ Entry.init(
         deleted:             { type: DataTypes.BOOLEAN, defaultValue: false },
         approvedbyreviewer:  { type: DataTypes.BOOLEAN },
         finalisttext:        { type: DataTypes.TEXT },
+        citation:            { type: DataTypes.TEXT },
+        headlinecitation:    { type: DataTypes.TEXT },
+        headlinewinner:      { type: DataTypes.BOOLEAN },
         oliveEventID:        { type: DataTypes.INTEGER },
         tpkid:              { type: DataTypes.INTEGER },
         // set_sql queries reference this column — add it to the model

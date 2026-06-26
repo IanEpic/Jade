@@ -1,0 +1,29 @@
+//- home/citationrules.pug
+//- Admin (AI Rules): program-wide winner-citation rules (length, tone, style) that drive
+//- the AI winner-citation generation on the Citations tool.
+
+style.
+    .ar-wrap { max-width: 820px; margin: 0 auto; }
+    .ar-wrap h2 { text-align: center; color: #c48f06; font-size: 20px; font-weight: 600; margin: 0 0 6px; }
+    .ar-intro { text-align: center; color: #aaa; font-size: 13px; margin: 0 0 18px; }
+    .ar-card { border: 1px solid #555; border-radius: 4px; padding: 14px 18px; margin-bottom: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.07); }
+    .ar-card-title { color: #c48f06; font-size: 14px; font-weight: 600; margin: 0 0 4px; }
+    .ar-sub { color: #888; font-size: 12px; margin: 0 0 10px; }
+    textarea.ar-rules { width: 100%; box-sizing: border-box; background: #111; color: #fff; border: 1px solid #555; border-radius: 3px; padding: 8px 10px; font-family: inherit; font-size: 13px; line-height: 1.4; overflow: hidden; resize: none; }
+    textarea.ar-rules:focus { border-color: #c48f06; outline: none; }
+    .ar-actions { margin-top: 8px; display: flex; gap: 8px; align-items: center; }
+    .ar-status { font-size: 13px; }
+
+.ar-wrap
+    h2 Winner Citation Rules
+    p.ar-intro Rules the AI follows when writing winner citations (read out on awards night). Each citation is a short celebratory description of what the winner did, then “The judges said:” praise paraphrased from the judging comments. Set length, tone and any house style here.
+
+    .ar-card
+        .ar-card-title Citation Rules
+        p.ar-sub Apply to every winner citation (category and headline).
+        textarea.ar-rules#ar-citation(rows='8')= content.citationRules
+        .ar-actions
+            button.btn#ar-citation-save(type='button') Save Citation Rules
+            span.ar-status#ar-citation-status
+
+script(src='/js/home-airules.js?v=' + buildHash)

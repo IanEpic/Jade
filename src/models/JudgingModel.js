@@ -21,6 +21,7 @@ JudgingModel.init(
     commentexamplesgood: { type: DataTypes.TEXT },
     commentexamplesbad:  { type: DataTypes.TEXT },
     finalisttextrules:   { type: DataTypes.TEXT },
+    citationrules:       { type: DataTypes.TEXT },
   },
   {
     sequelize,

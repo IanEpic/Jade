@@ -26,12 +26,18 @@ style.
 
     .ct-card
         .ct-card-title Types
+        p.ct-intro(style='text-align:left;margin:0 0 10px') &ldquo;Feeds winners into&rdquo; sends the winners of all this type&rsquo;s categories into a headline award (used by the Finalist VO Script). Leave as &ldquo;— none —&rdquo; for types that aren&rsquo;t feeders.
         #ct-type-list
             each t in content.types
                 .ct-type(data-typeid=t.categorytypeid)
                     input.ct-name(type='text' value=t.name data-typeid=t.categorytypeid)
                     button.btn-secondary.ct-type-save(type='button' data-typeid=t.categorytypeid) Rename
                     button.btn-danger.ct-type-delete(type='button' data-typeid=t.categorytypeid data-confirm='Delete this category type? Categories using it will be unassigned.') Delete
+                    label.ct-label(style='margin:0 0 0 6px') feeds winners into
+                    select.ct-feedsto(data-typeid=t.categorytypeid)
+                        option(value='') — none —
+                        each c in content.categories
+                            option(value=c.categoryid selected=(t.feedsto === c.categoryid))= c.name
                     span.ct-status(data-typeid=t.categorytypeid)
         .ct-type(style='border-style:dashed')
             input.ct-name#ct-new-name(type='text' placeholder='New type name (e.g. Best Event)')

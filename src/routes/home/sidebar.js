@@ -166,6 +166,7 @@ export async function buildSidebar(user, program, data) {
             judgingItems.push({ href: url('/home?action=reviewcomments'), label: 'Review Comments' });
         if (!program.usesimplejudging)
             judgingItems.push({ href: url('/home?action=finalistlist'), label: 'Finalists' });
+        judgingItems.push({ href: url('/home?action=headlinewinners'), label: 'Headline Winners' });
 
         panels.admin = {
             back: 'main', backLabel: '< Main Menu',
@@ -198,6 +199,7 @@ export async function buildSidebar(user, program, data) {
             back: 'admin', backLabel: '< Admin',
             items: [
                 { href: url('/home?action=finalisttextrules'),  label: 'Finalist Text Rules' },
+                { href: url('/home?action=citationrules'),       label: 'Citation Rules' },
                 { href: url('/home?action=judgingguidelines'),  label: 'Judging Guidelines' },
             ],
         };
@@ -216,6 +218,8 @@ export async function buildSidebar(user, program, data) {
                 { href: url('/home?action=calcfinalscores'), label: 'Calc Final Scores' },
                 { href: url('/home?action=statefinalists'), label: 'Get State Finalists' },
                 { href: url('/home?action=beststate'), label: 'Calc Best State' },
+                { href: url('/home?action=voscript'), label: 'Finalist VO Script' },
+                { href: url('/home?action=citations'), label: 'Citations' },
                 { href: '#', label: 'Export PR Info' },
             ],
         };

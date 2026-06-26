@@ -44,6 +44,18 @@ router.post('/type', async (req, res, next) => {
     } catch (err) { next(err); }
 });
 
+// Program-wide winner-citation rules (length, tone, etc.) → JudgingModel.citationrules
+router.post('/citationrules', async (req, res, next) => {
+    try {
+        if (!req.program.judgingmodelid) return res.json({ ok: false, error: 'no judging model' });
+        await JudgingModel.update(
+            { citationrules: req.body.rules || '' },
+            { where: { judgingmodelid: req.program.judgingmodelid } },
+        );
+        res.json({ ok: true });
+    } catch (err) { next(err); }
+});
+
 // Update a category type's generation rules (AI Rules → Finalist Text Rules)
 router.post('/rules', async (req, res, next) => {
     try {
@@ -66,6 +78,21 @@ router.post('/guidelines', async (req, res, next) => {
             },
             { where: { judgingmodelid: req.program.judgingmodelid } },
         );
+        res.json({ ok: true });
+    } catch (err) { next(err); }
+});
+
+// Set which headline category a type feeds its winners into (or clear it)
+router.post('/feedsto', async (req, res, next) => {
+    try {
+        const t = await CategoryType.findByPk(parseInt(req.body.categorytypeid));
+        if (!t || t.programid !== req.program.programid) return res.json({ ok: false });
+        const feedsto = req.body.feedsto ? parseInt(req.body.feedsto) : null;
+        if (feedsto) {
+            const target = await Category.findByPk(feedsto);
+            if (!target || target.programid !== req.program.programid) return res.json({ ok: false, error: 'bad target' });
+        }
+        await t.update({ feedsto });
         res.json({ ok: true });
     } catch (err) { next(err); }
 });

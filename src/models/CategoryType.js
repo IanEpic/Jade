@@ -10,6 +10,7 @@ CategoryType.init(
     name:           { type: DataTypes.STRING(100) },
     orda:           { type: DataTypes.FLOAT },
     rules:          { type: DataTypes.TEXT },
+    feedsto:        { type: DataTypes.INTEGER, allowNull: true },
     deleted:        { type: DataTypes.BOOLEAN, defaultValue: false },
   },
   {
