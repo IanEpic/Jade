@@ -13,7 +13,7 @@
 
 import { getPool, sql } from '../config/database.js';
 import { calcFinalScores } from './finalScores.js';
-import { parseEventStates, isNational, getCheckboxStates, STATES } from './eventStates.js';
+import { parseEventStates, isNational, getCheckboxStates, STATES, certificateText } from './eventStates.js';
 
 async function bestEventCategoryIds(pool, programId) {
     const beType = (await pool.request().query(
@@ -106,16 +106,22 @@ export async function computeStateFinalists(programId, { minRawScore = 2.85 } = 
             // The top 2 contenders occupy the state's slots; national finalists among them
             // are shown (flagged) for context but are NOT state finalists.
             const top2 = inS.slice(0, 2);
-            const stateFinalists = top2.filter(r => !r.finalist);
-            if (!stateFinalists.length) continue;          // only list states that yield a finalist
+            // Display gate (unchanged): only surface states that have at least one non-national
+            // finalist among the top 2 — keeps the tool's output exactly as before.
+            const hasNonNational = top2.some(r => !r.finalist);
+            if (!hasNonNational) continue;
             stateBlocks.push({ state: S, entries: top2.map(w => ({
                 entryid: w.entryid, entrant: w.entrant, userref: w.userref,
                 finalisttext: w.finalisttext, finalscore: w.fs, national: !!w.finalist,
             })) });
-            for (const w of stateFinalists) {
-                if (!byEntry.has(w.entryid)) byEntry.set(w.entryid, { entry: w, states: new Set() });
+            // ALL top-2 entries are this state's finalists — including national finalists (we
+            // just don't re-list nationals separately). The highest scorer is the state winner,
+            // which may itself be a national finalist.
+            for (const w of top2) {
+                if (!byEntry.has(w.entryid)) byEntry.set(w.entryid, { entry: w, states: new Set(), winnerStates: new Set() });
                 byEntry.get(w.entryid).states.add(S);
             }
+            byEntry.get(top2[0].entryid).winnerStates.add(S);
         }
         if (stateBlocks.length) categories.push({ categoryid: cid, categoryname: catName.get(cid), states: stateBlocks });
     }
@@ -160,8 +166,12 @@ export async function loadSavedStateFinalists(programId) {
         const stateBlocks = [];
         for (const S of STATES) {
             if (!sfByState[S]) continue;                                  // only states with a finalist
+            // Nationals are now flagged in statefinalist too, but include the legacy join (for
+            // data written before that change) and DEDUPE by entryid so none appear twice.
             const nationalsInS = catRows.filter(r => r.national && r.states.includes(S));
+            const seen = new Set();
             const top2 = [...sfByState[S], ...nationalsInS]
+                .filter(r => !seen.has(r.entryid) && seen.add(r.entryid))
                 .sort((a, b) => (b.fs ?? 0) - (a.fs ?? 0)).slice(0, 2);
             stateBlocks.push({ state: S, entries: top2.map(w => ({
                 entryid: w.entryid, entrant: w.entrant, finalisttext: w.finalisttext,
@@ -182,20 +192,34 @@ export async function writeStateFinalists(programId, byEntry) {
     )).recordset[0]?.categorytypeid;
     if (!beType) return 0;
 
-    // Clear existing on all Best Event entries first.
+    // Clear existing finalist + winner flags on all Best Event entries first (so a re-run starts clean).
     await pool.request().query(`
-        UPDATE e SET e.statefinalist = NULL
+        UPDATE e SET e.statefinalist = NULL, e.statewinner = NULL
         FROM Entry e JOIN Category c ON c.categoryid = e.categoryid
         WHERE c.programid=${programId} AND c.categorytypeid=${beType} AND c.deleted=0 AND e.deleted=0
     `);
 
     let written = 0;
-    for (const [entryid, { states }] of byEntry) {
+    for (const [entryid, { states, winnerStates }] of byEntry) {
         const val = STATES.filter(s => states.has(s)).join(', ');
         if (!val) continue;
-        await pool.request().input('e', sql.Int, entryid).input('v', sql.NVarChar, val)
-            .query('UPDATE Entry SET statefinalist=@v WHERE entryid=@e');
+        const win = STATES.filter(s => winnerStates && winnerStates.has(s)).join(', ') || null;
+        await pool.request().input('e', sql.Int, entryid).input('v', sql.NVarChar, val).input('w', sql.NVarChar, win)
+            .query('UPDATE Entry SET statefinalist=@v, statewinner=@w WHERE entryid=@e');
         written++;
     }
+
+    // Certificate text for EVERY entry in the program (national finalists/winners exist across all
+    // categories; state recognition only on Best Event). Computed from the flags just written.
+    const allEntries = (await pool.request().query(`
+        SELECT entryid, ISNULL(finalist,0) AS finalist, ISNULL(nominated,0) AS nominated, statefinalist, statewinner
+        FROM Entry WHERE programid=${programId} AND deleted=0
+    `)).recordset;
+    for (const e of allEntries) {
+        const txt = certificateText(!!e.nominated, !!e.finalist, e.statefinalist, e.statewinner) || null;
+        await pool.request().input('e', sql.Int, e.entryid).input('t', sql.NVarChar, txt)
+            .query('UPDATE Entry SET certificatetext=@t WHERE entryid=@e');
+    }
+
     return written;
 }

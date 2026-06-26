@@ -246,3 +246,19 @@ the per-node `BACKGROUND_JOBS` env flag (now removed from node .23's .env; code 
 it). prExport also claims pending rows atomically (UPDLOCK/READPAST) as defence-in-depth.
 
 - Applied to DEV: 2026-06-26 ✓  | PROD: 2026-06-26 ✓
+
+## 066–067 — State winner + certificate text; Results report
+
+`066_entry_statewinner.sql` — `Entry.statewinner` (top state finalist per category-state, set by
+the State/Territory Finalists tool alongside statefinalist).
+`067_entry_certificatetext.sql` — `Entry.certificatetext` (certificate wording per entry, written
+by the tool: national winner → blank/trophy; national finalist → "National Finalist" [+ state
+winner]; state winner/finalist → state recognition). Shared `certificateText()` in eventStates.js.
+
+Companion code: corrected state-finalist flagging (ALL top-2 incl national finalists are state
+finalists; highest scorer is state winner; national finalists can win a state); the tool is now
+ONE step (Re-calculate computes AND writes — no preview); new "Results" report (Admin → Reports →
+landing page → Excel: final/avg score, finalist/winner/state finalist/state winner, certificate
+text, finalist text, contacts; alternating category bands). Read-only report; no new dependency.
+
+- Applied to DEV: 2026-06-26 ✓  | PROD: 2026-06-26 ✓

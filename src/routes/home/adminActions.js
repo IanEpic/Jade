@@ -172,6 +172,11 @@ export async function handleAdminAction(action, req, res, program, user) {
         return { view: 'home/allentrydata' };
     }
 
+    if (action === 'resultsreport') {
+        // Reports: landing page for the Results (final scores) Excel export (via /reportResults).
+        return { view: 'home/resultsreport' };
+    }
+
     if (action === 'prexport') {
         // Tools: Export PR Info — request a background zip of accepted entries' high-res media.
         const latest = await getLatestPrExport(program.programid);
@@ -779,14 +784,13 @@ export async function handleAdminAction(action, req, res, program, user) {
 
     if (action === 'statefinalists') {
         // State/Territory finalists for the Best Event categories. Runs AFTER Calc Final
-        // Scores (needs settled national finalists + scores). Preview → confirm/write,
-        // mirroring Calc Final Scores. Writes Entry.statefinalist.
+        // Scores (needs settled national finalists + scores). Writes Entry.statefinalist /
+        // Entry.statewinner. One step: "Re-calculate" computes AND writes immediately.
         const minRawScore = parseFloat(req.query.minRawScore ?? 2.85);
         const wrote       = req.query.wrote === '1';
-        const recalc      = req.query.recalc === '1';
 
-        // Confirm/write (from the preview), then redirect to the saved-list view.
-        if (req.query.confirm === '1' && req.method === 'POST') {
+        // Re-calculate: compute + write straight away, then redirect to the saved view (PRG).
+        if (req.query.recalc === '1' && req.method === 'POST') {
             await ensureEventStates(program.programid);
             const { byEntry } = await computeStateFinalists(program.programid, { minRawScore });
             const written = await writeStateFinalists(program.programid, byEntry);
@@ -794,25 +798,13 @@ export async function handleAdminAction(action, req, res, program, user) {
             return null;
         }
 
-        // If state finalists are already written, show them straight from the DB (fast).
-        // The "Re-calculate" button (recalc=1) forces a fresh preview + write.
+        // Show the saved result (the view prompts to Calculate if nothing's written yet).
         const saved = await loadSavedStateFinalists(program.programid);
-        if (saved.finalistCount > 0 && !recalc) {
-            return {
-                view: 'home/statefinalists',
-                categories: saved.categories, saved: true, wrote,
-                finalistCount: saved.finalistCount,
-                wroteCount: wrote ? (parseInt(req.query.count) || 0) : null,
-            };
-        }
-
-        // Preview: compute from scratch (populates event states first).
-        const ensured = await ensureEventStates(program.programid);
-        const { categories, byEntry, unresolved } = await computeStateFinalists(program.programid, { minRawScore });
         return {
             view: 'home/statefinalists',
-            categories, unresolved, minRawScore, ensured, saved: false,
-            finalistCount: byEntry.size,
+            categories: saved.categories, saved: saved.finalistCount > 0, wrote,
+            finalistCount: saved.finalistCount,
+            wroteCount: wrote ? (parseInt(req.query.count) || 0) : null,
         };
     }
 

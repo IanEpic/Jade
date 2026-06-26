@@ -1,0 +1,19 @@
+//- home/resultsreport.pug
+//- Admin (Reports): landing page for the Results (final scores) Excel export.
+
+-
+    var slug = program.slug
+
+style.
+    .rr-wrap { max-width: 620px; margin: 0 auto; text-align: center; }
+    .rr-wrap h2 { color: #c48f06; margin-bottom: 10px; }
+    .rr-box { border: 1px solid #3a3a3a; border-radius: 6px; padding: 26px; background: #1a1a1a; }
+    .rr-msg { color: #ccc; font-size: 14px; line-height: 1.6; margin: 0 auto 22px; max-width: 480px; }
+    .rr-actions { display: flex; gap: 10px; justify-content: center; align-items: center; }
+
+.rr-wrap
+    h2 Results
+    .rr-box
+        p.rr-msg This is an MS Excel based report showing the final results for the <strong>#{program.name || program.slug}</strong> program — final score, average raw score, finalist status, event name and entrant details, ordered by category and score. Click below to download.
+        .rr-actions
+            a.btn(href='/' + slug + '/reportResults') Download Excel

@@ -80,3 +80,34 @@ export function parseEventStates(eventstates) {
 export function isNational(eventstates) {
     return /NATIONAL/i.test(eventstates || '');
 }
+
+export const STATE_NAMES = {
+    NSW: 'New South Wales', VIC: 'Victoria', QLD: 'Queensland', WA: 'Western Australia',
+    SA: 'South Australia', TAS: 'Tasmania', NT: 'Northern Territory', ACT: 'Australian Capital Territory',
+};
+
+// Join state codes as full names: "New South Wales", "NSW and VIC" → "… and …", 3+ → "a, b and c".
+export function joinStateNames(codes) {
+    const names = codes.map(c => STATE_NAMES[c] || c);
+    if (names.length <= 1) return names[0] || '';
+    if (names.length === 2) return names.join(' and ');
+    return names.slice(0, -1).join(', ') + ' and ' + names[names.length - 1];
+}
+
+// Certificate wording for an entry (single source of truth, used by the State Finalists tool to
+// store Entry.certificatetext and by the Results report to display it):
+//   • national winner (nominated)      → '' (a trophy, no certificate)
+//   • national finalist                → "National Finalist" (+ " and State Winner in …" if also a state winner)
+//   • state winner / state finalist     → "State Winner in …" / "State Finalist in …"
+export function certificateText(nominated, finalist, statefinalist, statewinner) {
+    if (nominated) return '';
+    const winners      = parseEventStates(statewinner);
+    const finalistOnly = parseEventStates(statefinalist).filter(s => !winners.includes(s));
+    if (finalist) {
+        return 'National Finalist' + (winners.length ? ' and State Winner in ' + joinStateNames(winners) : '');
+    }
+    const parts = [];
+    if (winners.length)      parts.push('State Winner in ' + joinStateNames(winners));
+    if (finalistOnly.length) parts.push('State Finalist in ' + joinStateNames(finalistOnly));
+    return parts.join(' and ');
+}

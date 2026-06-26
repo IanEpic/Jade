@@ -24,6 +24,8 @@ Entry.init(
         entryaccepted:       { type: DataTypes.BOOLEAN },
         finalist:            { type: DataTypes.BOOLEAN },
         statefinalist:       { type: DataTypes.STRING },
+        statewinner:         { type: DataTypes.STRING },
+        certificatetext:     { type: DataTypes.STRING },
         afecode:             { type: DataTypes.STRING },
         entryopen:           { type: DataTypes.BOOLEAN },
         timestamp:           { type: DataTypes.DATE },

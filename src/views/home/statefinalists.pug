@@ -36,30 +36,16 @@ style.
 
 .sf-wrap
     h2 State / Territory Finalists
-    p.sf-intro Best Event categories only. Run this <b>after</b> Calc Final Scores. For each state, the top 2 eligible entries that ran there are taken; the non-national-finalists among them become that state&rsquo;s finalists. National (4+ state) events and entries below the minimum raw score are excluded.
+    p.sf-intro Best Event categories only. Run this <b>after</b> Calc Final Scores. For each state, the top 2 eligible entries that ran there are its finalists (national finalists included); the highest scorer is the state winner. National (4+ state) events and entries below the minimum raw score are excluded. Re-calculate writes the result straight to the database.
 
     if content.wrote
-        .sf-ok State finalists written to the database — #{content.wroteCount} entr#{content.wroteCount === 1 ? 'y' : 'ies'} flagged across their states. (Entrants see these in the portal.)
+        .sf-ok State finalists written — #{content.wroteCount} entr#{content.wroteCount === 1 ? 'y' : 'ies'} flagged across their states. (Entrants see these in the portal.)
 
     if content.saved
         p.sf-saved Saved state finalists, loaded from the database (#{content.finalistCount} entr#{content.finalistCount === 1 ? 'y' : 'ies'}). Re-calculate if scores or finalists have changed.
-    else
-        .sf-options
-            label
-                | Min raw score
-                input(type='number' id='sfMinRaw' min='0' max='10' step='0.01' value=minRawScore)
-            span.sf-meta
-                | states resolved: #{ensured.filled || 0} · national: #{ensured.national || 0} · unknown: #{ensured.unknown || 0}
-
-        if unresolved && unresolved.length
-            .sf-warn
-                | #{unresolved.length} eligible entr#{unresolved.length === 1 ? 'y has' : 'ies have'} no determinable state (the &ldquo;states&rdquo; checkbox was left blank). Fix the entry&rsquo;s state checkbox, then re-run — they&rsquo;re excluded until then.
-                ul
-                    each u in unresolved
-                        li #{u.entrant || ('Entry ' + u.entryid)} — #{u.categoryname} (#[a(href='/' + slug + '/viewEntry?entryid=' + u.entryid target='_blank' style='color:#c48f06') #{u.entryid}])
 
     if !categories || !categories.length
-        p(style='color:#aaa;') No state finalists found. Make sure Calc Final Scores has been run and the Best Event entries have their state checkbox completed.
+        p(style='color:#aaa;') No state finalists written yet. Make sure Calc Final Scores has been run and the Best Event entries have their state checkbox completed, then click Calculate.
     else
         each cat in categories
             .sf-card
@@ -77,19 +63,8 @@ style.
                                         span.nat-badge National Finalist
                                 td.sf-sc= e.finalscore != null ? e.finalscore.toFixed(2) : ''
 
-        .form-actions
-            if content.saved
-                a.btn(href=baseUrl + '&recalc=1') Re-calculate State Finalists
-                a.btn-secondary(href='/' + slug + '/home?action=program') Done
-            else
-                form(method='POST' action=baseUrl + '&confirm=1&minRawScore=' + minRawScore)
-                    button.btn(type='submit') Write State Finalists
-                a.btn-secondary(href='/' + slug + '/home?action=program') Cancel
-
-script.
-    document.addEventListener('change', function (e) {
-        if (e.target.id === 'sfMinRaw') {
-            var v = e.target.value || 2.85;
-            location.href = (window.JADE_BASE || '') + '/home?action=statefinalists&minRawScore=' + v;
-        }
-    });
+    .form-actions
+        form(method='POST' action=baseUrl + '&recalc=1')
+            button.btn(type='submit')= content.saved ? 'Re-calculate State Finalists' : 'Calculate State Finalists'
+        if content.saved
+            a.btn-secondary(href='/' + slug + '/home?action=program') Done
