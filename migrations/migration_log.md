@@ -234,3 +234,15 @@ SMTP), and the worker sweeps the zip a few minutes after download (or after 24h)
 checkbox. New dependency: `archiver` (v8, ESM) — run `npm install` on deploy.
 
 - Applied to DEV: 2026-06-26 ✓  | PROD: 2026-06-26 ✓
+
+## 065 — Background-job leader election (JobLease)
+
+`065_joblease.sql`
+
+Adds `dbo.JobLease` (single-row shared lease). Both nodes now run identical code AND identical
+env: a DB lease elects ONE leader to run the gated background jobs (commentReview, prExport),
+renewed every 20s with a 60s TTL, so the other node auto-takes-over if the leader dies. Replaces
+the per-node `BACKGROUND_JOBS` env flag (now removed from node .23's .env; code no longer reads
+it). prExport also claims pending rows atomically (UPDLOCK/READPAST) as defence-in-depth.
+
+- Applied to DEV: 2026-06-26 ✓  | PROD: 2026-06-26 ✓

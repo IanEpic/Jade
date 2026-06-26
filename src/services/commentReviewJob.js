@@ -13,6 +13,7 @@
 import JudgeComment from '../models/JudgeComment.js';
 import { checkCommentContext } from './commentCheck.js';
 import { isJobDirty, clearJobDirty, markJobDirty } from './jobState.js';
+import { isLeader } from './jobLease.js';
 import {
     getUncheckedJudgeComments,
     getJudgeOtherComments,
@@ -56,16 +57,16 @@ export async function runCommentReviewBatch({ limit = 25 } = {}) {
     return { processed, flagged, fetched, limit };
 }
 
-// Start the recurring job. No-op unless BACKGROUND_JOBS=true (one node only).
-// Each tick is gated by the dirty flag: if no comment has been created/edited since
-// the last run, it does nothing (no DB scan, no AI). We clear the flag BEFORE
-// processing (claim the work) so a comment saved mid-run re-arms it; and we re-arm
-// ourselves if a full batch suggests more comments remain.
+// Start the recurring job. Runs on every node but only acts on the elected leader (so it's
+// effectively single-node, with automatic failover). Each tick is also gated by the dirty flag:
+// if no comment has been created/edited since the last run, it does nothing (no DB scan, no AI).
+// We clear the flag BEFORE processing (claim the work) so a comment saved mid-run re-arms it; and
+// we re-arm ourselves if a full batch suggests more comments remain.
 export function startCommentReviewJob({ intervalMs = 3 * 60 * 1000 } = {}) {
-    if (process.env.BACKGROUND_JOBS !== 'true') return;
-    console.log('[commentReviewJob] enabled — running every', Math.round(intervalMs / 1000), 's');
+    console.log('[commentReviewJob] enabled — running every', Math.round(intervalMs / 1000), 's (leader only)');
     setInterval(async () => {
         try {
+            if (!isLeader()) return;                  // only the elected leader does the work
             if (!(await isJobDirty(JOB))) return;     // nothing changed — skip
             await clearJobDirty(JOB);                  // claim the work
             const r = await runCommentReviewBatch();

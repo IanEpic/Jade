@@ -3,13 +3,21 @@
 // sweeps finished zips off shared storage (a few minutes after download, or after a TTL).
 
 import { getPool } from '../config/database.js';
+import { isLeader } from './jobLease.js';
 import { buildPrExport, deletePrExportFile } from './prExport.js';
 
+// Atomically claim one pending request (pending → running) so no two nodes ever build the same
+// export, even during a leadership handover. READPAST skips a row another node just claimed.
 async function processNextPending() {
     const pool = await getPool();
-    const row = (await pool.request().query(
-        "SELECT TOP 1 * FROM PrExport WHERE status='pending' ORDER BY prexportid"
-    )).recordset[0];
+    const row = (await pool.request().query(`
+        UPDATE dbo.PrExport SET status='running'
+        OUTPUT INSERTED.prexportid, INSERTED.programid, INSERTED.requestedemail, INSERTED.baseurl
+        WHERE prexportid = (
+            SELECT TOP 1 prexportid FROM dbo.PrExport WITH (UPDLOCK, READPAST)
+            WHERE status='pending' ORDER BY prexportid
+        )
+    `)).recordset[0];
     if (!row) return false;
     await buildPrExport(row);
     return true;
@@ -28,10 +36,9 @@ async function sweep() {
 }
 
 export function startPrExportJob({ intervalMs = 20 * 1000 } = {}) {
-    if (process.env.BACKGROUND_JOBS !== 'true') return;   // one node only, like the other jobs
     let running = false;
     setInterval(async () => {
-        if (running) return;
+        if (running || !isLeader()) return;   // only the elected leader builds exports
         running = true;
         try {
             const did = await processNextPending();
