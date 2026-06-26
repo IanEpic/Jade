@@ -14,6 +14,7 @@
   "dependencies": {
     "@anthropic-ai/sdk": "^0.100.1",
     "apache-crypt": "^1.2.6",
+    "archiver": "^8.0.0",
     "bcryptjs": "^3.0.3",
     "compression": "^1.8.1",
     "connect-mssql-v2": "^6.0.0",

@@ -14,6 +14,7 @@ import { computeStateFinalists, writeStateFinalists, ensureEventStates, loadSave
 import { computeBestState, DEFAULT_POPULATIONS, saveBestState, loadBestState } from '../../services/bestState.js';
 import { getCitationData, getStateAward } from '../../services/citation.js';
 import { getVoScriptItems } from '../../services/voScript.js';
+import { getLatestPrExport } from '../../services/prExport.js';
 import { STATES as AU_STATES } from '../../services/eventStates.js';
 import sequelize               from '../../config/sequelize.js';
 import User                    from '../../models/User.js';
@@ -164,6 +165,12 @@ export async function handleAdminAction(action, req, res, program, user) {
         // AI Rules: program-wide winner-citation rules (length, tone, style).
         const jm = program.judgingmodelid ? await JudgingModel.findByPk(program.judgingmodelid) : null;
         return { view: 'home/citationrules', citationRules: jm?.citationrules || '' };
+    }
+
+    if (action === 'prexport') {
+        // Tools: Export PR Info — request a background zip of accepted entries' high-res media.
+        const latest = await getLatestPrExport(program.programid);
+        return { view: 'home/prexport', latest };
     }
 
     if (action === 'voscript') {

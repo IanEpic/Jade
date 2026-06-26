@@ -56,6 +56,7 @@ import receivePaymentRouter        from './receivePayment.js';
 import bestStateRouter             from './bestState.js';
 import voScriptRouter              from './voScript.js';
 import citationRouter              from './citation.js';
+import prExportRouter              from './prExport.js';
 
 const router = Router({ mergeParams: true });
 
@@ -136,6 +137,7 @@ router.use('/receivePayment',          receivePaymentRouter);
 router.use('/beststate',               bestStateRouter);
 router.use('/voScript',                voScriptRouter);
 router.use('/citation',                citationRouter);
+router.use('/prExport',                prExportRouter);
 
 // ── Compatibility shims ───────────────────────────────────────────────────────
 // Legacy .cgi URLs that may still appear in bookmarks.

@@ -220,7 +220,7 @@ export async function buildSidebar(user, program, data) {
                 { href: url('/home?action=beststate'), label: 'Calc Best State' },
                 { href: url('/home?action=voscript'), label: 'Finalist VO Script' },
                 { href: url('/home?action=citations'), label: 'Citations' },
-                { href: '#', label: 'Export PR Info' },
+                { href: url('/home?action=prexport'), label: 'Export PR Info' },
             ],
         };
         const statsPrograms = await getStatsPrograms();

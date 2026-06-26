@@ -221,3 +221,16 @@ Winners page (Admin→Judging), Citation Rules page (Admin→AI Rules), Category
 into" dropdown. New dependency: `docx` (run `npm install` on deploy).
 
 - Applied to DEV: 2026-06-26 ✓  | PROD: 2026-06-26 ✓
+
+## 064 — Export PR Info (PrExport job table)
+
+`064_prexport.sql`
+
+Adds `dbo.PrExport` — one row per admin "Export PR Info" request. A background worker (node1,
+BACKGROUND_JOBS) zips all high-res images/videos from accepted entries onto shared filestore
+(`prExports/`), emails the admin a download link (from the program's emailfromaddress via its
+SMTP), and the worker sweeps the zip a few minutes after download (or after 24h). Files named
+`[entryid](-DNU)-[pic|vid]-[NNN].ext` — DNU tag when the entrant ticked the media opt-out
+checkbox. New dependency: `archiver` (v8, ESM) — run `npm install` on deploy.
+
+- Applied to DEV: 2026-06-26 ✓  | PROD: 2026-06-26 ✓

@@ -1,0 +1,41 @@
+//- home/prexport.pug
+//- Admin (Tools): Export PR Info — queue a background zip of all high-res images/videos from
+//- accepted entries, get emailed when ready, and download. The file auto-deletes after download.
+
+-
+    var slug = program.slug
+    var latest = content.latest
+    var inflight = latest && (latest.status === 'pending' || latest.status === 'running')
+    var ready = latest && latest.status === 'done' && !latest.deletedat && !latest.downloadedat
+
+style.
+    .pe-wrap { max-width: 680px; margin: 0 auto; text-align: center; }
+    .pe-wrap h2 { color: #c48f06; margin-bottom: 6px; }
+    .pe-intro { color: #aaa; font-size: 13px; margin: 0 auto 20px; line-height: 1.5; }
+    .pe-box { border: 1px solid #3a3a3a; border-radius: 6px; padding: 22px; background: #1a1a1a; }
+    .pe-actions { display: flex; gap: 10px; justify-content: center; align-items: center; flex-wrap: wrap; }
+    .pe-status { margin-top: 16px; font-size: 13px; color: #bcd; min-height: 20px; }
+    .pe-spinner { width: 16px; height: 16px; border: 2px solid #3a6e8a; border-top-color: transparent; border-radius: 50%; display: inline-block; vertical-align: -3px; margin-right: 7px; animation: pe-spin .8s linear infinite; }
+    @keyframes pe-spin { to { transform: rotate(360deg); } }
+    .pe-ok { color: #7fe07f; }
+    .pe-err { color: #f88; }
+
+.pe-wrap
+    h2 Export PR Info
+    p.pe-intro Builds a zip of all high-res images and videos from <b>accepted entries</b>, named
+        |  #[code [entryid](-DNU)-[pic|vid]-[NNN].ext] — the <b>DNU</b> tag marks entrants who opted out of
+        |  media exposure. This runs in the background; you’ll be emailed a download link when it’s ready,
+        |  and the file is removed shortly after you download it.
+
+    .pe-box
+        .pe-actions
+            button.btn#pe-build(type='button' data-build='/' + slug + '/prExport/request' data-status='/' + slug + '/prExport/status' data-download='/' + slug + '/prExport/download') Build PR Export
+            a.btn-secondary(href='/' + slug + '/home?action=program') Back to Admin
+        .pe-status#pe-status(data-id=(latest ? latest.prexportid : '') data-inflight=(inflight ? '1' : '') data-ready=(ready ? '1' : ''))
+            if inflight
+                span.pe-spinner
+                | Building your export… you can leave this page; we’ll email you when it’s ready.
+            else if ready
+                | A previous export is ready (#{latest.filecount} files).
+
+script(src='/js/home-prexport.js?v=' + buildHash)

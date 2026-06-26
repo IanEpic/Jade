@@ -15,6 +15,7 @@ import { countContentWords } from './services/helpers.js';
 import { setupAssociations } from './models/associations.js';
 import { autoCloseAllPrograms } from './services/autoClose.js';
 import { startCommentReviewJob } from './services/commentReviewJob.js';
+import { startPrExportJob } from './services/prExportJob.js';
 import { resolveProgram } from './middleware/resolveProgram.js';
 import rootLoginRouter   from './routes/rootLogin.js';
 import programRouter from './routes/program.js';
@@ -393,6 +394,9 @@ async function start() {
     // Background cross-entry comment-review job (repetition / entry-specificity).
     // No-op unless BACKGROUND_JOBS=true — set on ONE node only in prod.
     startCommentReviewJob();
+
+    // Background PR-media export builder (zip + email). Also BACKGROUND_JOBS-gated.
+    startPrExportJob();
   } catch (err) {
     console.error('Failed to start:', err);
     process.exit(1);
