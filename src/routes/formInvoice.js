@@ -117,6 +117,26 @@ function substituteInvoiceNo(text, invoiceNo) {
                .replace(/<~invoiceno~>/g, invoiceNo);
 }
 
+// If the selected entries already sit on a single unpaid, non-deleted invoice that holds
+// EXACTLY those entries, return its id so we can update it in place rather than create a
+// duplicate (handles repeat "Create Invoice" from double-click / back button / new tab).
+async function findReusableInvoice(pool, entries, entryIds) {
+    const invIds = [...new Set(entries.map(e => e.invoiceid).filter(Boolean))];
+    if (invIds.length !== 1) return null;                 // entries not all on one invoice
+    const candidate = invIds[0];
+    const inv = (await pool.request().input('i', sql.Int, candidate)
+        .query('SELECT deleted FROM Invoice WHERE invoiceid=@i')).recordset[0];
+    if (!inv || inv.deleted) return null;
+    const paid = (await pool.request().input('i', sql.Int, candidate)
+        .query('SELECT COUNT(*) AS c FROM PaymentAllocation WHERE invoiceid=@i')).recordset[0].c;
+    if (paid > 0) return null;                            // never touch a paid invoice
+    const live = (await pool.request().input('i', sql.Int, candidate)
+        .query('SELECT entryid FROM Entry WHERE invoiceid=@i AND deleted=0')).recordset.map(r => r.entryid);
+    const sel = new Set(entryIds);
+    if (live.length !== sel.size || live.some(id => !sel.has(id))) return null;  // exact-set match only
+    return candidate;
+}
+
 // ── GET /formInvoice — view existing invoice ──────────────────────────────────
 
 router.get('/', async (req, res, next) => {
@@ -133,6 +153,13 @@ router.get('/', async (req, res, next) => {
         // Delete action
         if (action === 'delete') {
             const delPool = await getPool();
+            // Never delete a paid invoice — it would orphan the payment. (UI hides the link
+            // for paid invoices; this guards a direct URL.)
+            const paidCount = (await delPool.request().input('i', sql.Int, invoice.invoiceid)
+                .query('SELECT COUNT(*) AS c FROM PaymentAllocation WHERE invoiceid=@i')).recordset[0].c;
+            if (paidCount > 0) {
+                return res.redirect(`/formInvoice?invoiceid=${invoice.invoiceid}&error=paid`);
+            }
             await delPool.request()
                 .input('invoiceid', sql.Int, invoice.invoiceid)
                 .query('UPDATE Invoice SET deleted=1 WHERE invoiceid=@invoiceid');
@@ -229,6 +256,17 @@ router.post('/', async (req, res, next) => {
         `);
         const entries = r2.recordset;
 
+        // Lock paid entries: don't let a stale form (e.g. back button after paying) re-invoice
+        // entries that already sit on a paid invoice — that would orphan the payment.
+        const lockedEntries = (await pool2.request().query(`
+            SELECT e.entryid FROM Entry e
+            WHERE e.entryid IN (${idList}) AND e.invoiceid IS NOT NULL
+              AND EXISTS (SELECT 1 FROM PaymentAllocation pa WHERE pa.invoiceid = e.invoiceid)
+        `)).recordset;
+        if (lockedEntries.length) {
+            return res.redirect(`/formPaymentOptions?pmtoption=${body.pmtoption || 2}&action=locked`);
+        }
+
         // ── Step 1: Show invoice form ─────────────────────────────────────────
         if (body.submit === 'Continue') {
             const [addresses, totals, codeDiscountCount] = await Promise.all([
@@ -282,30 +320,56 @@ router.post('/', async (req, res, next) => {
             const totals    = await calcTotals(program, entries, { status: body.status, promoCode });
 
             const insertPool = await getPool();
-            const insertResult = await insertPool.request()
-                .input('userid',          sql.Int,     user.userid)
-                .input('invoicee',        sql.VarChar,  body.invoicee)
-                .input('email',           sql.VarChar,  body.email)
-                .input('postaladdressid', sql.Int,      postaladdressid)
-                .input('totalex',         sql.Money,    totals.subtotalEx)
-                .input('gst',             sql.Money,    totals.subtotalGst)
-                // Early-bird is date-conditional — do NOT bake it into the invoice;
-                // owing stays at the full amount and the discount is applied at payment
-                // time (based on the payment date). Non-earlybird discounts still bake.
-                .input('ebdiscount',      sql.Money,    totals.appliedDiscount?.type === 'earlybird' ? 0 : totals.ebDiscountInc)
-                .input('partnerdiscount', sql.Money,    Math.abs(totals.partnerDiscountInc))
-                .input('promocode',       sql.VarChar,  promoCode)
-                .query(`
-                    INSERT INTO Invoice (userid, date, invoicee, email, postaladdressid, totalex, gst, ebdiscount, partnerdiscount, promocode, deleted)
-                    VALUES (@userid, GETDATE(), @invoicee, @email, @postaladdressid, @totalex, @gst, @ebdiscount, @partnerdiscount, @promocode, 0);
-                    SELECT SCOPE_IDENTITY() AS invoiceid
-                `);
-            const invoice = await Invoice.findByPk(insertResult.recordset[0].invoiceid);
+            // Reuse an existing unpaid invoice that already holds exactly these entries, so a
+            // repeated "Create Invoice" updates it in place instead of spawning a duplicate.
+            const reuseId = await findReusableInvoice(insertPool, entries, entryIds);
+            // Early-bird is date-conditional — do NOT bake it into the invoice; owing stays at
+            // the full amount and the discount is applied at payment time. Other discounts bake.
+            const ebVal   = totals.appliedDiscount?.type === 'earlybird' ? 0 : totals.ebDiscountInc;
 
-            // Increment usecount for code discounts
-            if (totals.appliedDiscount?.type === 'code') {
-                await incrementDiscountUsecount(totals.appliedDiscount.discountid);
+            let invoice;
+            if (reuseId) {
+                await insertPool.request()
+                    .input('id',              sql.Int,     reuseId)
+                    .input('invoicee',        sql.VarChar,  body.invoicee)
+                    .input('email',           sql.VarChar,  body.email)
+                    .input('postaladdressid', sql.Int,      postaladdressid)
+                    .input('totalex',         sql.Money,    totals.subtotalEx)
+                    .input('gst',             sql.Money,    totals.subtotalGst)
+                    .input('ebdiscount',      sql.Money,    ebVal)
+                    .input('partnerdiscount', sql.Money,    Math.abs(totals.partnerDiscountInc))
+                    .input('promocode',       sql.VarChar,  promoCode)
+                    .query(`UPDATE Invoice SET invoicee=@invoicee, email=@email, postaladdressid=@postaladdressid,
+                                totalex=@totalex, gst=@gst, ebdiscount=@ebdiscount, partnerdiscount=@partnerdiscount,
+                                promocode=@promocode WHERE invoiceid=@id`);
+                invoice = await Invoice.findByPk(reuseId);
+            } else {
+                const insertResult = await insertPool.request()
+                    .input('userid',          sql.Int,     user.userid)
+                    .input('invoicee',        sql.VarChar,  body.invoicee)
+                    .input('email',           sql.VarChar,  body.email)
+                    .input('postaladdressid', sql.Int,      postaladdressid)
+                    .input('totalex',         sql.Money,    totals.subtotalEx)
+                    .input('gst',             sql.Money,    totals.subtotalGst)
+                    .input('ebdiscount',      sql.Money,    ebVal)
+                    .input('partnerdiscount', sql.Money,    Math.abs(totals.partnerDiscountInc))
+                    .input('promocode',       sql.VarChar,  promoCode)
+                    .query(`
+                        INSERT INTO Invoice (userid, date, invoicee, email, postaladdressid, totalex, gst, ebdiscount, partnerdiscount, promocode, deleted)
+                        VALUES (@userid, GETDATE(), @invoicee, @email, @postaladdressid, @totalex, @gst, @ebdiscount, @partnerdiscount, @promocode, 0);
+                        SELECT SCOPE_IDENTITY() AS invoiceid
+                    `);
+                invoice = await Invoice.findByPk(insertResult.recordset[0].invoiceid);
+
+                // Increment usecount for code discounts (only when a new invoice is created).
+                if (totals.appliedDiscount?.type === 'code') {
+                    await incrementDiscountUsecount(totals.appliedDiscount.discountid);
+                }
             }
+
+            // Which invoices were these entries on before? (to clean up any left empty)
+            const oldInvoiceIds = [...new Set(entries.map(e => e.invoiceid)
+                .filter(id => id && id !== invoice.invoiceid))];
 
             // Link entries to invoice and lock in the current category cost
             for (const entry of entries) {
@@ -315,6 +379,19 @@ router.post('/', async (req, res, next) => {
                     .input('gst',       sql.Money, parseFloat(entry.gst)    || 0)
                     .input('entryid',   sql.Int,   entry.entryid)
                     .query('UPDATE Entry SET invoiceid=@invoiceid, costex=@costex, gst=@gst WHERE entryid=@entryid');
+            }
+
+            // Re-generating an invoice for the same entries moves them onto the new invoice,
+            // leaving the previous one empty. Soft-delete any source invoice that now has no
+            // live entries and no payment, so duplicate "Create Invoice" clicks don't leave
+            // orphaned empty invoices behind.
+            for (const oldId of oldInvoiceIds) {
+                await insertPool.request().input('old', sql.Int, oldId).query(`
+                    UPDATE Invoice SET deleted = 1
+                    WHERE invoiceid = @old AND deleted = 0
+                      AND NOT EXISTS (SELECT 1 FROM Entry e WHERE e.invoiceid = @old AND e.deleted = 0)
+                      AND NOT EXISTS (SELECT 1 FROM PaymentAllocation pa WHERE pa.invoiceid = @old)
+                `);
             }
 
             const invoiceNo = invoiceNumber(program, invoice.invoiceid);

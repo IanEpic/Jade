@@ -57,6 +57,7 @@ import {
     getFinalisedNotPaidReport,
     getFinalistsForProgram,
     getOutstandingInvoices,
+    getAdminPayments,
 } from '../../queries/homeQueries.js';
 import { getEarlyBirdDiscount, computeBestDiscount } from '../../services/pricing.js';
 import { getReviewNominationsForProgram } from '../../queries/entryQueries.js';
@@ -96,14 +97,34 @@ export async function handleAdminAction(action, req, res, program, user) {
                 balance:    +(full - paid).toFixed(2),
             };
         });
+        // Admin-recorded payments (grouped per payment) so a mis-assigned one can be deleted.
+        const payRows = await getAdminPayments({ programId: program.programid });
+        const payMap = new Map();
+        for (const r of payRows) {
+            if (!payMap.has(r.paymentid)) payMap.set(r.paymentid, {
+                paymentid:   r.paymentid,
+                date:        r.date ? new Date(r.date).toLocaleDateString('en-AU') : '',
+                amount:      +r.amount || 0,
+                method:      r.method || '',
+                ref:         r.directDepositRef || '',
+                processedby: `${r.procfirst || ''} ${r.proclast || ''}`.trim(),
+                invoices:    [],
+            });
+            payMap.get(r.paymentid).invoices.push({ invoiceno: num(r.invoiceid), invoicee: r.invoicee || '' });
+        }
+        const adminPayments = [...payMap.values()];
+
         const thisYear = new Date().getFullYear();
         return {
             view: 'home/receivepayment',
             invoices,
+            adminPayments,
             ebDate:  eb?.validto ? new Date(eb.validto).toISOString().slice(0, 10) : null,
             today:   new Date().toISOString().slice(0, 10),
             ccYears: Array.from({ length: 11 }, (_, i) => thisYear + i),
             saved:   req.query.saved === '1',
+            deleted: req.query.deleted === '1',
+            delerror: req.query.delerror || null,
             carderror: req.query.carderror || null,
             allocerror: req.query.allocerror === '1',
         };

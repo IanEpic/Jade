@@ -5,6 +5,13 @@
 // Changing the payment date recomputes each invoice's owing and refills the allocations.
 
 (function () {
+    // Confirm before deleting a recorded payment (separate little forms on the page).
+    Array.prototype.forEach.call(document.querySelectorAll('.rp-delform'), function (f) {
+        f.addEventListener('submit', function (e) {
+            if (!confirm('Delete this payment? The invoice will revert to unpaid and its entries will be un-accepted.')) e.preventDefault();
+        });
+    });
+
     var form = document.querySelector('form[action$="/receivePayment"]');
     if (!form) return;
 

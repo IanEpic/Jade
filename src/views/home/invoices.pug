@@ -31,8 +31,10 @@ style.
                     th
             tbody
                 each inv in content.invoices
-                    - let canDelete = content.catsOpenForEntries.length || content.overrideOpen.length
                     - let balance = inv.balance || 0
+                    -
+                        // No deleting a paid invoice (it would orphan the payment).
+                        var canDelete = (content.catsOpenForEntries.length || content.overrideOpen.length) && (inv.paid || 0) <= 0;
                     tr
                         td= inv.invoiceid
                         td.r= content.currency(inv.totalamt || 0)

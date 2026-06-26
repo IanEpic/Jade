@@ -118,10 +118,16 @@ router.get('/', async (req, res, next) => {
             getUninvoicedEntries(user.userid),
         ]);
 
+        const alert = req.query.action === 'locked'
+            ? '! Those entries are already on a paid invoice and can’t be re-invoiced.'
+            : req.query.action === 'nodata'
+            ? '! No Data. Please select from the list below'
+            : null;
+
         await renderInHome(req, res, 'home/paymentoptions', {
             user, program, mode: 'step1',
             unpaidInvoices, uninvoicedEntries,
-            pmtoption: null, alert: null, currency,
+            pmtoption: null, alert, currency,
         });
 
     } catch (err) {

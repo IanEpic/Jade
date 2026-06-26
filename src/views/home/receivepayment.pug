@@ -32,6 +32,8 @@ style.
     .rp-total { text-align: right; font-size: 14px; color: #fff; margin: 10px 0; }
     .rp-total b { color: #c48f06; }
     .rp-actions { text-align: center; margin-top: 12px; }
+    .rp-del { background: transparent; color: #f88; border: 1px solid #a44; border-radius: 3px; padding: 3px 10px; font-size: 12px; cursor: pointer; }
+    .rp-del:hover { background: #3a1a1a; color: #fdd; }
 
 .rp-wrap
     h2 Receive Payment
@@ -43,6 +45,10 @@ style.
         p(style='background:#3a1a1a; color:#fdd; padding:8px 12px; border-left:4px solid #c44; margin-bottom:14px') Card payment failed: #{content.carderror}
     if content.allocerror
         p(style='background:#3a1a1a; color:#fdd; padding:8px 12px; border-left:4px solid #c44; margin-bottom:14px') The total allocated must equal the amount received. Nothing was recorded — please adjust and resubmit.
+    if content.deleted
+        p.rp-ok Payment deleted. The invoice has been reverted to unpaid.
+    if content.delerror
+        p(style='background:#3a1a1a; color:#fdd; padding:8px 12px; border-left:4px solid #c44; margin-bottom:14px') Couldn’t delete that payment#{content.delerror === 'notadmin' ? ' — only admin-recorded payments can be deleted (entrant payments must be refunded)' : ''}.
 
     if !content.invoices.length
         p.rp-none No outstanding invoices.
@@ -119,4 +125,32 @@ style.
             .rp-actions
                 button.btn(type='submit' name='submit' value='Record Payment') Record Payment
 
-        script(src='/js/home-receivepayment.js?v=' + buildHash)
+    if content.adminPayments && content.adminPayments.length
+        .rp-card(style='margin-top:8px')
+            .rp-card-title Recorded Payments
+            p(style='font-size:12px; color:#999; margin:-6px 0 10px') Delete a payment recorded against the wrong invoice — the invoice reverts to unpaid and its entries are un-accepted. Entrant card payments aren&rsquo;t listed (refund those instead).
+            table.rp-table
+                thead
+                    tr
+                        th Date
+                        th Invoice
+                        th Entrant
+                        th.num Amount
+                        th Method
+                        th By
+                        th
+                tbody
+                    each pmt in content.adminPayments
+                        tr
+                            td= pmt.date
+                            td= pmt.invoices.map(function(i){ return i.invoiceno }).join(', ')
+                            td= pmt.invoices.map(function(i){ return i.invoicee }).join(', ')
+                            td.num $#{pmt.amount.toFixed(2)}
+                            td #{pmt.method}#{pmt.ref ? ' · ' + pmt.ref : ''}
+                            td= pmt.processedby
+                            td
+                                form.rp-delform(method='POST' action='/receivePayment/deletePayment')
+                                    input(type='hidden' name='paymentid' value=pmt.paymentid)
+                                    button.rp-del(type='submit') Delete
+
+    script(src='/js/home-receivepayment.js?v=' + buildHash)

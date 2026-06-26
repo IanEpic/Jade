@@ -1113,3 +1113,26 @@ export async function getOutstandingInvoices({ programId }) {
     `);
     return result.recordset;
 }
+
+// Admin-recorded payments for a program (processedby IS NOT NULL) with the invoice(s) each
+// was allocated against. Entrant online payments are excluded (they must be refunded, not
+// deleted). One row per allocation — group by paymentid in the handler.
+export async function getAdminPayments({ programId }) {
+    const pool = await getPool();
+    const result = await pool.request()
+        .input('programId', sql.Int, programId)
+        .query(`
+      SELECT p.paymentid, p.date, p.amount, p.method, p.directDepositRef,
+             pc.firstname AS procfirst, pc.lastname AS proclast,
+             pa.invoiceid, pa.amount AS allocamount, i.invoicee
+      FROM Payment p
+        JOIN PaymentAllocation pa ON pa.paymentid = p.paymentid
+        JOIN Invoice i  ON i.invoiceid = pa.invoiceid
+        JOIN [User] u   ON u.userid = i.userid AND u.programid = @programId
+        LEFT JOIN [User] pu          ON pu.userid = p.processedby
+        LEFT JOIN UserCredential pc  ON pc.credentialid = pu.credentialid
+      WHERE p.processedby IS NOT NULL
+      ORDER BY p.paymentid DESC
+    `);
+    return result.recordset;
+}
