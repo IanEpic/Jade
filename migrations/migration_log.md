@@ -192,3 +192,16 @@ features don't recompute it. Companion code: `FinalScore` model + the calcfinals
 handler write `rawscore`. Existing FinalScore rows stay NULL until the next Calc Final Scores run.
 
 - Applied to DEV: 2026-06-25 ✓  | PROD: 2026-06-25 ✓
+
+## 057 — Best Event State or Territory award snapshot
+
+`057_beststate_result.sql`
+
+Adds `dbo.BestStateResult` (one JSON snapshot per program, unique on `programid`) so the new
+Calc Best State tool (Admin → Tools) can reload its computed result without recomputing. Stores
+the per-state points/nominees/winners/population/per-capita rows, the winning state, the
+population figures used (+ ABS refresh metadata), and the entry counts. Companion code: the
+`bestState` service/route/view, the `/beststate/refresh` AJAX population lookup, and the
+`beststate` admin action. `computedat` is stored UTC (`SYSUTCDATETIME`) and formatted client-side.
+
+- Applied to DEV: 2026-06-26 ✓  | PROD: 2026-06-26 ✓

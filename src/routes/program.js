@@ -53,6 +53,7 @@ import reportFinalistsRouter        from './reportFinalists.js';
 import finalistTextRouter          from './finalistText.js';
 import categoryTypesRouter         from './categoryTypes.js';
 import receivePaymentRouter        from './receivePayment.js';
+import bestStateRouter             from './bestState.js';
 
 const router = Router({ mergeParams: true });
 
@@ -130,6 +131,7 @@ router.use('/reportFinalists',         reportFinalistsRouter);
 router.use('/finalistText',            finalistTextRouter);
 router.use('/categoryTypes',           categoryTypesRouter);
 router.use('/receivePayment',          receivePaymentRouter);
+router.use('/beststate',               bestStateRouter);
 
 // ── Compatibility shims ───────────────────────────────────────────────────────
 // Legacy .cgi URLs that may still appear in bookmarks.

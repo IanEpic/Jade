@@ -1,0 +1,153 @@
+-
+    var slug         = program.slug
+    var baseUrl      = '/' + slug + '/home?action=beststate'
+    var rows         = content.rows || []
+    var winner       = content.winner
+    var minPoints    = content.minPoints
+    var populations  = content.populations || {}
+    var fmt          = function (n) { return n == null ? '' : Number(n).toLocaleString('en-AU'); }
+
+style.
+    .bs-wrap { max-width: 920px; margin: 0 auto; }
+    .bs-wrap h2 { text-align: center; color: #c48f06; margin-bottom: 6px; }
+    .bs-intro { text-align: center; color: #aaa; font-size: 13px; margin: 0 auto 16px; max-width: 800px; line-height: 1.5; }
+    .bs-meta { text-align: center; color: #888; font-size: 12px; margin-bottom: 18px; }
+    .bs-winner { background: #1a3a1a; border: 1px solid #2e6e2e; border-radius: 6px; padding: 14px 18px; margin-bottom: 20px; text-align: center; color: #cfeccf; font-size: 15px; }
+    .bs-winner b { color: #7fe07f; font-size: 18px; }
+    .bs-nowin { background: #3a2a1a; border-left: 4px solid #c48f06; color: #f0d9a8; padding: 10px 14px; font-size: 13px; margin-bottom: 20px; }
+    .bs-saved { background:#16252e; border-left:4px solid #3a6e8a; color:#bcd; padding:10px 14px; font-size:13px; margin-bottom:16px; }
+    .bs-ok { background:#1a4a1a; border-left:4px solid #4c4; color:#cfc; padding:10px 14px; font-size:13px; margin-bottom:16px; }
+    .bs-unsaved { background:#2a2a1a; border-left:4px solid #b0902a; color:#e8dca8; padding:10px 14px; font-size:13px; margin-bottom:16px; }
+    .bs-pop { background: #1a1a1a; border: 1px solid #444; border-radius: 4px; padding: 12px 14px; margin-bottom: 20px; }
+    .bs-pop h3 { margin: 0 0 8px; font-size: 13px; color: #c48f06; font-weight: 600; }
+    .bs-pop-grid { display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-end; }
+    .bs-pop-grid label { display: flex; flex-direction: column; font-size: 11px; color: #999; gap: 3px; }
+    .bs-pop-grid input { width: 96px; background: #111; color: #fff; border: 1px solid #555; border-radius: 4px; padding: 5px 7px; font-size: 13px; font-variant-numeric: tabular-nums; }
+    table.bs-tab { width: 100%; border-collapse: collapse; margin-bottom: 6px; }
+    table.bs-tab th { text-align: right; font-size: 11px; text-transform: uppercase; letter-spacing: .04em; color: #999; padding: 6px 12px; border-bottom: 1px solid #444; }
+    table.bs-tab th.l, table.bs-tab td.l { text-align: left; }
+    table.bs-tab td { padding: 8px 12px; font-size: 13px; text-align: right; border-bottom: 1px solid #222; font-variant-numeric: tabular-nums; color: #ddd; }
+    table.bs-tab tr.is-elig td { color: #ededed; }
+    table.bs-tab tr.is-win td { background: #15281580; }
+    table.bs-tab tr.not-elig td { color: #777; }
+    .bs-state-code { display: inline-block; min-width: 34px; text-align: center; font-size: 11px; font-weight: 700; color: #7fb8e0; background: #14242e; border: 1px solid #1e3a48; border-radius: 3px; padding: 2px 4px; }
+    .bs-rank { color: #c48f06; font-weight: 700; }
+    .bs-reason { color: #b07a3a; font-size: 11px; }
+    .bs-win-tag { display:inline-block; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:#7fe07f; background:#173017; border:1px solid #2e6e2e; border-radius:3px; padding:2px 7px; white-space:nowrap; }
+    .bs-popmeta { margin: 10px 0 0; font-size: 11px; color: #888; }
+    .bs-pop-actions { display: flex; gap: 10px; margin-top: 12px; flex-wrap: wrap; }
+    .bs-regen-box { display: none; align-items: center; gap: 10px; margin-top: 12px; padding: 10px 14px; background: #16252e; border: 1px solid #2c4655; border-radius: 4px; color: #bcd; font-size: 13px; }
+    .bs-regen-msg { flex: 1; }
+    .bs-spinner { width: 16px; height: 16px; border: 2px solid #3a6e8a; border-top-color: transparent; border-radius: 50%; display: inline-block; animation: bs-spin .8s linear infinite; flex: none; }
+    @keyframes bs-spin { to { transform: rotate(360deg); } }
+    details.bs-detail { margin: 14px 0 0; }
+    details.bs-detail > summary { cursor: pointer; color: #9ab; font-size: 12px; padding: 6px 0; }
+    .bs-detail-cat { font-size: 11px; color: #888; }
+    .bs-detail table { width: 100%; border-collapse: collapse; margin: 6px 0 14px; }
+    .bs-detail td { padding: 4px 10px; font-size: 12px; border-bottom: 1px solid #1e1e1e; color: #bbb; }
+    .bs-badge { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; border-radius: 3px; padding: 1px 5px; margin-left: 6px; }
+    .bs-badge.nom { color: #7fb8e0; background: #15303f; border: 1px solid #1e4257; }
+    .bs-badge.win { color: #7fe07f; background: #173017; border: 1px solid #2e6e2e; }
+    .form-actions { margin-top: 24px; display: flex; gap: 8px; align-items: center; justify-content: center; }
+
+.bs-wrap
+    h2 Best Event State or Territory
+    p.bs-intro Best Event categories only. National Events (staged in 4+ states/territories) are excluded. Each remaining entry earns 1 point for every state its event ran in, +1 if it is a National Nominee (finalist) and +1 if it is a National Winner. A state qualifies only with at least #{minPoints} points, 2+ National Nominees and 1+ National Winner; the award goes to the qualifying state with the most points per head of population.
+    p.bs-meta Counted #{content.entryCount} eligible entr#{content.entryCount === 1 ? 'y' : 'ies'} · excluded #{content.nationalCount} National Event#{content.nationalCount === 1 ? '' : 's'} · #{content.unresolvedCount} with no determinable state.
+
+    if content.justSaved
+        .bs-ok Result saved to the database.
+    if content.saved
+        p.bs-saved
+            | Saved result, loaded from the database
+            if content.computedat
+                |  (computed&nbsp;
+                span#bs-computedat(data-utc=new Date(content.computedat).toISOString())= new Date(content.computedat).toISOString()
+                | )
+            | . Edit the population figures and click Recalculate to refresh, or #[a(href=baseUrl + '&recalc=1' style='color:#c48f06') recompute from current data].
+    else
+        p.bs-unsaved Preview — not yet saved. Click Recalculate to compute and store this result so it reloads without recalculating.
+
+    if winner
+        .bs-winner
+            | State or Territory Award:&nbsp;
+            b= winner.state
+            br
+            small= winner.points + ' points · ' + (winner.perMillion != null ? winner.perMillion.toFixed(2) : '—') + ' points per million people'
+    else
+        .bs-nowin No state or territory currently meets the award criteria (#{minPoints}+ points, 2+ National Nominees including a National Winner). Check that Calc Final Scores and winner nomination have been run.
+
+    if content.poperror
+        .bs-nowin.bs-refresh-banner Couldn’t refresh population figures: #{content.poperror}
+    if content.poprefreshed
+        .bs-ok.bs-refresh-banner Population figures refreshed from ABS — #{content.poprefreshed} value#{content.poprefreshed === 1 ? '' : 's'} updated and the award recalculated.
+    if content.popsame
+        .bs-saved.bs-refresh-banner Population figures checked against ABS — no change.
+
+    form(method='POST' action=baseUrl)
+        .bs-pop
+            h3 Population figures (editable)
+            .bs-pop-grid
+                each S in ['NSW','VIC','QLD','WA','SA','TAS','NT','ACT']
+                    label
+                        = S
+                        input(type='text' name='pop_' + S value=fmt(populations[S]))
+            .bs-pop-actions
+                button.btn-secondary#bs-regen(type='button' data-base=baseUrl data-refresh='/' + slug + '/beststate/refresh') Regenerate from ABS (AI)
+                button.btn(type='submit') Recalculate Winner
+            .bs-regen-box#bs-regen-box
+                span.bs-spinner
+                span.bs-regen-msg Fetching the latest ABS population figures&hellip; this can take up to a minute.
+                button.btn-secondary#bs-regen-cancel(type='button') Cancel
+            if content.popMeta && content.popMeta.asof
+                p.bs-popmeta Last refreshed from ABS #{content.popMeta.asof}#{content.popMeta.source ? ' — ' + content.popMeta.source : ''}.
+
+    table.bs-tab
+        thead
+            tr
+                th.l State
+                th Points
+                th Nominees
+                th Winners
+                th Population
+                th Pts / million
+                th.l Status
+                th Award
+        tbody
+            each r in rows
+                tr(class=(r.eligible ? 'is-elig ' : 'not-elig ') + (winner && r.state === winner.state ? 'is-win' : ''))
+                    td.l
+                        span.bs-state-code= r.state
+                    td= r.points
+                    td= r.nominees
+                    td= r.winners
+                    td= fmt(r.population)
+                    td= r.perMillion != null ? r.perMillion.toFixed(2) : '—'
+                    td.l
+                        if r.eligible
+                            span.bs-rank= '#' + r.rank
+                        else
+                            span.bs-reason= r.reasons.join(', ')
+                    td
+                        if winner && r.state === winner.state
+                            span.bs-win-tag 🏆 Award
+
+    each r in rows
+        if r.entries && r.entries.length
+            details.bs-detail
+                summary #{r.state} — #{r.entries.length} contributing entr#{r.entries.length === 1 ? 'y' : 'ies'} (#{r.points} pts)
+                table
+                    each e in r.entries
+                        tr
+                            td #{e.entrant || ('Entry ' + e.entryid)}
+                                span.bs-detail-cat= ' — ' + e.categoryname
+                                if e.nominated
+                                    span.bs-badge.win Winner
+                                else if e.finalist
+                                    span.bs-badge.nom Nominee
+                            td(style='text-align:right;width:60px;') #{e.points} pt#{e.points === 1 ? '' : 's'}
+
+    .form-actions
+        a.btn-secondary(href='/' + slug + '/home?action=program') Back to Admin
+
+script(src='/js/home-beststate.js?v=' + buildHash)

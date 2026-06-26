@@ -215,6 +215,7 @@ export async function buildSidebar(user, program, data) {
                 { href: url('/home?action=finalisttextadmin'), label: 'Finalist Text' },
                 { href: url('/home?action=calcfinalscores'), label: 'Calc Final Scores' },
                 { href: url('/home?action=statefinalists'), label: 'Get State Finalists' },
+                { href: url('/home?action=beststate'), label: 'Calc Best State' },
                 { href: '#', label: 'Export PR Info' },
             ],
         };

@@ -11,6 +11,8 @@ import FinalScore              from '../../models/FinalScore.js';
 import FinalScoreCriteria      from '../../models/FinalScoreCriteria.js';
 import { calcFinalScores }     from '../../services/finalScores.js';
 import { computeStateFinalists, writeStateFinalists, ensureEventStates, loadSavedStateFinalists } from '../../services/stateFinalists.js';
+import { computeBestState, DEFAULT_POPULATIONS, saveBestState, loadBestState } from '../../services/bestState.js';
+import { STATES as AU_STATES } from '../../services/eventStates.js';
 import sequelize               from '../../config/sequelize.js';
 import User                    from '../../models/User.js';
 import ProgramDiscount         from '../../models/ProgramDiscount.js';
@@ -772,6 +774,47 @@ export async function handleAdminAction(action, req, res, program, user) {
             categories, unresolved, minRawScore, ensured, saved: false,
             finalistCount: byEntry.size,
         };
+    }
+
+    if (action === 'beststate') {
+        // Best Event State or Territory award. The computed snapshot is persisted
+        // (BestStateResult) so the page reloads instantly; admins force a fresh run by
+        // editing the population figures and clicking Recalculate (POST), or via recalc=1.
+        // Population figures default to current ABS estimates but are editable on the page.
+        await ensureEventStates(program.programid);
+        const recalc = req.query.recalc === '1';
+
+        // Recalculate (POST) with the submitted populations and persist (auto-save).
+        // Population refresh from ABS is handled by the /beststate/refresh AJAX route.
+        if (req.method === 'POST') {
+            const stored = await loadBestState(program.programid);
+            const populations = { ...DEFAULT_POPULATIONS };
+            for (const S of AU_STATES) {
+                const v = parseFloat(String(req.body['pop_' + S] || '').replace(/[, ]/g, ''));
+                if (!isNaN(v) && v > 0) populations[S] = v;
+            }
+            const result = await computeBestState(program.programid, { populations });
+            await saveBestState(program.programid, result, req.user?.userid, stored?.snapshot?.popMeta);
+            res.redirect(`/${program.slug}/home?action=beststate&saved=1`);
+            return null;
+        }
+
+        // GET — show the saved snapshot if there is one (unless a fresh preview was asked for).
+        const stored = await loadBestState(program.programid);
+        if (stored && !recalc) {
+            return {
+                view: 'home/beststate', ...stored.snapshot,
+                saved: true, computedat: stored.computedat, justSaved: req.query.saved === '1',
+                poprefreshed: req.query.poprefreshed ? parseInt(req.query.poprefreshed) : null,
+                popsame: req.query.popsame === '1', poperror: req.query.poperror || null,
+            };
+        }
+
+        // No saved snapshot (or recalc requested) — compute an unsaved preview, reusing the
+        // last-used population figures if we have them.
+        const populations = stored?.snapshot?.populations || { ...DEFAULT_POPULATIONS };
+        const result = await computeBestState(program.programid, { populations });
+        return { view: 'home/beststate', ...result, saved: false, poperror: req.query.poperror || null };
     }
 
     if (action === 'stats') {
