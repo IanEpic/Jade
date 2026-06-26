@@ -191,4 +191,4 @@ weighted raw score (the min-quality gate); it's now persisted alongside `finalsc
 features don't recompute it. Companion code: `FinalScore` model + the calcfinalscores confirm
 handler write `rawscore`. Existing FinalScore rows stay NULL until the next Calc Final Scores run.
 
-- Applied to DEV: 2026-06-25 ✓  | PROD: pending
+- Applied to DEV: 2026-06-25 ✓  | PROD: 2026-06-25 ✓
