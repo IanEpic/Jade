@@ -105,11 +105,8 @@ export async function computeStateFinalists(programId, { minRawScore = 2.85 } = 
                 .sort((a, b) => b.fs - a.fs);
             // The top 2 contenders occupy the state's slots; national finalists among them
             // are shown (flagged) for context but are NOT state finalists.
+            if (!inS.length) continue;                      // no eligible entries ran in this state
             const top2 = inS.slice(0, 2);
-            // Display gate (unchanged): only surface states that have at least one non-national
-            // finalist among the top 2 — keeps the tool's output exactly as before.
-            const hasNonNational = top2.some(r => !r.finalist);
-            if (!hasNonNational) continue;
             stateBlocks.push({ state: S, entries: top2.map(w => ({
                 entryid: w.entryid, entrant: w.entrant, userref: w.userref,
                 finalisttext: w.finalisttext, finalscore: w.fs, national: !!w.finalist,
@@ -166,13 +163,9 @@ export async function loadSavedStateFinalists(programId) {
         const stateBlocks = [];
         for (const S of STATES) {
             if (!sfByState[S]) continue;                                  // only states with a finalist
-            // Nationals are now flagged in statefinalist too, but include the legacy join (for
-            // data written before that change) and DEDUPE by entryid so none appear twice.
-            const nationalsInS = catRows.filter(r => r.national && r.states.includes(S));
-            const seen = new Set();
-            const top2 = [...sfByState[S], ...nationalsInS]
-                .filter(r => !seen.has(r.entryid) && seen.add(r.entryid))
-                .sort((a, b) => (b.fs ?? 0) - (a.fs ?? 0)).slice(0, 2);
+            // Every displayed entry (incl national finalists) is flagged in statefinalist, so the
+            // state's finalists are exactly those — highest score first.
+            const top2 = sfByState[S].slice().sort((a, b) => (b.fs ?? 0) - (a.fs ?? 0)).slice(0, 2);
             stateBlocks.push({ state: S, entries: top2.map(w => ({
                 entryid: w.entryid, entrant: w.entrant, finalisttext: w.finalisttext,
                 finalscore: w.fs, national: w.national,
