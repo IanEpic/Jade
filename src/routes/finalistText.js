@@ -66,4 +66,33 @@ router.post('/save', async (req, res, next) => {
     } catch (err) { next(err); }
 });
 
+// Bulk save — items: JSON array of { entryid, text }. Scoped to this program.
+router.post('/saveAll', async (req, res, next) => {
+    try {
+        const items = JSON.parse(req.body.items || '[]');
+        let saved = 0;
+        for (const it of items) {
+            const entryid = parseInt(it.entryid);
+            if (!entryid) continue;
+            const [n] = await Entry.update(
+                { finalisttext: (it.text || '').trim() },
+                { where: { entryid, programid: req.program.programid } });
+            saved += n;
+        }
+        res.json({ ok: true, saved });
+    } catch (err) { next(err); }
+});
+
+// Bulk clear finalist text — entryids: JSON array of ids. Scoped to this program.
+router.post('/clear', async (req, res, next) => {
+    try {
+        const entryids = JSON.parse(req.body.entryids || '[]').map(n => parseInt(n)).filter(Boolean);
+        if (!entryids.length) return res.json({ ok: true, cleared: 0 });
+        const [cleared] = await Entry.update(
+            { finalisttext: '' },
+            { where: { entryid: entryids, programid: req.program.programid } });
+        res.json({ ok: true, cleared });
+    } catch (err) { next(err); }
+});
+
 export default router;

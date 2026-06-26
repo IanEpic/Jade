@@ -11,6 +11,7 @@ FinalScore.init(
     categoryname: { type: DataTypes.STRING,  allowNull: true },
     entrantname:  { type: DataTypes.STRING,  allowNull: true },
     finalscore:   { type: DataTypes.FLOAT,   allowNull: true },
+    rawscore:     { type: DataTypes.FLOAT,   allowNull: true },
   },
   {
     sequelize,

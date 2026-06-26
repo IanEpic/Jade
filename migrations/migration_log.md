@@ -181,3 +181,14 @@ Also fixes the multi-select checkbox decode in `getEntryResponsesForText` (`~`-s
 not `,`), so the finalist-text AI sees multi-state events.
 
 - Applied to DEV: 2026-06-25 ✓  | PROD: 2026-06-25 ✓
+
+## 056 — Store average raw score on FinalScore
+
+`056_finalscore_rawscore.sql`
+
+Adds `FinalScore.rawscore` (FLOAT, nullable). Calc Final Scores already computes a per-entry
+weighted raw score (the min-quality gate); it's now persisted alongside `finalscore` so other
+features don't recompute it. Companion code: `FinalScore` model + the calcfinalscores confirm
+handler write `rawscore`. Existing FinalScore rows stay NULL until the next Calc Final Scores run.
+
+- Applied to DEV: 2026-06-25 ✓  | PROD: pending

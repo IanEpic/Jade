@@ -671,7 +671,7 @@ export async function handleAdminAction(action, req, res, program, user) {
             `);
 
             if (ranked.length) {
-                const fsRows = ranked.map(({ criteriaBreakdown: _, rank: __, finalist: ___, ...r }) => r);
+                const fsRows = ranked.map(({ criteriaBreakdown: _, rank: __, finalist: ___, meetsMin: ____, rawScore, ...r }) => ({ ...r, rawscore: rawScore }));
                 const created = await FinalScore.bulkCreate(fsRows, { returning: true });
                 const criteriaRows = [];
                 for (let i = 0; i < created.length; i++) {
