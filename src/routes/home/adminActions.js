@@ -177,6 +177,13 @@ export async function handleAdminAction(action, req, res, program, user) {
         return { view: 'home/resultsreport' };
     }
 
+    if (action === 'finalistsreport') {
+        // Reports: Finalists — national finalists by type + state finalists list (display + Excel).
+        const { getFinalistsReport } = await import('../../services/finalistsReport.js');
+        const data = await getFinalistsReport(program.programid);
+        return { view: 'home/finalistsreport', ...data };
+    }
+
     if (action === 'prexport') {
         // Tools: Export PR Info — request a background zip of accepted entries' high-res media.
         const latest = await getLatestPrExport(program.programid);

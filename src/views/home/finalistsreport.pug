@@ -1,0 +1,56 @@
+//- home/finalistsreport.pug
+//- Admin (Reports): Finalists — national finalists grouped by category type, plus a single
+//- State Finalists list. Displays on screen with an Excel download.
+
+-
+    var slug = program.slug
+    var groups = content.nationalGroups || []
+    var stateFinalists = content.stateFinalists || []
+
+style.
+    .fr-wrap { max-width: 860px; margin: 0 auto; }
+    .fr-wrap h2 { text-align: center; color: #c48f06; margin-bottom: 6px; }
+    .fr-intro { text-align: center; color: #aaa; font-size: 13px; margin: 0 auto 16px; }
+    .fr-actions { text-align: center; margin-bottom: 20px; }
+    .fr-sec { color: #c48f06; font-size: 15px; font-weight: 700; margin: 22px 0 4px; }
+    .fr-grp { font-size: 13px; font-weight: 600; color: #ddd; margin: 16px 0 4px; padding-bottom: 3px; border-bottom: 1px solid #333; }
+    ul.fr-list { margin: 0 0 6px; padding-left: 20px; }
+    ul.fr-list li { font-size: 13px; color: #ededed; line-height: 1.5; }
+    ul.fr-list li.fr-dup { background: #3a2a1a; outline: 1px solid #c48f06; border-radius: 3px; padding: 1px 5px; }
+    .fr-dup-tag { display: inline-block; margin-left: 8px; font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: #f0d9a8; background: #5a3e1a; border: 1px solid #c48f06; border-radius: 3px; padding: 1px 5px; vertical-align: 1px; }
+    .fr-count { color: #888; font-weight: 400; font-size: 12px; }
+    .fr-hint { text-align: center; color: #b08a4a; font-size: 12px; margin: 0 0 14px; }
+
+.fr-wrap
+    h2 Finalist Release
+    p.fr-intro National finalists grouped by category type (de-duped), then state finalists (national finalists excluded; state shown is where they are a finalist).
+    .fr-actions
+        a.btn(href='/' + slug + '/reportFinalistsList') Download Excel
+    p.fr-hint Entries highlighted in amber look similar to a neighbour — check they aren&rsquo;t the same finalist written two ways.
+
+    .fr-sec National Finalists
+    if !groups.length
+        p(style='color:#aaa') No national finalists found.
+    each g in groups
+        .fr-grp
+            = g.typename
+            span.fr-count  &nbsp;(#{g.finalists.length})
+        ul.fr-list
+            each f in g.finalists
+                li(class=f.dup ? 'fr-dup' : '')
+                    = f.text
+                    if f.dup
+                        span.fr-dup-tag check
+
+    .fr-sec
+        | State Finalists
+        span.fr-count  &nbsp;(#{stateFinalists.length})
+    if !stateFinalists.length
+        p(style='color:#aaa') No state finalists found.
+    else
+        ul.fr-list
+            each f in stateFinalists
+                li(class=f.dup ? 'fr-dup' : '')
+                    = f.text
+                    if f.dup
+                        span.fr-dup-tag check

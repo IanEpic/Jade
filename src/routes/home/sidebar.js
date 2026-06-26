@@ -165,7 +165,7 @@ export async function buildSidebar(user, program, data) {
         if (!program.usesimplejudging)
             judgingItems.push({ href: url('/home?action=reviewcomments'), label: 'Review Comments' });
         if (!program.usesimplejudging)
-            judgingItems.push({ href: url('/home?action=finalistlist'), label: 'Finalists' });
+            judgingItems.push({ href: url('/home?action=finalistlist'), label: 'National Finalists' });
         judgingItems.push({ href: url('/home?action=headlinewinners'), label: 'Headline Winners' });
 
         panels.admin = {
@@ -233,6 +233,7 @@ export async function buildSidebar(user, program, data) {
         reportsItems.push({ href: url('/home?action=activeusers'),        label: 'Active Users' });
         reportsItems.push({ href: url('/home?action=allentrydata'),       label: 'All Entry Data' });
         reportsItems.push({ href: url('/home?action=resultsreport'),       label: 'Results' });
+        reportsItems.push({ href: url('/home?action=finalistsreport'),     label: 'Finalist Release' });
         reportsItems.push({ href: url('/home?action=entriesbycategory'), label: 'Entries by Category' });
         reportsItems.push({ href: url('/home?action=finalisednotpaid'), label: 'Finalised Unpaid' });
         reportsItems.push({ href: url('/home?action=paidnotfinalised'), label: 'Paid Unfinalised' });
