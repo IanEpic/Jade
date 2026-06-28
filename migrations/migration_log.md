@@ -350,4 +350,4 @@ NOT YET DONE (optional backstop): a filtered unique index on Response(entryid, q
 deleted=0 would hard-prevent recurrence, but deferred to avoid risk on the live 1056 — the atomic
 upserts already prevent dupes.
 
-- Applied to DEV: 2026-06-28 ✓ (8,478 → 0 redundant)  | PROD: pending (run AFTER code deploy)
+- Applied to DEV: 2026-06-28 ✓ (8,478 → 0)  | PROD: 2026-06-28 ✓ (8,479 → 0, code deployed first)
