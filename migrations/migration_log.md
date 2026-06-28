@@ -363,4 +363,4 @@ The Node mssql/tedious driver runs with the SET options filtered-index DML requi
 enableArithAbort:true). Verified on DEV: the app's atomic upsert still works and a raw duplicate
 insert is correctly blocked. Applied while no one was logged into 1056.
 
-- Applied to DEV: 2026-06-28 ✓  | PROD: pending
+- Applied to DEV: 2026-06-28 ✓  | PROD: 2026-06-28 ✓ (0 dup groups; index present; live upsert DML verified)
