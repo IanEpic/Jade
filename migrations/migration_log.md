@@ -285,4 +285,4 @@ Companion code: `judgeconflictmodel` on the JudgingModel model; new "Judging Mod
 Admin → Program; enforcement gates (judge edit, new entry, allocation, Calc Final Scores) +
 viewEntry owner short-circuit safety-net.
 
-- Applied to DEV: 2026-06-28 ✓  | PROD: pending
+- Applied to DEV: 2026-06-28 ✓  | PROD: 2026-06-28 ✓ (applied before code restart; 37 programs → 37 distinct models)
