@@ -351,3 +351,16 @@ deleted=0 would hard-prevent recurrence, but deferred to avoid risk on the live 
 upserts already prevent dupes.
 
 - Applied to DEV: 2026-06-28 ✓ (8,478 → 0)  | PROD: 2026-06-28 ✓ (8,479 → 0, code deployed first)
+
+## 073 — Filtered unique index on Response (hard dup backstop)
+
+`073_response_unique_index.sql`
+
+Adds `UX_Response_entry_question` — a UNIQUE index on `Response(entryid, questionid) WHERE
+deleted=0`. Hard DB-level guarantee that there can only ever be one live response per
+entry/question, even if a future code path regresses. Requires 072 (no existing violations) first.
+The Node mssql/tedious driver runs with the SET options filtered-index DML requires (ARITHABORT etc;
+enableArithAbort:true). Verified on DEV: the app's atomic upsert still works and a raw duplicate
+insert is correctly blocked. Applied while no one was logged into 1056.
+
+- Applied to DEV: 2026-06-28 ✓  | PROD: pending
