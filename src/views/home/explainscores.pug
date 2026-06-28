@@ -1,0 +1,19 @@
+//- home/explainscores.pug
+//- "How is my score calculated?" — program.scoresexplained shown in-frame with the sidebar.
+
+style.
+    .es-wrap { max-width: 700px; margin: 0 auto; }
+    .es-wrap h2 { text-align: center; color: #c48f06; margin-bottom: 18px; }
+    .es-card { border: 1px solid #444; border-radius: 6px; background: #181818; padding: 18px 22px; }
+    .es-card, .es-card p, .es-card li, .es-card td { color: #e6e6e6; font-size: 14px; line-height: 1.6; }
+    .es-card a { color: #c9b27a; }
+    .es-card a:hover { color: #cf9702; }
+    .es-card h1, .es-card h2, .es-card h3, .es-card h4 { color: #c48f06; }
+    .es-back { text-align: center; margin-top: 18px; }
+
+.es-wrap
+    h2 How Your Score Is Calculated
+    .es-card
+        != content.html
+    .es-back
+        a.btn-secondary(href='/home?action=scorescomments') Back to Scores &amp; Comments

@@ -286,3 +286,32 @@ Admin → Program; enforcement gates (judge edit, new entry, allocation, Calc Fi
 viewEntry owner short-circuit safety-net.
 
 - Applied to DEV: 2026-06-28 ✓  | PROD: 2026-06-28 ✓ (applied before code restart; 37 programs → 37 distinct models)
+
+## 069 — User page layout (with/without sidebar)
+
+`069_userpage_withsidebar.sql`
+
+Adds `UserPage.withsidebar` (BIT, NOT NULL, default 0). When set, a user page renders inside the
+home framework (sidebar + nav); when 0 it renders standalone (current behaviour). Admin toggles it
+per page on Admin → Setup → User Pages (Layout fieldset). `/viewPage?name=` redirects to
+`/home?action=userpage&pid=` when the flag is set. Both render paths are now card-formatted.
+Existing pages default to 0.
+
+Companion code: UserPage model + formPage save; viewPage redirect; viewPage-content.pug and
+home/userpage.pug card styling.
+
+- Applied to DEV: 2026-06-28 ✓  | PROD: pending
+
+## 070 — FinalScoreCriteria weight/score nullable
+
+`070_finalscorecriteria_nullable.sql`
+
+Makes `FinalScoreCriteria.weight` and `.score` nullable (the model already declared them
+allowNull:true; the DB columns were NOT NULL — a mismatch). The Calc Final Scores per-criteria
+breakdown includes section-header criteria (e.g. "1. Quality of the Event") that have no weight
+and no score; with the columns NOT NULL the entire breakdown insert failed and rolled back, so
+no breakdown was stored (and a calc could error) for any program whose criteria include headers.
+After this, re-running Calc Final Scores stores the breakdown and the entrant Scores & Comments
+page shows the per-criteria table. (DEV: re-ran 1055 → 1203 FinalScoreCriteria rows written.)
+
+- Applied to DEV: 2026-06-28 ✓  | PROD: pending

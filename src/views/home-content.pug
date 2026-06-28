@@ -58,6 +58,10 @@ table(width='780' id='home' style='margin-left: auto; margin-right: auto; displa
                 when 'home/finalisttext'
                     include home/finalisttext.pug
 
+                //- ── Explain scores ──────────────────────────────────────────
+                when 'home/explainscores'
+                    include home/explainscores.pug
+
                 //- ── My Entries ───────────────────────────────────────────────
                 when 'home/entries'
                     include home/entries.pug
@@ -92,7 +96,7 @@ table(width='780' id='home' style='margin-left: auto; margin-right: auto; displa
 
                 //- ── User page (custom HTML page) ─────────────────────────────
                 when 'home/userpage'
-                    != content.html
+                    include home/userpage.pug
 
                 //- ── Category + cost list ─────────────────────────────────────
                 when 'home/catcost'

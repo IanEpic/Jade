@@ -1,6 +1,6 @@
-//- viewPage-content.pug
-//- Standalone user page (no sidebar). Admin can switch a page to the sidebar layout
-//- via UserPage.withsidebar (then /viewPage redirects to /home?action=userpage).
+//- home/userpage.pug
+//- User page rendered inside the home framework (sidebar + nav), card-formatted.
+//- Used when UserPage.withsidebar is set (via /home?action=userpage or a /viewPage redirect).
 
 style.
     .up-page { max-width: 760px; margin: 0 auto; }
@@ -10,13 +10,7 @@ style.
     .up-card a:hover { color: #cf9702; }
     .up-card h1, .up-card h2, .up-card h3, .up-card h4 { color: #c48f06; }
     .up-card img { max-width: 100%; height: auto; }
-    .up-actions { text-align: center; margin-top: 18px; }
 
 .up-page
     .up-card
-        if page
-            != page.html
-        else
-            p Page not found.
-    .up-actions
-        a.btn-secondary(href='/home') Home
+        != content.html

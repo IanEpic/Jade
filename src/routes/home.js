@@ -13,6 +13,7 @@
 import { Router } from 'express';
 import { requireAuth } from '../middleware/auth.js';
 import { getCatsOpenForJudgingByJudge } from '../queries/homeQueries.js';
+import { renderFinalistText } from '../services/finalistResults.js';
 
 import { buildSidebar }                                   from './home/sidebar.js';
 import { buildMenuButtons, loadCommonData }   from './home/homeHelpers.js';
@@ -38,7 +39,7 @@ async function getDefaultContent(user, program, data) {
     if (user.admin)
         return { view: 'home/welcome', text: program.adminwelcometext || '' };
     if (program.finalistlistavailable && acceptedEntries.length)
-        return { view: 'home/finalisttext', entries: acceptedEntries, program };
+        return { view: 'home/finalisttext', html: renderFinalistText(acceptedEntries, program), program };
     return { view: 'home/welcome', text: program.standardwelcometext || '' };
 }
 

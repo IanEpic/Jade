@@ -9,6 +9,7 @@
 import { translate }        from '../../services/translate.js';
 import { currency, PASSWORD_RULES } from '../../services/helpers.js';
 import { getLinkedPrograms } from '../../services/auth.js';
+import { renderFinalistText } from '../../services/finalistResults.js';
 import Address          from '../../models/Address.js';
 import { loadAddressesForCredential } from '../../services/addressService.js';
 import UserCredential   from '../../models/UserCredential.js';
@@ -116,6 +117,11 @@ export async function handleSharedAction(action, req, res, program, user, data) 
         return { view: 'home/downloads', html: program.downloadpagehtml || '' };
     }
 
+    if (action === 'explainscores') {
+        // "How is my score calculated?" — shown in-frame (with sidebar) from Scores & Comments.
+        return { view: 'home/explainscores', html: program.scoresexplained || '' };
+    }
+
     if (action === 'userpage') {
         const page = await getUserPageById({ pageId: req.query.pid });
         return { view: 'home/userpage', html: page?.html || '' };
@@ -130,7 +136,7 @@ export async function handleSharedAction(action, req, res, program, user, data) 
     }
 
     if (action === 'finalists' && user.feedbackleft) {
-        return { view: 'home/finalisttext', entries: data.acceptedEntries, program };
+        return { view: 'home/finalisttext', html: renderFinalistText(data.acceptedEntries, program), program };
     }
 
     if (action === 'scorescomments') {

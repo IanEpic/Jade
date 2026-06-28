@@ -20,6 +20,12 @@ router.get('/', async (req, res, next) => {
 
         const page = await UserPage.findOne({ where: { programid: program.programid, name } });
 
+        // Admin can opt a page into the home framework (sidebar + nav). That rendering lives
+        // at /home?action=userpage — redirect there so we reuse the full home pipeline.
+        if (page && page.withsidebar) {
+            return res.redirect(`/home?action=userpage&pid=${page.userpageid}`);
+        }
+
         return res.renderInShell('viewPage', { user: req.user, program, page: page ? page.toJSON() : null });
     } catch (err) { next(err); }
 });

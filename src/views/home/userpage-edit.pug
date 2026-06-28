@@ -44,22 +44,42 @@ form.up-edit-form(method='POST' action='/formPage')
                 td: input(type='checkbox' name='show4admin' value='1' checked=content.page.show4admin)
 
     fieldset
+        legend Layout
+        table
+            tr
+                td Show with sidebar
+                td
+                    input(type='checkbox' name='withsidebar' value='1' checked=content.page.withsidebar)
+                    span(style='color:#888; font-size:12px; margin-left:8px;') Render inside the program framework (sidebar + navigation). Leave off for a standalone page.
+
+    fieldset
         legend Page Content (HTML)
         textarea#page-html(name='html' rows='20')= content.page.html || ''
 
     .form-actions
-        a(href='/home?action=userpages') < User Pages
+        a.btn-secondary(href='/home?action=userpages') User Pages
         button(type='submit') Save Page
 
 script(defer src='https://cdn.tiny.cloud/1/t5u2zqqe9s1ltcgp3yrcdormdh3wb2qaquf31suupv3rupdw/tinymce/7/tinymce.min.js' referrerpolicy='origin')
-script(defer nonce=nonce).
-    tinymce.init({
-        selector: '#page-html',
-        plugins: 'anchor autolink lists link image table code fullscreen',
-        toolbar: 'undo redo | blocks | bold italic underline | forecolor backcolor | alignleft aligncenter alignright | bullist numlist | link image table | code fullscreen',
-        menubar: false,
-        height: 400,
-        skin: 'oxide-dark',
-        content_css: 'dark',
-        promotion: false,
-    });
+script(nonce=nonce).
+    //- `defer` is ignored on inline scripts, so wait for DOMContentLoaded (deferred
+    //- external scripts — incl. the TinyMCE CDN above — run before it) and guard, so
+    //- the editor reliably initialises like the Admin → Program rich-text fields.
+    (function () {
+        function init() {
+            if (typeof tinymce === 'undefined') { return setTimeout(init, 50); }
+            if (tinymce.get('page-html')) return;
+            tinymce.init({
+                selector: '#page-html',
+                plugins: 'anchor autolink lists link image table code fullscreen',
+                toolbar: 'undo redo | blocks | bold italic underline | forecolor backcolor | alignleft aligncenter alignright | bullist numlist | link image table | code fullscreen',
+                menubar: false,
+                height: 400,
+                skin: 'oxide-dark',
+                content_css: 'dark',
+                promotion: false,
+            });
+        }
+        if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+        else init();
+    })();

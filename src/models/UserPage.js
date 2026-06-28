@@ -12,6 +12,7 @@ UserPage.init(
     show4user:   { type: DataTypes.BOOLEAN },
     show4judge:  { type: DataTypes.BOOLEAN },
     show4admin:  { type: DataTypes.BOOLEAN },
+    withsidebar: { type: DataTypes.BOOLEAN, defaultValue: false },
   },
   { sequelize, modelName: 'UserPage', tableName: 'UserPage', timestamps: false }
 );

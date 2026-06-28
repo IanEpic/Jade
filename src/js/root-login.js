@@ -39,7 +39,7 @@
         .then(function (r) { return r.json(); })
         .then(function (data) {
             btn.disabled    = false;
-            btn.textContent = 'Continue →';
+            btn.textContent = 'Continue';
             if (data.status === 'password') {
                 document.getElementById('pw-email').value = email;
                 document.getElementById('password-greeting').textContent =
@@ -55,7 +55,7 @@
         })
         .catch(function () {
             btn.disabled    = false;
-            btn.textContent = 'Continue →';
+            btn.textContent = 'Continue';
             setError('email-error', 'Could not connect. Please try again.');
         });
     });

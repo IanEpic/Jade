@@ -51,7 +51,7 @@ style.
                         div
                             div.sc-final-score= score
                             div.sc-final-label Final Score
-                        a.sc-explain(href='/explainscores' target='_blank') How is my score calculated?
+                        a.sc-explain(href='/home?action=explainscores') How is my score calculated?
 
                 if hasCriteria
                     .sc-criteria
@@ -90,4 +90,4 @@ style.
                     p(style='color:#666; font-size:13px;') No scores or comments are available for this entry yet.
 
     .sc-home
-        a(href='/' + content.program.slug + '/home') &larr; Home
+        a(href='/' + content.program.slug + '/home') Home

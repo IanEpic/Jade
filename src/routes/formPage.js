@@ -40,7 +40,7 @@ router.get('/', (req, res) => res.redirect('/home?action=userpages'));
 // ── POST /formPage — save edit ────────────────────────────────────────────────
 router.post('/', async (req, res, next) => {
     try {
-        const { pageid, name, html, show4user, show4judge, show4admin } = req.body;
+        const { pageid, name, html, show4user, show4judge, show4admin, withsidebar } = req.body;
         const program = req.program;
 
         if (!pageid) return res.redirect('/home?action=userpages');
@@ -60,6 +60,7 @@ router.post('/', async (req, res, next) => {
                 show4user:  show4user  === '1',
                 show4judge: show4judge === '1',
                 show4admin: show4admin === '1',
+                withsidebar: withsidebar === '1',
             },
             { where: { userpageid: parseInt(pageid), programid: program.programid } }
         );
