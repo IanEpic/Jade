@@ -30,6 +30,12 @@ router.post('/', async (req, res, next) => {
         const entry    = await Entry.findByPk(entryid, { include: [{ model: Category, as: 'category' }] });
         if (!entry) return res.redirect('/home');
 
+        // Conflict-of-interest safety net: no one may score/comment on their own entry,
+        // regardless of policy or any stale judge link.
+        if (entry.userid === user.userid) {
+            return isAjax ? res.json({ ok: false }) : res.redirect('/home');
+        }
+
         const mejudge = await JudgeEntryLink.findAll({ where: { userid: user.userid, entryid } });
         const cat     = entry.category;
         const leadjudgereview =

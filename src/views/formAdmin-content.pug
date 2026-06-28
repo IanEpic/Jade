@@ -77,6 +77,23 @@ else
                         td: input(type='checkbox' name='faveventavailable' value='ON' checked=program.faveventavailable)
                         td: label Favourite Event Nominations Open
 
+        //- ── Judging Model ────────────────────────────────────────────────────
+        fieldset
+            legend.accordion-legend.collapsed(data-action='toggle-accordion') Judging Model
+            div.accordion-body
+                table
+                    tr
+                        td Conflict of Interest
+                        td
+                            select(name='judgeconflictmodel' style='min-width:320px')
+                                each m in conflictModels
+                                    option(value=m.value selected=(Number(judgeconflictmodel) === m.value))= m.name
+                    tr
+                        td
+                        td.note
+                            each m in conflictModels
+                                div(style='margin:2px 0') #[strong= m.name]: #{m.desc}
+
         //- ── Default Category Settings ────────────────────────────────────────
         fieldset
             legend.accordion-legend.collapsed(data-action='toggle-accordion') Default Category Settings

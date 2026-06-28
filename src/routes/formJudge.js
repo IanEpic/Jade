@@ -11,6 +11,8 @@ import Category          from '../models/Category.js';
 import JudgeCategoryLink from '../models/JudgeCategoryLink.js';
 import { getPool, sql }  from '../config/database.js';
 import { encryptPassword, randomPassword, checkEmail } from '../services/helpers.js';
+import { getPolicyForProgram, userHasEntries, categoryIdsUserEntered,
+         CONFLICT_OWN_CATEGORY, CONFLICT_NO_ENTRY } from '../services/judgeConflict.js';
 
 const router = Router();
 router.use(requireAuth, requireAdmin);
@@ -79,12 +81,33 @@ router.post('/', async (req, res, next) => {
             .filter(k => k.startsWith('hjcat~'))
             .map(k => parseInt(k.slice(6)));
 
+        // Conflict-of-interest policy. Used to (a) block making an entrant a judge under
+        // "Judges cannot enter" (4), and (b) drop a judge's own-category allocations under
+        // "No judging own category" (3). Lower policies don't gate here.
+        const policy = await getPolicyForProgram(program.programid);
+        // Returns the submitted category ids minus any the target user has entered, when the
+        // policy forbids judging your own category. No-op for new users (no entries) / policy < 3.
+        async function allowedCats(targetUserId) {
+            if (policy < CONFLICT_OWN_CATEGORY || !targetUserId) return submittedCatIds;
+            const entered = await categoryIdsUserEntered(targetUserId, program.programid);
+            return submittedCatIds.filter(c => !entered.has(c));
+        }
+
         // ── Edit existing judge ───────────────────────────────────────────────
         if (judgeid) {
             const err = validateJudgeInput(body);
             if (err) return redirectWithError(res, { error: err, judgeid });
 
             const judge = await User.findByPk(judgeid);
+
+            // "Judges cannot enter" (4): refuse to keep someone a judge if they have entries.
+            if (policy >= CONFLICT_NO_ENTRY && await userHasEntries(judgeid, program.programid)) {
+                return redirectWithError(res, {
+                    error: 'This person has entries, and the program’s judging model does not allow judges to be entrants.',
+                    judgeid,
+                });
+            }
+
             if (judge.credentialid) {
                 await UserCredential.update(
                     { email: body.email, firstname: body.firstname, lastname: body.lastname },
@@ -92,9 +115,10 @@ router.post('/', async (req, res, next) => {
                 );
             }
 
-            // Replace category links
+            // Replace category links (own-category links dropped under policy 3+).
+            const editCatIds = await allowedCats(judgeid);
             await JudgeCategoryLink.destroy({ where: { userid: judgeid } });
-            for (const categoryid of submittedCatIds) {
+            for (const categoryid of editCatIds) {
                 await JudgeCategoryLink.create({ userid: judgeid, categoryid });
             }
 
@@ -142,13 +166,20 @@ router.post('/', async (req, res, next) => {
 
         // ── Upgrade existing user to judge ────────────────────────────────────
         if (upgradeid) {
+            // "Judges cannot enter" (4): an entrant can't be upgraded to judge.
+            if (policy >= CONFLICT_NO_ENTRY && await userHasEntries(upgradeid, program.programid)) {
+                return redirectWithError(res, {
+                    error: 'This person has entries, and the program’s judging model does not allow judges to be entrants.',
+                });
+            }
             const upgradeUser = await User.findByPk(upgradeid);
             if (program.usesimplejudging) {
                 await upgradeUser.update({ simplejudge: true });
             } else {
                 await upgradeUser.update({ judge: true });
             }
-            for (const categoryid of submittedCatIds) {
+            const upgradeCatIds = await allowedCats(upgradeid);
+            for (const categoryid of upgradeCatIds) {
                 await JudgeCategoryLink.create({ userid: upgradeid, categoryid });
             }
             const allCats = await getCategories(program.programid);

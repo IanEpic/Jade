@@ -262,3 +262,27 @@ landing page → Excel: final/avg score, finalist/winner/state finalist/state wi
 text, finalist text, contacts; alternating category bands). Read-only report; no new dependency.
 
 - Applied to DEV: 2026-06-26 ✓  | PROD: 2026-06-26 ✓
+
+## 068 — Judging model per program + judge conflict-of-interest policy
+
+`068_judgingmodel_per_program.sql`
+
+Two changes for the conflict-of-interest feature (#16):
+1. Adds `JudgingModel.judgeconflictmodel` (INT, NOT NULL, default 0) — the per-program
+   COI policy, ordered least→most restrictive: 0 = no management; 1 = allow but exclude
+   the judge's own-entry scores at Calc Final Scores; 2 = no judging own entry (gate at
+   allocation); 3 = no judging own category (gate at judge category-assignment); 4 = judges
+   cannot enter (judge↔entrant mutually exclusive). All existing programs default to 0.
+2. Gives every Program its OWN JudgingModel row. 37 programs previously shared just 3 model
+   rows (most shared id 1), so editing one program's judging model — incl. this policy or any
+   AI rule — would silently change others. Clones the shared model per program and repoints
+   `Program.judgingmodelid`. No code change needed (all readers load via Program.judgingmodelid).
+   This also delivers the data side of backlog #17 (per-program AI rules). Uses a `GO` batch
+   break so the new column resolves before the clone INSERT; the txn spans both batches.
+   Idempotent (loop only fires while a model is shared by >1 program).
+
+Companion code: `judgeconflictmodel` on the JudgingModel model; new "Judging Model" card on
+Admin → Program; enforcement gates (judge edit, new entry, allocation, Calc Final Scores) +
+viewEntry owner short-circuit safety-net.
+
+- Applied to DEV: 2026-06-28 ✓  | PROD: pending

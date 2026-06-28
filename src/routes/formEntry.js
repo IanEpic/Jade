@@ -18,9 +18,17 @@ import { getEntrycost } from '../services/pricing.js';
 import { loadAddressesForCredential } from '../services/addressService.js';
 import { getPool, sql } from '../config/database.js';
 import { getCriteria, getEligibilityLinks } from '../queries/categoryQueries.js';
+import { getPolicyForProgram, CONFLICT_NO_ENTRY } from '../services/judgeConflict.js';
 
 const router = Router();
 router.use(requireAuth);
+
+// "Judges cannot enter" (policy 4): a judge/simple-judge may not start a NEW entry.
+// Returns true if the (non-admin) user is blocked from creating entries in this program.
+async function judgeBlockedFromEntering(user, programId) {
+    if (user.admin || !(user.judge || user.simplejudge)) return false;
+    return (await getPolicyForProgram(programId)) >= CONFLICT_NO_ENTRY;
+}
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -142,6 +150,11 @@ router.post('/', async (req, res, next) => {
         const program = req.program;
         const body    = req.body;
         const submit  = body.submit || '';
+
+        // Conflict policy "Judges cannot enter": block starting a NEW entry (edits pass).
+        if (!body.entryid && await judgeBlockedFromEntering(user, program.programid)) {
+            return res.redirect('/home?conflict=judgenoentry');
+        }
 
         // ── T&C agree check (coming from tc.cgi) ──────────────────────────
         // Equiv: if ($INPUT{submit} eq "Proceed to Entry" && $INPUT{agree} eq "ON")

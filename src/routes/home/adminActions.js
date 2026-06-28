@@ -65,6 +65,7 @@ import {
     getAdminPayments,
 } from '../../queries/homeQueries.js';
 import { getEarlyBirdDiscount, computeBestDiscount } from '../../services/pricing.js';
+import { JUDGE_CONFLICT_MODELS, policyOf } from '../../services/judgeConflict.js';
 import { getReviewNominationsForProgram } from '../../queries/entryQueries.js';
 
 async function loadJudgingModel(judgingmodelid) {
@@ -293,9 +294,12 @@ export async function handleAdminAction(action, req, res, program, user) {
             User.findAll({     where: { programid: program.programid, paymentsopen: isPaymentsOpenDefault ? 0 : 1 } }),
             Category.findAll({ where: { programid: program.programid, judgingopen: isJudgingOpenDefault ? 0 : 1 } }),
         ]);
+        const jmConflict = program.judgingmodelid ? await JudgingModel.findByPk(program.judgingmodelid) : null;
         return {
             view: 'home/program',
             entryExceptions, paymentExceptions, judgingExceptions,
+            conflictModels:     JUDGE_CONFLICT_MODELS,
+            judgeconflictmodel: policyOf(jmConflict),
             error: null,
             saved: req.query.saved === '1',
         };

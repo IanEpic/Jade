@@ -6,6 +6,7 @@ import { Router } from 'express';
 import { requireAuth, requireAdmin } from '../middleware/auth.js';
 import { bustProgramCache } from '../services/auth.js';
 import Program  from '../models/Program.js';
+import JudgingModel from '../models/JudgingModel.js';
 import { getPool, sql } from '../config/database.js';
 import multer   from 'multer';
 import path     from 'path';
@@ -106,6 +107,17 @@ router.post('/', async (req, res, next) => {
             costexplanationtext:     body.costexplanationtext,
             entryclosedate:          body.entryclosedate ? new Date(body.entryclosedate).toISOString().replace('T', ' ').slice(0, 23) : null,
         });
+
+        // Judge conflict-of-interest policy lives on the program's (now per-program) JudgingModel.
+        if (body.judgeconflictmodel != null && program.judgingmodelid) {
+            const policy = parseInt(body.judgeconflictmodel);
+            if (policy >= 0 && policy <= 4) {
+                await JudgingModel.update(
+                    { judgeconflictmodel: policy },
+                    { where: { judgingmodelid: program.judgingmodelid } },
+                );
+            }
+        }
 
         // Overwrite — apply defaults to all categories/users
         if (body.overwrite || body['overwrite-payments']) {

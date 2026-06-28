@@ -20,9 +20,13 @@ style.
     .lead-clear:hover { border-color: #cf9702; color: #cf9702; }
     .alloc-actions { text-align: center; margin-top: 14px; }
     .alloc-actions a, .alloc-actions button { margin: 0 6px; }
+    .alloc-table td.conflict { background: #3a1f1f; outline: 1px solid #b5562f; }
+    .alloc-table td.conflict::after { content: '⚠'; color: #e7935f; font-size: 11px; display: block; line-height: 0; margin-top: 2px; }
+    .alloc-conflict-note { color: #e7935f; font-size: 12px; text-align: center; margin: 0 0 12px; }
 
 .alloc-wrap
     h3 Allocate Judges
+    p.alloc-conflict-note ⚠ marks a judge who owns that entry (conflict of interest). Depending on the program’s judging model these cells may be ignored when you save.
 
     form(method='POST' action='/judgeAllocation')
         each cat in content.cats
@@ -54,7 +58,8 @@ style.
                                     td.id-col= entry.entryid
                                     td= displayName
                                     each judge in cat.judges
-                                        td.judge-col
+                                        - var isConflict = judge.userid === entry.userid
+                                        td.judge-col(class=isConflict ? 'conflict' : '' title=isConflict ? 'This judge owns this entry' : '')
                                             input(type='checkbox' name='judge' value=judge.userid + '~' + entry.entryid checked=(entry.assignedJudgeIds && entry.assignedJudgeIds.has(judge.userid)))
 
         .alloc-actions

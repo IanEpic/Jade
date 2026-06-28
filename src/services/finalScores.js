@@ -165,6 +165,15 @@ import sequelize from '../config/sequelize.js';
 export async function calcFinalScores(programId, { ignoreScoreReady = false } = {}) {
     const scoreReadyClause = ignoreScoreReady ? '' : 'AND cat.scoreready = 1';
 
+    // Conflict-of-interest policy: at "Allow, exclude own scores" (1) or stricter,
+    // drop any score a judge gave to their own entry so it can't influence results.
+    const [[polRow]] = await sequelize.query(`
+        SELECT ISNULL(jm.judgeconflictmodel, 0) AS policy
+        FROM Program p LEFT JOIN JudgingModel jm ON jm.judgingmodelid = p.judgingmodelid
+        WHERE p.programid = ${programId}
+    `);
+    const excludeSelfClause = (polRow?.policy >= 1) ? 'AND s.userid <> e.userid' : '';
+
     const [scoreRows] = await sequelize.query(`
         SELECT cr.criteriaid, s.userid, s.entryid, s.score, cat.categoryid
         FROM Category cat
@@ -173,6 +182,7 @@ export async function calcFinalScores(programId, { ignoreScoreReady = false } = 
         JOIN Criteria cr ON cr.criteriaid = s.criteriaid
         WHERE cat.programid = ${programId}
           ${scoreReadyClause}
+          ${excludeSelfClause}
           AND cr.weight > 0
           AND cat.deleted = 0
           AND e.deleted   = 0

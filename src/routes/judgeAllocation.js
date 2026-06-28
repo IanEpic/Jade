@@ -13,6 +13,8 @@ import Category         from '../models/Category.js';
 import JudgeEntryLink   from '../models/JudgeEntryLink.js';
 import Score            from '../models/Score.js';
 import JudgeComment     from '../models/JudgeComment.js';
+import JudgingModel     from '../models/JudgingModel.js';
+import { CONFLICT_OWN_ENTRY } from '../services/judgeConflict.js';
 
 const router = Router();
 router.use(requireAuth, requireAdmin);
@@ -22,6 +24,15 @@ router.post('/', async (req, res, next) => {
         const program = req.program;
         const body    = req.body;
         const judgeValues = [].concat(body.judge || []);
+
+        // Conflict-of-interest policy: at "No judging own entry" (2) or stricter, refuse to
+        // link a judge to an entry they own (defence-in-depth — the grid also hides these).
+        const jm = program.judgingmodelid ? await JudgingModel.findByPk(program.judgingmodelid) : null;
+        const blockSelfEntry = (jm?.judgeconflictmodel ?? 0) >= CONFLICT_OWN_ENTRY;
+        const ownerByEntry = new Map(
+            (await Entry.findAll({ where: { programid: program.programid }, attributes: ['entryid', 'userid'] }))
+                .map(e => [e.entryid, e.userid])
+        );
 
         // The whole reconciliation is a full-snapshot replace (delete all program
         // links, re-insert what's ticked), so wrap it in a transaction — a failure
@@ -44,6 +55,8 @@ router.post('/', async (req, res, next) => {
                 const userid  = parseInt(u);
                 const entryid = parseInt(e);
                 if (userid && entryid) {
+                    // Skip a judge↔own-entry link under "No judging own entry" or stricter.
+                    if (blockSelfEntry && ownerByEntry.get(entryid) === userid) continue;
                     await JudgeEntryLink.create({ userid, entryid }, { transaction: t });
                 }
             }

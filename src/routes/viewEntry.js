@@ -277,7 +277,9 @@ router.get('/', async (req, res, next) => {
         // Filter out omitforjudging if judge view — always hidden for any judge, regardless of judging state.
         // Includes lead-judge / chairperson review of entries they didn't personally judge
         // (finalist review & winner nomination), so non-judging questions stay hidden for them too.
-        const isJudgeView = mejudge.length > 0 || mejudgecat.length > 0 || leadjudgereview || isLead;
+        // An owner viewing their OWN entry always gets the entrant view — never a judge view —
+        // even if a (stale or misconfigured) judge link exists. Conflict-of-interest safety net.
+        const isJudgeView = !isOwner && (mejudge.length > 0 || mejudgecat.length > 0 || leadjudgereview || isLead);
         const visibleQuestions = questions.filter(q =>
             !q.deleted && (!isJudgeView || !q.omitforjudging)
         );
@@ -290,7 +292,9 @@ router.get('/', async (req, res, next) => {
         const commentReviewLink = mejudge.find(l => l.commentreview);
         const judgingOpenLink   = mejudge.find(l => l.judgingopen);
 
-        if (!task && commentReviewLink) {
+        // Owner of this entry always falls through to the entrant panel (final branch) — the
+        // judge/lead/review panels are guarded with !isOwner. Conflict-of-interest safety net.
+        if (!isOwner && !task && commentReviewLink) {
             // Edit comment mode
             const excelComments   = await getJudgeCommentsByType(entry.entryid, 'excel',   user.userid);
             const improveComments = await getJudgeCommentsByType(entry.entryid, 'improve', user.userid);
@@ -303,7 +307,7 @@ router.get('/', async (req, res, next) => {
                 criteria,
                 scores: await getScoresForJudge(entry.entryid, user.userid),
             };
-        } else if (mejudge.length && (category.judgingopen || judgingOpenLink)) {
+        } else if (!isOwner && mejudge.length && (category.judgingopen || judgingOpenLink)) {
             // Full score form
             const judgingModel = await getJudgingModel(program.judgingmodelid);
             const excelComments   = await getJudgeCommentsByType(entry.entryid, 'excel',   user.userid);
@@ -320,7 +324,7 @@ router.get('/', async (req, res, next) => {
                 entry,
                 user,
             };
-        } else if (isLead && !category.finalistreview && !category.winnernomination) {
+        } else if (!isOwner && isLead && !category.finalistreview && !category.winnernomination) {
             // Lead-judge oversight during the judging phase: all judges' scores
             // and comments for this entry, read-only.
             const catJudges   = await getJudgesForCategory({ categoryId: entry.categoryid });
@@ -332,7 +336,7 @@ router.get('/', async (req, res, next) => {
                 comments: allComments.filter(c => c.userid === j.userid),
             })));
             scorePanel = { type: 'oversight', judges, criteria, entry };
-        } else if (mejudgecat.length || user.chairperson || leadjudgereview) {
+        } else if (!isOwner && (mejudgecat.length || user.chairperson || leadjudgereview)) {
             // Lead-judge / chairperson review during finalist review & winner nomination.
             const allComments = await getAllJudgeComments(entry.entryid);
             const myComments  = allComments.filter(c => c.userid === user.userid);
@@ -378,7 +382,7 @@ router.get('/', async (req, res, next) => {
                 backLabel: category.winnernomination ? 'Winner Nominations' : 'Review Nominees',
                 entry,
             };
-        } else if (user.reviewer) {
+        } else if (!isOwner && user.reviewer) {
             // Simple review form
             const reviewComment = await getSimpleReviewComment(entry.entryid, user.userid);
             const allComments   = await getAllJudgeComments(entry.entryid);
