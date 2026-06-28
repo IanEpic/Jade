@@ -330,4 +330,24 @@ new column resolves before the UPDATE.
 Companion code: Program model + formAdmin save; calcfinalscores admin action early-returns a
 locked notice (covers GET preview and POST write); calcfinalscores.pug locked branch.
 
-- Applied to DEV: 2026-06-28 ✓ (36 locked, 1056 unlocked)  | PROD: pending
+- Applied to DEV: 2026-06-28 ✓ (36 locked, 1056 unlocked)  | PROD: 2026-06-28 ✓ (36 locked, 1056 unlocked)
+
+## 072 — De-duplicate autosave Response rows
+
+`072_dedupe_response_rows.sql`
+
+One-time cleanup of duplicate autosave Response rows. The form autosave used a non-atomic
+`IF NOT EXISTS INSERT ELSE UPDATE`, so concurrent saves for the same (entryid, questionid)
+accumulated duplicate non-deleted rows (prod: ~8,479 redundant across 3,770 groups; 1056: 1,044
+across 374). Keeps MAX(responseid) per group (latest; readers already take the latest and repeated
+saves update all dupes to the same value), soft-deletes the rest. Idempotent; safe to run live.
+
+Companion code (deploy FIRST): `formResponses.js` — all three Response insert paths (text autosave,
+caption, file upload) rewritten as race-safe upserts (UPDATE-first under UPDLOCK, SERIALIZABLE,
+INSERT only if nothing updated) so no new duplicates are created. Order: deploy code, then run 072.
+
+NOT YET DONE (optional backstop): a filtered unique index on Response(entryid, questionid) WHERE
+deleted=0 would hard-prevent recurrence, but deferred to avoid risk on the live 1056 — the atomic
+upserts already prevent dupes.
+
+- Applied to DEV: 2026-06-28 ✓ (8,478 → 0 redundant)  | PROD: pending (run AFTER code deploy)

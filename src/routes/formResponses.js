@@ -227,31 +227,28 @@ router.post('/save-file', async (req, res, next) => {
             return res.json({ status: 'E_CLOSED', msg: 'Cannot save. Entries are closed.' });
         }
 
-        // Upsert the response and return the responseid
-        const existing = await pool.request()
-            .input('entryid',    sql.Int, entryid)
-            .input('questionid', sql.Int, questionid)
-            .query(`SELECT responseid FROM Response WHERE entryid=@entryid AND questionid=@questionid AND deleted=0`);
-
-        let responseid;
-        if (existing.recordset.length) {
-            responseid = existing.recordset[0].responseid;
-            await pool.request()
-                .input('responseid',   sql.Int,     responseid)
-                .input('value',        sql.NVarChar, filename)
-                .input('originalname', sql.NVarChar, originalname)
-                .query(`UPDATE Response SET value=@value, originalname=@originalname WHERE responseid=@responseid`);
-        } else {
-            const insert = await pool.request()
-                .input('entryid',      sql.Int,     entryid)
-                .input('questionid',   sql.Int,     questionid)
-                .input('value',        sql.NVarChar, filename)
-                .input('originalname', sql.NVarChar, originalname)
-                .query(`INSERT INTO Response (entryid, questionid, value, originalname, deleted)
+        // Race-safe upsert (update-first under a key-range lock, else insert) so concurrent
+        // uploads for the same (entryid, questionid) can't create duplicate Response rows.
+        // Exactly one branch's OUTPUT returns, giving us the responseid.
+        const result = await pool.request()
+            .input('entryid',      sql.Int,      entryid)
+            .input('questionid',   sql.Int,      questionid)
+            .input('value',        sql.NVarChar, filename)
+            .input('originalname', sql.NVarChar, originalname)
+            .query(`
+                SET XACT_ABORT ON;
+                BEGIN TRAN;
+                    UPDATE Response WITH (UPDLOCK, SERIALIZABLE)
+                       SET value = @value, originalname = @originalname
+                       OUTPUT INSERTED.responseid
+                     WHERE entryid = @entryid AND questionid = @questionid AND deleted = 0;
+                    IF @@ROWCOUNT = 0
+                        INSERT INTO Response (entryid, questionid, value, originalname, deleted)
                         OUTPUT INSERTED.responseid
-                        VALUES (@entryid, @questionid, @value, @originalname, 0)`);
-            responseid = insert.recordset[0].responseid;
-        }
+                        VALUES (@entryid, @questionid, @value, @originalname, 0);
+                COMMIT;
+            `);
+        const responseid = result.recordset[0]?.responseid;
 
         return res.json({ status: 'OK', responseid });
     } catch (err) { next(err); }
@@ -404,10 +401,15 @@ async function upsertCaption(pool, entryid, questionid, caption) {
         .input('questionid', sql.Int,      questionid)
         .input('caption',    sql.NVarChar, caption)
         .query(`
-            IF EXISTS (SELECT 1 FROM Response WHERE entryid=@entryid AND questionid=@questionid AND deleted=0)
-                UPDATE Response SET caption=@caption WHERE entryid=@entryid AND questionid=@questionid AND deleted=0
-            ELSE
-                INSERT INTO Response (entryid, questionid, value, caption, deleted) VALUES (@entryid, @questionid, '', @caption, 0)
+            SET XACT_ABORT ON;
+            BEGIN TRAN;
+                UPDATE Response WITH (UPDLOCK, SERIALIZABLE)
+                   SET caption = @caption
+                 WHERE entryid = @entryid AND questionid = @questionid AND deleted = 0;
+                IF @@ROWCOUNT = 0
+                    INSERT INTO Response (entryid, questionid, value, caption, deleted)
+                    VALUES (@entryid, @questionid, '', @caption, 0);
+            COMMIT;
         `);
 }
 
@@ -418,15 +420,25 @@ async function upsertResponse(pool, entryid, questionid, responseid, value) {
             .input('value',      sql.NVarChar, value)
             .query('UPDATE Response SET value=@value, deleted=0 WHERE responseid=@responseid');
     } else {
+        // Race-safe upsert. The old IF NOT EXISTS … INSERT ELSE UPDATE was not atomic, so two
+        // concurrent autosaves for the same (entryid, questionid) both passed the existence check
+        // and both inserted — accumulating duplicate Response rows. Update-first under a key-range
+        // lock (UPDLOCK, SERIALIZABLE) blocks a concurrent insert of a second row; insert only when
+        // nothing was updated.
         await pool.request()
             .input('entryid',    sql.Int,     entryid)
             .input('questionid', sql.Int,     questionid)
             .input('value',      sql.NVarChar, value)
             .query(`
-                IF NOT EXISTS (SELECT 1 FROM Response WHERE entryid=@entryid AND questionid=@questionid AND deleted=0)
-                INSERT INTO Response (entryid, questionid, value, deleted) VALUES (@entryid, @questionid, @value, 0)
-                ELSE
-                UPDATE Response SET value=@value WHERE entryid=@entryid AND questionid=@questionid AND deleted=0
+                SET XACT_ABORT ON;
+                BEGIN TRAN;
+                    UPDATE Response WITH (UPDLOCK, SERIALIZABLE)
+                       SET value = @value
+                     WHERE entryid = @entryid AND questionid = @questionid AND deleted = 0;
+                    IF @@ROWCOUNT = 0
+                        INSERT INTO Response (entryid, questionid, value, deleted)
+                        VALUES (@entryid, @questionid, @value, 0);
+                COMMIT;
             `);
     }
 }
