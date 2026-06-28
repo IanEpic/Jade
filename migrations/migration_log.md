@@ -300,7 +300,7 @@ Existing pages default to 0.
 Companion code: UserPage model + formPage save; viewPage redirect; viewPage-content.pug and
 home/userpage.pug card styling.
 
-- Applied to DEV: 2026-06-28 ✓  | PROD: pending
+- Applied to DEV: 2026-06-28 ✓  | PROD: 2026-06-28 ✓
 
 ## 070 — FinalScoreCriteria weight/score nullable
 
@@ -314,4 +314,20 @@ no breakdown was stored (and a calc could error) for any program whose criteria 
 After this, re-running Calc Final Scores stores the breakdown and the entrant Scores & Comments
 page shows the per-criteria table. (DEV: re-ran 1055 → 1203 FinalScoreCriteria rows written.)
 
-- Applied to DEV: 2026-06-28 ✓  | PROD: pending
+- Applied to DEV: 2026-06-28 ✓  | PROD: 2026-06-28 ✓
+
+## 071 — Program.lockscores (lock Calc Final Scores)
+
+`071_program_lockscores.sql`
+
+Adds `Program.lockscores` (BIT, NOT NULL, default 0). When set, the Calc Final Scores tool is
+disabled for that program (shows a note instead of computing/writing) so a published program's
+scores, finalist flags and per-criteria breakdown can't be overwritten by an accidental recalc.
+Sets lockscores=1 on every existing program EXCEPT the current live one (1056). Admin can toggle
+it on Admin → Program → Judging Model card ("Lock Final Scores"). Uses a GO batch break so the
+new column resolves before the UPDATE.
+
+Companion code: Program model + formAdmin save; calcfinalscores admin action early-returns a
+locked notice (covers GET preview and POST write); calcfinalscores.pug locked branch.
+
+- Applied to DEV: 2026-06-28 ✓ (36 locked, 1056 unlocked)  | PROD: pending

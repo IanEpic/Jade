@@ -77,6 +77,7 @@ router.post('/', async (req, res, next) => {
             finalistscoresavailable: boolField('finalistscoresavailable'),
             nonfinalistscoresavailable: boolField('nonfinalistscoresavailable'),
             feedbackopen:            boolField('feedbackopen'),
+            lockscores:              boolField('lockscores'),
             standardhtml:            body.standardhtml            || program.standardhtml,
             emailhtml:               body.emailhtml               || program.emailhtml,
             loginhtml:               body.loginhtml               || program.loginhtml,

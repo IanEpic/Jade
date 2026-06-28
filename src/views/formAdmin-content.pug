@@ -90,6 +90,11 @@ else
                         td.note
                             each m in conflictModels
                                 div(style='margin:2px 0') #[strong= m.name]: #{m.desc}
+                    tr
+                        td Lock Final Scores
+                        td
+                            input(type='checkbox' name='lockscores' value='ON' checked=program.lockscores)
+                            span(style='color:#888; font-size:12px; margin-left:8px;') Disable Calc Final Scores for this program (results are final). Leave on for past programs.
 
         //- ── Default Category Settings ────────────────────────────────────────
         fieldset

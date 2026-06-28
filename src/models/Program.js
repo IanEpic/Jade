@@ -68,6 +68,7 @@ Program.init(
     ccdpaymentonly:             { type: DataTypes.BOOLEAN },
     faviconfile:                { type: DataTypes.STRING },
     entryclosedate:             { type: DataTypes.STRING(30) },
+    lockscores:                 { type: DataTypes.BOOLEAN, defaultValue: false },
   },
   {
     sequelize,

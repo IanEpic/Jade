@@ -707,6 +707,11 @@ export async function handleAdminAction(action, req, res, program, user) {
     }
 
     if (action === 'calcfinalscores') {
+        // Locked programs: results are final — block compute AND write (covers GET preview and
+        // the POST confirm path, which both route through here) and show a note instead.
+        if (program.lockscores) {
+            return { view: 'home/calcfinalscores', locked: true };
+        }
         const programId    = program.programid;
         const ignoreReady  = req.query.ignoreScoreReady === '1';
         const confirm      = req.query.confirm === '1';

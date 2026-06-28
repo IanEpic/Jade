@@ -33,56 +33,64 @@ style.
 .cfs-wrap
     h2 Calculate Final Scores
 
-    if content.wrote
-        div(style='background:#1a4a1a; border-left:4px solid #4c4; color:#cfc; padding:10px 14px; font-size:13px; margin-bottom:16px;')
-            | Final scores written to database (#{content.rowCount} entries across #{content.categoryCount} categories). Top #{topN} per category flagged as finalists.
-
-    .cfs-options
-        label
-            input(type='checkbox' id='ignoreReadyInput' checked=ignoreReady)
-            |  Include non-score-ready categories
-        label
-            | Top
-            input(type='number' id='topNInput' min='1' max='99' value=topN)
-            | finalists per category
-        label
-            | Min raw score
-            input(type='number' id='minRawInput' min='0' max='10' step='0.01' value=minRawScore)
-
-    if !categories || !categories.length
-        p(style='color:#aaa;') No scored entries found for this program#{ ignoreReady ? '' : ' with Score Ready categories' }.
-
+    if content.locked
+        div(style='background:#2a2200; border-left:4px solid #c48f06; color:#f0d9a8; padding:12px 16px; font-size:13px; line-height:1.6;')
+            strong Score calculation is locked for this program.
+            br
+            | This program&rsquo;s results are final, so Calculate Final Scores is disabled to protect the published scores, finalist flags and per-criteria breakdown from accidental changes. If a recalculation is genuinely required, an administrator can clear the program&rsquo;s &ldquo;lock scores&rdquo; flag first.
+        .form-actions(style='margin-top:20px; text-align:center;')
+            a.btn-secondary(href='/' + slug + '/home?action=program') Back
     else
-        each cat in categories
-            .cfs-card
-                .cfs-card-header
-                    span.cat-name= cat.categoryname
-                    span.cat-meta #{cat.entries.filter(function(e){return e.finalist}).length} finalist#{cat.entries.filter(function(e){return e.finalist}).length !== 1 ? 's' : ''} of #{cat.entries.length} entries
-                table
-                    thead
-                        tr
-                            th(style='width:30px;') #
-                            th(style='width:auto;') Entrant
-                            th.r(style='width:65px;') Score
-                            th.r(style='width:65px;') Raw Avg
-                            th.c(style='width:70px;') Finalist
-                    tbody
-                        each r in cat.entries
-                            tr(class=(r.meetsMin ? '' : 'below-min'))
-                                td= r.rank
-                                td= r.entrantname
-                                td.r= r.finalscore.toFixed(2)
-                                td.r(class=(r.meetsMin ? '' : 'raw-fail'))= r.rawScore !== null ? r.rawScore.toFixed(2) : '—'
-                                td.c
-                                    if r.finalist
-                                        span.finalist-badge Finalist
-                                    else if !r.meetsMin
-                                        span.below-min-label below min
+        if content.wrote
+            div(style='background:#1a4a1a; border-left:4px solid #4c4; color:#cfc; padding:10px 14px; font-size:13px; margin-bottom:16px;')
+                | Final scores written to database (#{content.rowCount} entries across #{content.categoryCount} categories). Top #{topN} per category flagged as finalists.
 
-        .form-actions
-            form(method='POST' action=baseUrl+'&confirm=1'+ignoreQs)
-                button.btn(type='submit') Write Scores &amp; Set Finalists
-            a.btn-secondary(href='/' + slug + '/home?action=program') Cancel
+        .cfs-options
+            label
+                input(type='checkbox' id='ignoreReadyInput' checked=ignoreReady)
+                |  Include non-score-ready categories
+            label
+                | Top
+                input(type='number' id='topNInput' min='1' max='99' value=topN)
+                | finalists per category
+            label
+                | Min raw score
+                input(type='number' id='minRawInput' min='0' max='10' step='0.01' value=minRawScore)
+
+        if !categories || !categories.length
+            p(style='color:#aaa;') No scored entries found for this program#{ ignoreReady ? '' : ' with Score Ready categories' }.
+
+        else
+            each cat in categories
+                .cfs-card
+                    .cfs-card-header
+                        span.cat-name= cat.categoryname
+                        span.cat-meta #{cat.entries.filter(function(e){return e.finalist}).length} finalist#{cat.entries.filter(function(e){return e.finalist}).length !== 1 ? 's' : ''} of #{cat.entries.length} entries
+                    table
+                        thead
+                            tr
+                                th(style='width:30px;') #
+                                th(style='width:auto;') Entrant
+                                th.r(style='width:65px;') Score
+                                th.r(style='width:65px;') Raw Avg
+                                th.c(style='width:70px;') Finalist
+                        tbody
+                            each r in cat.entries
+                                tr(class=(r.meetsMin ? '' : 'below-min'))
+                                    td= r.rank
+                                    td= r.entrantname
+                                    td.r= r.finalscore.toFixed(2)
+                                    td.r(class=(r.meetsMin ? '' : 'raw-fail'))= r.rawScore !== null ? r.rawScore.toFixed(2) : '—'
+                                    td.c
+                                        if r.finalist
+                                            span.finalist-badge Finalist
+                                        else if !r.meetsMin
+                                            span.below-min-label below min
+
+            .form-actions
+                form(method='POST' action=baseUrl+'&confirm=1'+ignoreQs)
+                    button.btn(type='submit') Write Scores &amp; Set Finalists
+                a.btn-secondary(href='/' + slug + '/home?action=program') Cancel
 
 script.
     function cfsNavigate() {
