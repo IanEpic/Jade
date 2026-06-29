@@ -219,22 +219,36 @@ export function buildThemedShell(program, theme, { useLoginShell = false, buildH
     const mode = (theme && theme.mode === 'light') ? 'light' : 'dark';
     // Uploaded logo (filestore, served via /:slug/admin/themelogo) → header band; else program name.
     const logoSrc = (theme && theme.logo) ? `/${program.slug}/admin/themelogo` : null;
-    const align = theme && theme.logoAlign === 'left' ? 'flex-start'
-                : theme && theme.logoAlign === 'right' ? 'flex-end' : 'center';
-    const logoH = ({ fill: '100%', large: '52px', medium: '40px', small: '28px' })[theme && theme.logoSize] || '100%';
+    const logoAlign = (theme && (theme.logoAlign === 'left' || theme.logoAlign === 'right')) ? theme.logoAlign : 'center';
+    const size = (theme && theme.logoSize) || 'fill';
     const headerH = Math.min(160, Math.max(44, parseInt(theme && theme.headerHeight, 10) || 72));
 
-    const brand = logoSrc
-        ? `<img src="${logoSrc}" alt="${title}" class="themed-logo" style="height:${logoH}">`
-        : `<span class="themed-title">${title}</span>`;
     // Top button menu (from the page locals) rendered into the header for themed programs; the
     // content copy (#top-menu-bar) is hidden via CSS so it isn't duplicated.
     const nav = (menuButtons && menuButtons.length)
         ? `<nav class="themed-nav">${menuButtons.map(b =>
               `<a href="${String(b.url || '#').replace(/"/g, '&quot;')}"${b.newwindow ? ' target="_blank"' : ''}>${b.text || '&nbsp;'}</a>`).join('')}</nav>`
         : '';
-    const headerStyle = `height:${headerH}px;justify-content:${nav ? 'space-between' : align}`;
-    const header = `<header class="themed-header" style="${headerStyle}"><div class="themed-brand">${brand}</div>${nav}</header>`;
+    // center + menu → stack (logo on top, menu centred below). 'fill' becomes a fixed height when
+    // stacked since there's no single bar height to fill.
+    const stacked = !!nav && logoAlign === 'center';
+    const logoH = stacked
+        ? ({ fill: '46px', large: '52px', medium: '40px', small: '28px' })[size]
+        : ({ fill: '100%', large: '52px', medium: '40px', small: '28px' })[size];
+    const brand = `<div class="themed-brand">${logoSrc
+        ? `<img src="${logoSrc}" alt="${title}" class="themed-logo" style="height:${logoH}">`
+        : `<span class="themed-title">${title}</span>`}</div>`;
+
+    let header;
+    if (stacked) {
+        header = `<header class="themed-header themed-stacked" style="min-height:${headerH}px">${brand}${nav}</header>`;
+    } else if (nav) {
+        const inner = logoAlign === 'right' ? `${nav}${brand}` : `${brand}${nav}`;
+        header = `<header class="themed-header" style="height:${headerH}px;justify-content:space-between">${inner}</header>`;
+    } else {
+        const align = logoAlign === 'left' ? 'flex-start' : logoAlign === 'right' ? 'flex-end' : 'center';
+        header = `<header class="themed-header" style="height:${headerH}px;justify-content:${align}">${brand}</header>`;
+    }
 
     // Footer (editable HTML, sanitised) — falls back to a simple copyright line.
     const footerHtml = safeFooter(theme && theme.footer) || `&copy; ${new Date().getFullYear()} ${title}`;
