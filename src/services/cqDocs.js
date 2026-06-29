@@ -25,7 +25,20 @@ import { filestore } from '../config.js';
 import Program from '../models/Program.js';
 
 const FILESTORE_ROOT = process.env.FILESTORE_ROOT || filestore.root;
-const SOFFICE = process.env.SOFFICE_PATH || 'soffice';
+
+// Resolve the LibreOffice binary: explicit env var, else 'soffice' on PATH (Linux/prod), else
+// the standard Windows install locations (dev). On Windows we use soffice.com — the console
+// wrapper that blocks until the conversion finishes; soffice.exe can return before the PDF is
+// written, racing the existence check below. Falls back to 'soffice' so the error is clear.
+function resolveSoffice() {
+    if (process.env.SOFFICE_PATH) return process.env.SOFFICE_PATH;
+    for (const p of [
+        'C:/Program Files/LibreOffice/program/soffice.com',
+        'C:/Program Files (x86)/LibreOffice/program/soffice.com',
+    ]) { if (fs.existsSync(p)) return p; }
+    return 'soffice';
+}
+const SOFFICE = resolveSoffice();
 
 // One folder per program on the shared filestore holds all its generated assets.
 //   {root}/programs/{programid}/docheader.<ext>   ← uploaded header logo
