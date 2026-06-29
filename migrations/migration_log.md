@@ -377,7 +377,7 @@ generated Word/PDF). Null = text-only band (program name). Companion feature:
 `services/cqDocs.js` + `routes/cqDocs.js` + Admin → Tools → Category Documents. PDF rendering
 requires `libreoffice-writer` installed on each node (docx→pdf via headless soffice).
 
-- Applied to DEV (local): 2026-06-29 ✓  | PROD: pending (deploy with the Category Documents feature)
+- Applied to DEV (local): 2026-06-29 ✓  | PROD: 2026-06-29 ✓
 
 ## 075 — CqDocsJob (Category Documents background-job queue)
 
@@ -390,4 +390,4 @@ row; the leader node's worker (`services/cqDocsJob.js`, started in app.js) atomi
 the build survives navigating away / request timeout. Mirrors the PrExport job pattern. Additive —
 does not touch downloadpagehtml (only a Generate run rewrites that).
 
-- Applied to DEV (local): 2026-06-29 ✓  | PROD: pending (deploy with the Category Documents feature)
+- Applied to DEV (local): 2026-06-29 ✓  | PROD: 2026-06-29 ✓
