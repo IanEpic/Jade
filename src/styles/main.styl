@@ -1,14 +1,51 @@
+// ── Design tokens (CSS custom properties) ──────────────────────────────────────
+// Semantic theme tokens. Values here are the CURRENT eventawards (dark) defaults — un-themed
+// programs (≤1056) resolve to exactly these, so nothing changes. Themed programs (1057+) override
+// these via an injected :root block in the shared layout, which lets the whole UI flip — including
+// dark↔light — without touching component CSS. Keep names SEMANTIC, not colour-literal.
+:root
+  // Surfaces & text
+  --color-bg              #000
+  --color-text            #fff
+  --color-muted           #ccc
+  // Accent (brand) family
+  --color-accent          #cf9702
+  --color-accent-strong   #c48f06
+  --color-accent-nav      #ffba01
+  --color-link            #baab85
+  // Borders
+  --border                #555
+  --border-subtle         #333
+  --border-faint          #2a2a2a
+  --border-strong         #fff
+  // Inputs
+  --input-bg              #000
+  --input-border          #fff
+  // Buttons
+  --btn-bg                #fff
+  --btn-text              #000
+  --btn-active-text       #fff
+  --btn-secondary-text    #bbb
+  --btn-secondary-border  #888
+  // Status
+  --color-danger          #c44
+  // Chrome
+  --header-bg             #000
+  --footer-bg             #000
+  // Overlays
+  --row-hover             rgba(255,255,255,0.04)
+
 // ── Variables ─────────────────────────────────────────────────────────────────
 font-stack       = 'Avalon', sans-serif
 font-size-base   = 15px
 line-height-base = 1.44
 
-color-text       = #fff
-color-link       = #baab85
-color-gold       = #cf9702
-color-gold-dark  = #c48f06
-color-gold-nav   = #ffba01
-color-black      = #000
+// Stylus colour vars now resolve to the CSS custom properties above (runtime-overridable).
+color-text       = var(--color-text)
+color-link       = var(--color-link)
+color-gold       = var(--color-accent)
+color-gold-dark  = var(--color-accent-strong)
+color-gold-nav   = var(--color-accent-nav)
 
 transition-base  = all 0.3s ease-in-out
 
@@ -25,7 +62,7 @@ body
   text-rendering optimizeLegibility
   vertical-align baseline
   font-size font-size-base
-  background-color #000
+  background-color var(--color-bg)
   background-size cover
   background-position center center
   background-repeat repeat-y
@@ -77,9 +114,9 @@ table
 btn-base()
   border 0
   border-radius 4px
-  background #fff
+  background var(--btn-bg)
   font-size font-size-base
-  color color-black
+  color var(--btn-text)
   padding 6px 18px
   text-transform none
   line-height 1
@@ -92,7 +129,7 @@ btn-base()
 
 btn-active()
   background color-gold
-  color #fff
+  color var(--btn-active-text)
 
 .btn,
 button,
@@ -109,8 +146,8 @@ input[type="submit"]
 a.btn-secondary
   btn-base()
   background transparent !important
-  color #bbb !important
-  border 1px solid #888
+  color var(--btn-secondary-text) !important
+  border 1px solid var(--btn-secondary-border)
   box-shadow 0 1px 3px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.07)
   text-decoration none !important
 
@@ -125,24 +162,24 @@ a.btn-secondary
 a.btn-danger
   btn-base()
   background transparent !important
-  color #c44 !important
-  border 1px solid #c44
+  color var(--color-danger) !important
+  border 1px solid var(--color-danger)
   box-shadow 0 1px 3px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.07)
   text-decoration none !important
 
   &:hover, &:focus, &:active
-    background #c44 !important
-    color #fff !important
-    border-color #c44
+    background var(--color-danger) !important
+    color var(--color-text) !important
+    border-color var(--color-danger)
     box-shadow 0 1px 3px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.07)
 
 // ── Form inputs ───────────────────────────────────────────────────────────────
 input-types = text email url password search number tel range date month week time datetime datetime-local color
 
 form-input()
-  background color-black
+  background var(--input-bg)
   color color-text
-  border 1px solid #fff
+  border 1px solid var(--input-border)
   border-radius 0
   padding 8px 12px 9px
   font-family font-stack
@@ -167,17 +204,17 @@ textarea
 
 select
   form-input()
-  border 1px solid #fff
+  border 1px solid var(--input-border)
 
   option
-    background color-black
+    background var(--input-bg)
     color color-text
-    border 1px solid #fff
+    border 1px solid var(--input-border)
 
 // ── Layout ────────────────────────────────────────────────────────────────────
 #header
   height 98px
-  background-color color-black
+  background-color var(--header-bg)
 
 #decoration
   background-size cover
@@ -196,7 +233,7 @@ select
   bottom 0
   left 0
   right 0
-  background-color color-black
+  background-color var(--footer-bg)
   padding 15px 0 0 0
   z-index 2
 
@@ -221,7 +258,7 @@ select
 
     a
       font-size 17px
-      color #fff
+      color color-text
       width 128px
       text-align center
       float left
@@ -236,7 +273,7 @@ select
     margin 0
     padding 0 5px 0 10px
     list-style none
-    border-right solid 1px #fff
+    border-right solid 1px var(--border-strong)
 
     li
       margin 0
@@ -244,7 +281,7 @@ select
 
       a
         font-size 17px
-        color #fff
+        color color-text
         display block
         padding 7px 0 7px 5px
         border none
@@ -259,7 +296,7 @@ select
 
 // ── Welcome section cards (DB rich-text content) ─────────────────────────────
 .welcome-section
-  border 1px solid #555
+  border 1px solid var(--border)
   border-radius 4px
   padding 16px 20px 10px
   margin-bottom 14px
@@ -281,10 +318,10 @@ select
     letter-spacing 0.05em
     margin 0 0 12px
     padding-bottom 8px
-    border-bottom 1px solid #333
+    border-bottom 1px solid var(--border-subtle)
 
   p
-    color #ccc
+    color var(--color-muted)
     font-size 14px
     line-height 1.6
     margin 0 0 10px
@@ -293,7 +330,7 @@ select
     margin-bottom 0
 
   ul, ol
-    color #ccc
+    color var(--color-muted)
     font-size 14px
     line-height 1.7
     margin 0 0 10px
@@ -310,7 +347,7 @@ select
       text-decoration underline
 
   strong
-    color #fff
+    color color-text
 
   table
     width 100%
@@ -320,12 +357,12 @@ select
 
     td
       padding 5px 10px
-      border-bottom 1px solid #2a2a2a
-      color #ccc
+      border-bottom 1px solid var(--border-faint)
+      color var(--color-muted)
       vertical-align top
 
     td:first-child
-      color #fff
+      color color-text
       font-weight 600
       white-space nowrap
       width 190px
@@ -345,7 +382,7 @@ select
     font-weight 600
     text-transform uppercase
     letter-spacing 0.05em
-    border-bottom 1px solid #555
+    border-bottom 1px solid var(--border)
     padding 6px 10px
     text-align left
 
@@ -359,12 +396,12 @@ select
 
   td
     padding 8px 10px
-    border-bottom 1px solid #2a2a2a
+    border-bottom 1px solid var(--border-faint)
     vertical-align middle
     font-size 15px
 
   tr:hover td
-    background rgba(255,255,255,0.04)
+    background var(--row-hover)
 
   .cost-col
     color color-gold
@@ -383,7 +420,7 @@ select
     margin 0 0 18px
 
 .dl-section
-  border 1px solid #555
+  border 1px solid var(--border)
   border-radius 4px
   padding 16px 20px 10px
   margin-bottom 14px
@@ -397,7 +434,7 @@ select
   letter-spacing 0.05em
   margin 0 0 10px
   padding-bottom 8px
-  border-bottom 1px solid #333
+  border-bottom 1px solid var(--border-subtle)
 
 .dl-table
   width 100%
@@ -411,7 +448,7 @@ select
     font-weight 600
     text-transform uppercase
     letter-spacing 0.05em
-    border-bottom 1px solid #555
+    border-bottom 1px solid var(--border)
     padding 6px 10px
     text-align left
 
@@ -421,8 +458,8 @@ select
 
   td
     padding 6px 10px
-    border-bottom 1px solid #2a2a2a
-    color #ccc
+    border-bottom 1px solid var(--border-faint)
+    color var(--color-muted)
     vertical-align middle
 
   tr:last-child td
@@ -472,7 +509,7 @@ select
 
   &.alert-error
     background color-gold-dark
-    color #fff
+    color color-text
     border-left 4px solid color-gold
 
   &.alert-info
