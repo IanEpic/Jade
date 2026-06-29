@@ -115,12 +115,31 @@ wireDrop('docheader-box', 'docheader-input', 'docheader-status', '/admin/upload-
     Array.prototype.forEach.call(document.querySelectorAll('input[data-token]'), function (inp) {
         inp.addEventListener('input', function () { state.overrides[inp.getAttribute('data-token')] = inp.value; applyPreview(); });
     });
-    // Background + fonts
+    // Background (scrim/image — wired in 3c)
     Array.prototype.forEach.call(document.querySelectorAll('input[data-bg]'), function (inp) {
         inp.addEventListener('input', function () { state.background[inp.getAttribute('data-bg')] = inp.value; applyPreview(); });
     });
-    Array.prototype.forEach.call(document.querySelectorAll('input[data-font]'), function (inp) {
-        inp.addEventListener('input', function () { state.font[inp.getAttribute('data-font')] = inp.value; });
+    // Fonts (dropdowns). Combine the chosen Google families into one stylesheet URL, load it for the
+    // preview, and apply the font-family to the preview so the change is visible.
+    function applyFonts() {
+        var fams = [];
+        ['body', 'heading'].forEach(function (k) {
+            var sel = document.querySelector('select[data-font="' + k + '"]');
+            if (!sel) return;
+            var g = sel.options[sel.selectedIndex] && sel.options[sel.selectedIndex].getAttribute('data-google');
+            if (g && fams.indexOf(g) === -1) fams.push(g);
+        });
+        state.font.googleUrl = fams.length ? 'https://fonts.googleapis.com/css2?' + fams.map(function (f) { return 'family=' + f; }).join('&') + '&display=swap' : '';
+        var link = document.getElementById('tp-fontlink');
+        if (state.font.googleUrl) {
+            if (!link) { link = document.createElement('link'); link.id = 'tp-fontlink'; link.rel = 'stylesheet'; document.head.appendChild(link); }
+            link.href = state.font.googleUrl;
+        }
+        preview.style.fontFamily = state.font.body || '';
+        var h = preview.querySelector('h2'); if (h) h.style.fontFamily = state.font.heading || state.font.body || '';
+    }
+    Array.prototype.forEach.call(document.querySelectorAll('select[data-font]'), function (sel) {
+        sel.addEventListener('change', function () { state.font[sel.getAttribute('data-font')] = sel.value; applyFonts(); });
     });
 
     // Presets fill the core colours (and clear overrides for a clean start)
@@ -153,4 +172,5 @@ wireDrop('docheader-box', 'docheader-input', 'docheader-status', '/admin/upload-
 
     refreshAdvanced();
     applyPreview();
+    applyFonts();
 }());

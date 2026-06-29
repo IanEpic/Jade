@@ -11,6 +11,7 @@
     var coreKeys = content.CORE_KEYS || []
     var darkCore = content.DARK_CORE || {}
     var lightCore = content.LIGHT_CORE || {}
+    var fonts = content.FONTS || []
     var tokens = Object.assign({}, defaults, theme.tokens || {})
     var inferred = { accent: tokens['color-accent'], bg: tokens['color-bg'], surface: tokens['surface'], text: tokens['color-text'], border: tokens['border'] }
     var core = Object.assign({}, inferred, theme.core || {})
@@ -65,8 +66,10 @@ style.
     .tp-sub-row { display: flex; align-items: center; gap: 10px; padding: 6px 0; }
     .tp-sub-row label { width: 150px; flex-shrink: 0; font-size: 12px; color: var(--text-dim); }
     .tp-preview-wrap { width: 280px; flex-shrink: 0; position: sticky; top: 12px; }
-    .tp-preview-label { font-size: 11px; text-transform: uppercase; letter-spacing: .04em; color: var(--text-faint); margin-bottom: 6px; }
-    #tp-preview { border: 1px solid var(--border-mid); border-radius: 8px; padding: 16px; background-size: cover; background-position: center; }
+    .tp-preview-card { border: 1px solid var(--border-mid); border-radius: 8px; overflow: hidden; }
+    .tp-preview-head { background: var(--surface-sunken); color: var(--text-label); font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; padding: 8px 14px; border-bottom: 1px solid var(--border); }
+    #tp-preview { padding: 16px; background-size: cover; background-position: center; }
+    select.tp-text { -webkit-appearance: menulist; }
     @media (max-width: 720px) { .tp-cols { flex-direction: column; } .tp-preview-wrap { width: 100%; position: static; } }
 
 .theme-page
@@ -151,36 +154,33 @@ style.
                                             input.tp-swatch(type='color' data-token=key value=tokens[key])
                                             span= key
                 fieldset
-                    legend Background &amp; Fonts
-                    .tp-sub-row
-                        label Background colour
-                        input.tp-swatch(type='color' data-bg='color' value=(bg.color || tokens['color-bg']))
-                    .tp-sub-row
-                        label Scrim / overlay
-                        input.tp-text(type='text' data-bg='overlay' value=(bg.overlay || '') placeholder='rgba(0,0,0,.45) — over a bg image')
+                    legend Fonts
                     .tp-sub-row
                         label Body font
-                        input.tp-text(type='text' data-font='body' value=(font.body || '') placeholder='e.g. Inter')
+                        select.tp-text(data-font='body')
+                            each f in fonts
+                                option(value=f.stack data-google=f.google selected=(font.body===f.stack))= f.name
                     .tp-sub-row
                         label Heading font
-                        input.tp-text(type='text' data-font='heading' value=(font.heading || '') placeholder='e.g. Poppins')
-                    .tp-sub-row
-                        label Google Fonts URL
-                        input.tp-text(type='text' data-font='googleUrl' value=(font.googleUrl || '') placeholder='https://fonts.googleapis.com/…')
+                        select.tp-text(data-font='heading')
+                            each f in fonts
+                                option(value=f.stack data-google=f.google selected=(font.heading===f.stack))= f.name
+                    p.field-hint(style='margin:6px 0 0') The page background colour is set by #[b Page background] in Core Colours above.
             .tp-preview-wrap
-                .tp-preview-label Live preview
-                #tp-preview(style=previewStyle)
-                    h2(style='color:var(--color-accent-strong);margin:0 0 8px;font-size:18px') Heading
-                    p(style='color:var(--color-muted);margin:0 0 10px;font-size:13px') Body text in the muted colour, with a #[a(href='#' style='color:var(--color-link)') link] inside it.
-                    div(style='display:flex;gap:8px;margin-bottom:12px;align-items:center;flex-wrap:wrap')
-                        button.btn(type='button' onclick='return false') Primary
-                        button.btn-secondary(type='button' onclick='return false') Secondary
-                        span(style='background:var(--color-accent-strong);color:var(--on-accent);font-size:11px;padding:1px 6px;border-radius:2px') Badge
-                    div(style='background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:12px;margin-bottom:12px')
-                        div(style='color:var(--text-strong);font-size:13px;font-weight:600;margin-bottom:4px') Surface card
-                        div(style='color:var(--text-dim);font-size:12px') Secondary text on a surface.
-                    input(type='text' value='Input field' style='background:var(--input-bg);color:var(--color-text);border:1px solid var(--input-border);padding:6px 10px;width:100%;box-sizing:border-box;margin-bottom:10px')
-                    div(style='background:#1a4a1a;color:#fff;padding:6px 12px;border-left:4px solid #4caf50;font-size:12px') Status banner
+                .tp-preview-card
+                    .tp-preview-head Live Preview
+                    #tp-preview(style=previewStyle)
+                        h2(style='color:var(--color-accent-strong);margin:0 0 8px;font-size:18px') Heading
+                        p(style='color:var(--color-muted);margin:0 0 10px;font-size:13px') Body text in the muted colour, with a #[a(href='#' style='color:var(--color-link)') link] inside it.
+                        div(style='display:flex;gap:8px;margin-bottom:12px;align-items:center;flex-wrap:wrap')
+                            button.btn(type='button' onclick='return false') Primary
+                            button.btn-secondary(type='button' onclick='return false') Secondary
+                            span(style='background:var(--color-accent-strong);color:var(--on-accent);font-size:11px;padding:1px 6px;border-radius:2px') Badge
+                        div(style='background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:12px;margin-bottom:12px')
+                            div(style='color:var(--text-strong);font-size:13px;font-weight:600;margin-bottom:4px') Surface card
+                            div(style='color:var(--text-dim);font-size:12px') Secondary text on a surface.
+                        input(type='text' value='Input field' style='background:var(--input-bg);color:var(--color-text);border:1px solid var(--input-border);padding:6px 10px;width:100%;box-sizing:border-box;margin-bottom:10px')
+                        div(style='background:#1a4a1a;color:#fff;padding:6px 12px;border-left:4px solid #4caf50;font-size:12px') Status banner
 
         script(type='application/json' id='tp-data')!= JSON.stringify({ core: core, overrides: theme.overrides || {}, background: bg, font: font, defaults: defaults, darkCore: darkCore, lightCore: lightCore })
 

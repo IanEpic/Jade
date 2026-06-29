@@ -58,6 +58,30 @@ export const CORE_KEYS = [
 export const DARK_CORE  = { accent: '#cf9702', bg: '#000000', surface: '#1a1a1a', text: '#ffffff', border: '#555555' };
 export const LIGHT_CORE = { accent: '#0a66c2', bg: '#f4f6f8', surface: '#ffffff', text: '#1b2733', border: '#cdd7e0' };
 
+// Curated font choices (no free typing). `stack` is the CSS font-family; `google` (if set) is the
+// Google Fonts css2 family spec the editor combines into a single stylesheet URL.
+export const FONTS = [
+    { name: 'System default',          stack: '',                                google: '' },
+    { name: 'Arial',                   stack: 'Arial, Helvetica, sans-serif',    google: '' },
+    { name: 'Helvetica',               stack: 'Helvetica, Arial, sans-serif',    google: '' },
+    { name: 'Verdana',                 stack: 'Verdana, Geneva, sans-serif',     google: '' },
+    { name: 'Georgia (serif)',         stack: 'Georgia, serif',                  google: '' },
+    { name: 'Times (serif)',           stack: '"Times New Roman", Times, serif', google: '' },
+    { name: 'Inter',                   stack: 'Inter, sans-serif',               google: 'Inter:wght@400;600;700' },
+    { name: 'Roboto',                  stack: 'Roboto, sans-serif',              google: 'Roboto:wght@400;500;700' },
+    { name: 'Open Sans',               stack: '"Open Sans", sans-serif',         google: 'Open+Sans:wght@400;600;700' },
+    { name: 'Lato',                    stack: 'Lato, sans-serif',                google: 'Lato:wght@400;700' },
+    { name: 'Montserrat',              stack: 'Montserrat, sans-serif',          google: 'Montserrat:wght@400;600;700' },
+    { name: 'Poppins',                 stack: 'Poppins, sans-serif',             google: 'Poppins:wght@400;600;700' },
+    { name: 'Nunito',                  stack: 'Nunito, sans-serif',              google: 'Nunito:wght@400;600;700' },
+    { name: 'Raleway',                 stack: 'Raleway, sans-serif',             google: 'Raleway:wght@400;600;700' },
+    { name: 'Work Sans',               stack: '"Work Sans", sans-serif',         google: 'Work+Sans:wght@400;600;700' },
+    { name: 'Source Sans 3',           stack: '"Source Sans 3", sans-serif',     google: 'Source+Sans+3:wght@400;600;700' },
+    { name: 'Merriweather (serif)',    stack: 'Merriweather, serif',             google: 'Merriweather:wght@400;700' },
+    { name: 'Playfair Display (serif)',stack: '"Playfair Display", serif',       google: 'Playfair+Display:wght@400;700' },
+    { name: 'Oswald',                  stack: 'Oswald, sans-serif',              google: 'Oswald:wght@400;600' },
+];
+
 // Editor layout — labelled groups of token keys (Advanced section).
 export const TOKEN_GROUPS = [
     { name: 'Brand',            keys: ['color-accent', 'color-accent-strong', 'color-accent-nav', 'color-link', 'on-accent'] },
@@ -131,30 +155,29 @@ export function buildThemeStyle(theme) {
         if (val) root += `--${k}:${val};`;
     }
 
-    let body = '';
+    // The page background colour is the --color-bg token (main.css applies it to the themed body),
+    // so there's no separate background-colour here — only an optional background IMAGE + scrim.
     const bg = theme.background || {};
     const parts = [];
-    const color   = safeCss(bg.color);
     const img     = bg.imageUrl ? safeCss(bg.imageUrl) : null;
     const overlay = safeCss(bg.overlay);
-    if (color) parts.push(`background-color:${color}`);
     if (img && /^https?:\/\//i.test(img)) {
-        // Overlay/scrim (for legibility over a busy image) layered above the image.
         const layers = overlay ? `linear-gradient(${overlay},${overlay}),url('${img}')` : `url('${img}')`;
         parts.push(`background-image:${layers}`);
         parts.push(`background-size:${safeCss(bg.size) || 'cover'}`);
         parts.push(`background-position:${safeCss(bg.position) || 'center center'}`);
         parts.push(`background-repeat:${safeCss(bg.repeat) || 'no-repeat'}`);
         parts.push('background-attachment:fixed');
-    } else if (color) {
-        parts.push('background-image:none');
     }
     const fontBody = theme.font && safeCss(theme.font.body);
-    if (fontBody) parts.push(`font-family:${fontBody},sans-serif`);
-    if (parts.length) body = `body{${parts.join(';')}}`;
+    if (fontBody) parts.push(`font-family:${fontBody}`);
+    const body = parts.length ? `body{${parts.join(';')}}` : '';
 
-    if (!root && !body) return '';
-    return `<style>${root ? `:root{${root}}` : ''}${body}</style>`;
+    const fontHeading = theme.font && safeCss(theme.font.heading);
+    const headings = fontHeading ? `h1,h2,h3,h4,h5,h6{font-family:${fontHeading}}` : '';
+
+    if (!root && !body && !headings) return '';
+    return `<style>${root ? `:root{${root}}` : ''}${body}${headings}</style>`;
 }
 
 // Optional Google Fonts <link> for the theme's fonts.
