@@ -59,59 +59,89 @@ mediaDelete('docheader-delete-btn', '/admin/delete-docheader', 'Remove the docum
 mediaUpload('docheader-btn', 'docheader-input', 'docheader-status', '/admin/upload-docheader', 'docheader');
 wireDrop('docheader-box', 'docheader-input', 'docheader-status', '/admin/upload-docheader', 'docheader', /\.(png|jpe?g)$/i);
 
-// ── Theme token editor (themed programs) ────────────────────────────────────────
+// ── Theme token editor: 5 core colours derive the full palette (+ overrides) ─────
 (function () {
     var dataEl = document.getElementById('tp-data');
     var preview = document.getElementById('tp-preview');
     if (!dataEl || !preview) return;
     var data = JSON.parse(dataEl.textContent);
-    var state = { tokens: Object.assign({}, data.tokens), mode: data.mode, background: Object.assign({}, data.background), font: Object.assign({}, data.font) };
 
-    function applyPreview() {
-        var css = Object.keys(state.tokens).map(function (k) { return '--' + k + ':' + state.tokens[k]; }).join(';');
-        preview.setAttribute('style', css + (state.background.color ? ';background:' + state.background.color : ''));
+    // ── colour maths ──
+    function toRgb(h) { h = h.replace('#', ''); if (h.length === 3) h = h.split('').map(function (c) { return c + c; }).join(''); return { r: parseInt(h.slice(0, 2), 16), g: parseInt(h.slice(2, 4), 16), b: parseInt(h.slice(4, 6), 16) }; }
+    function toHex(c) { function p(n) { return ('0' + Math.max(0, Math.min(255, Math.round(n))).toString(16)).slice(-2); } return '#' + p(c.r) + p(c.g) + p(c.b); }
+    function mix(a, b, t) { var x = toRgb(a), y = toRgb(b); return toHex({ r: x.r + (y.r - x.r) * t, g: x.g + (y.g - x.g) * t, b: x.b + (y.b - x.b) * t }); }
+    function lum(h) { var c = toRgb(h); return (0.2126 * c.r + 0.7152 * c.g + 0.0722 * c.b) / 255; }
+    function on(h) { return lum(h) > 0.55 ? '#000000' : '#ffffff'; }
+
+    // Derive the full token map from the five core colours.
+    function derive(c) {
+        var bg = c.bg, su = c.surface, tx = c.text, ac = c.accent, bd = c.border;
+        return {
+            'color-bg': bg, 'color-text': tx, 'color-muted': mix(tx, bg, 0.4),
+            'color-accent': ac, 'color-accent-strong': mix(ac, '#000000', 0.18), 'color-accent-nav': mix(ac, '#ffffff', 0.18),
+            'color-link': ac, 'on-accent': on(ac),
+            'border': bd, 'border-mid': mix(bd, tx, 0.2), 'border-2': mix(bd, bg, 0.35), 'border-subtle': mix(bd, bg, 0.5),
+            'border-faint': mix(bd, bg, 0.65), 'border-dashed': bd, 'border-row': mix(bd, bg, 0.55), 'border-strong': mix(bd, tx, 0.45),
+            'surface': su, 'surface-1': mix(su, bg, 0.4), 'surface-2': mix(su, bg, 0.25), 'surface-deep': mix(su, bg, 0.6),
+            'surface-sunken': mix(su, bg, 0.5), 'surface-raised': mix(su, tx, 0.06), 'header-bg': bg, 'footer-bg': bg,
+            'text-strong': mix(tx, bg, 0.08), 'text-label': mix(tx, bg, 0.3), 'text-dim': mix(tx, bg, 0.45),
+            'text-faint': mix(tx, bg, 0.52), 'text-fainter': mix(tx, bg, 0.4), 'text-arrow': mix(tx, bg, 0.45),
+            'input-bg': su, 'input-border': bd, 'btn-bg': ac, 'btn-text': on(ac), 'btn-active-text': on(ac),
+            'btn-secondary-text': tx, 'btn-secondary-border': mix(bd, tx, 0.2), 'color-danger': '#cc4444',
+        };
     }
 
-    // Colour token swatches
-    Array.prototype.forEach.call(document.querySelectorAll('input[data-token]'), function (inp) {
-        inp.addEventListener('input', function () { state.tokens[inp.getAttribute('data-token')] = inp.value; applyPreview(); });
+    var state = { core: Object.assign({}, data.core), overrides: Object.assign({}, data.overrides), background: Object.assign({}, data.background), font: Object.assign({}, data.font) };
+
+    function tokens() { return Object.assign(derive(state.core), state.overrides); }
+
+    function applyPreview() {
+        var t = tokens();
+        var css = Object.keys(t).map(function (k) { return '--' + k + ':' + t[k]; }).join(';');
+        preview.setAttribute('style', css + (state.background.color ? ';background:' + state.background.color : ''));
+    }
+    function refreshAdvanced() {
+        var t = tokens();
+        Array.prototype.forEach.call(document.querySelectorAll('input[data-token]'), function (inp) {
+            inp.value = t[inp.getAttribute('data-token')];
+        });
+    }
+
+    // Core swatches → re-derive everything
+    Array.prototype.forEach.call(document.querySelectorAll('input[data-core]'), function (inp) {
+        inp.addEventListener('input', function () { state.core[inp.getAttribute('data-core')] = inp.value; refreshAdvanced(); applyPreview(); });
     });
-    // Background colour + scrim
+    // Advanced per-token override
+    Array.prototype.forEach.call(document.querySelectorAll('input[data-token]'), function (inp) {
+        inp.addEventListener('input', function () { state.overrides[inp.getAttribute('data-token')] = inp.value; applyPreview(); });
+    });
+    // Background + fonts
     Array.prototype.forEach.call(document.querySelectorAll('input[data-bg]'), function (inp) {
         inp.addEventListener('input', function () { state.background[inp.getAttribute('data-bg')] = inp.value; applyPreview(); });
     });
-    // Fonts
     Array.prototype.forEach.call(document.querySelectorAll('input[data-font]'), function (inp) {
         inp.addEventListener('input', function () { state.font[inp.getAttribute('data-font')] = inp.value; });
     });
-    // Mode
-    var modeSel = document.getElementById('tp-mode');
-    if (modeSel) modeSel.addEventListener('change', function () { state.mode = modeSel.value; });
 
-    // Presets — fill every swatch + state from the preset map, then refresh preview.
+    // Presets fill the core colours (and clear overrides for a clean start)
     Array.prototype.forEach.call(document.querySelectorAll('button[data-preset]'), function (btn) {
         btn.addEventListener('click', function () {
-            var preset = data[btn.getAttribute('data-preset')] || {};
-            Object.keys(preset).forEach(function (k) {
-                state.tokens[k] = preset[k];
-                var sw = document.querySelector('input[data-token="' + k + '"]');
-                if (sw) sw.value = preset[k];
-            });
-            state.mode = btn.getAttribute('data-preset') === 'light' ? 'light' : 'dark';
-            if (modeSel) modeSel.value = state.mode;
-            applyPreview();
+            var preset = btn.getAttribute('data-preset') === 'light' ? data.lightCore : data.darkCore;
+            state.core = Object.assign({}, preset);
+            state.overrides = {};
+            Array.prototype.forEach.call(document.querySelectorAll('input[data-core]'), function (inp) { inp.value = state.core[inp.getAttribute('data-core')]; });
+            refreshAdvanced(); applyPreview();
         });
     });
 
     // Save
-    var saveBtn = document.getElementById('tp-save');
-    var saveStatus = document.getElementById('tp-save-status');
+    var saveBtn = document.getElementById('tp-save'), saveStatus = document.getElementById('tp-save-status');
     if (saveBtn) saveBtn.addEventListener('click', function () {
         saveBtn.disabled = true;
         if (saveStatus) { saveStatus.style.color = ''; saveStatus.textContent = 'Saving…'; }
-        var payload = { mode: state.mode, tokens: state.tokens, background: state.background, font: state.font };
-        var body = 'theme=' + encodeURIComponent(JSON.stringify(payload));
-        fetch(window.JADE_BASE + '/admin/theme', { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: body })
+        var mode = lum(state.core.bg) > 0.55 ? 'light' : 'dark';
+        var payload = { mode: mode, core: state.core, overrides: state.overrides, tokens: tokens(), background: state.background, font: state.font };
+        fetch(window.JADE_BASE + '/admin/theme', { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: 'theme=' + encodeURIComponent(JSON.stringify(payload)) })
             .then(function (r) { return r.json(); })
             .then(function (r) {
                 saveBtn.disabled = false;
@@ -121,5 +151,6 @@ wireDrop('docheader-box', 'docheader-input', 'docheader-status', '/admin/upload-
             .catch(function () { saveBtn.disabled = false; if (saveStatus) { saveStatus.style.color = '#c44'; saveStatus.textContent = '✗ Network error'; } });
     });
 
+    refreshAdvanced();
     applyPreview();
 }());

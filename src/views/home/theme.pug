@@ -1,22 +1,25 @@
 //- home/theme.pug
-//- Admin → Theme (Look & Feel). 3a: brand assets (favicon, doc header image) for ALL programs.
-//- The colour/background/font token editor (3b) is shown for themed programs (1057+); legacy
-//- programs (≤1056) see a "classic template" note instead.
+//- Admin → Theme (Look & Feel). Brand assets (favicon, doc header) for all programs; for themed
+//- programs (1057+) a 5-core-colour editor that derives the full token set (with an Advanced
+//- per-token override grid) + live preview.
 
 -
     var themed = content.themed
     var theme = content.theme || {}
     var defaults = content.DEFAULT_TOKENS || {}
     var groups = content.TOKEN_GROUPS || []
-    var lightPreset = content.LIGHT_PRESET || {}
+    var coreKeys = content.CORE_KEYS || []
+    var darkCore = content.DARK_CORE || {}
+    var lightCore = content.LIGHT_CORE || {}
     var tokens = Object.assign({}, defaults, theme.tokens || {})
-    var mode = theme.mode === 'light' ? 'light' : 'dark'
+    var inferred = { accent: tokens['color-accent'], bg: tokens['color-bg'], surface: tokens['surface'], text: tokens['color-text'], border: tokens['border'] }
+    var core = Object.assign({}, inferred, theme.core || {})
     var bg = theme.background || {}
     var font = theme.font || {}
     var previewStyle = Object.keys(tokens).map(function (k) { return '--' + k + ':' + tokens[k]; }).join(';') + (bg.color ? ';background:' + bg.color : '')
 
 style.
-    .theme-page { max-width: 760px; margin: 0 auto; }
+    .theme-page { max-width: 720px; margin: 0 auto; }
     .theme-page h2 { color: var(--color-accent-strong); text-align: center; margin: 0 0 4px; }
     .theme-page .tp-sub { color: var(--text-dim); font-size: 13px; text-align: center; margin: 0 auto 22px; max-width: 580px; line-height: 1.5; }
     .theme-page fieldset { border: 1px solid var(--border-mid); border-radius: 6px; margin-bottom: 18px; padding: 8px 18px 16px; }
@@ -40,25 +43,33 @@ style.
     .field-hint { color: var(--text-dim); font-size: 12px; margin-top: 8px; max-width: 480px; }
     .tp-legacy { background: var(--surface-sunken); border: 1px solid var(--border); border-radius: 6px; padding: 16px 18px; font-size: 13px; color: var(--text-label); line-height: 1.6; }
     .tp-legacy b { color: var(--text-strong); }
-    .tp-soon { color: var(--text-faint); font-size: 13px; text-align: center; padding: 20px; }
+    //- Editor
     .tp-toolbar { display: flex; align-items: center; gap: 8px; margin-bottom: 14px; }
     .tp-cols { display: flex; gap: 18px; align-items: flex-start; }
     .tp-controls { flex: 1; min-width: 0; }
-    .tp-group { border: 1px solid var(--border-mid); border-radius: 6px; margin-bottom: 12px; padding: 4px 14px 10px; }
-    .tp-group legend { font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: .04em; color: var(--text-label); padding: 0 6px; }
-    .tp-token { display: flex; align-items: center; gap: 10px; padding: 4px 0; }
-    .tp-token label { width: 150px; flex-shrink: 0; font-size: 12px; color: var(--text-dim); font-family: monospace; }
-    .tp-swatch { width: 44px; height: 26px; padding: 0; border: 1px solid var(--border); border-radius: 3px; background: none; cursor: pointer; }
-    .tp-text { flex: 1; background: var(--input-bg); color: var(--color-text); border: 1px solid var(--border); border-radius: 3px; padding: 5px 8px; font-size: 12px; }
-    .tp-preview-wrap { width: 300px; flex-shrink: 0; position: sticky; top: 12px; }
+    .tp-core { display: flex; flex-direction: column; gap: 2px; }
+    .tp-row { display: flex; align-items: center; gap: 12px; padding: 6px 0; }
+    .tp-row label { flex: 1; font-size: 13px; color: var(--text-label); }
+    .tp-row .tp-key { font-family: monospace; font-size: 11px; color: var(--text-faint); }
+    .tp-swatch { width: 46px; height: 28px; padding: 0; border: 1px solid var(--border); border-radius: 4px; background: none; cursor: pointer; flex-shrink: 0; }
+    .tp-text { background: var(--input-bg); color: var(--color-text); border: 1px solid var(--border); border-radius: 3px; padding: 5px 8px; font-size: 12px; width: 100%; box-sizing: border-box; }
+    details.tp-adv { margin-top: 12px; }
+    details.tp-adv > summary { cursor: pointer; font-size: 12px; color: var(--text-dim); user-select: none; }
+    .tp-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 4px 16px; margin-top: 10px; }
+    .tp-grid .tp-cell { display: flex; align-items: center; gap: 8px; padding: 3px 0; }
+    .tp-grid .tp-cell span { font-family: monospace; font-size: 11px; color: var(--text-faint); flex: 1; overflow: hidden; text-overflow: ellipsis; }
+    .tp-grid .tp-swatch { width: 34px; height: 22px; }
+    .tp-sub-row { display: flex; align-items: center; gap: 10px; padding: 6px 0; }
+    .tp-sub-row label { width: 150px; flex-shrink: 0; font-size: 12px; color: var(--text-dim); }
+    .tp-preview-wrap { width: 280px; flex-shrink: 0; position: sticky; top: 12px; }
     .tp-preview-label { font-size: 11px; text-transform: uppercase; letter-spacing: .04em; color: var(--text-faint); margin-bottom: 6px; }
     #tp-preview { border: 1px solid var(--border-mid); border-radius: 8px; padding: 16px; background-size: cover; background-position: center; }
     @media (max-width: 720px) { .tp-cols { flex-direction: column; } .tp-preview-wrap { width: 100%; position: static; } }
 
 .theme-page
     h2 Theme — Look &amp; Feel
-    p.tp-sub Brand assets and (for new token-driven programs) the colour scheme, background and fonts
-        |  of this program’s portal.
+    p.tp-sub Brand assets and (for token-driven programs) the colour scheme, background and fonts of
+        |  this program’s portal.
 
     //- ── Brand assets (all programs) ──────────────────────────────────────────
     fieldset
@@ -99,7 +110,7 @@ style.
                     .media-note #[b Drag &amp; drop] an image here, or click to browse — PNG or JPG.
                 .field-hint Wide logo/banner shown in the header band of the generated Category Documents (PNG/JPG).
 
-    //- ── Look & feel (themed programs only) ───────────────────────────────────
+    //- ── Look & feel ──────────────────────────────────────────────────────────
     if !themed
         fieldset
             legend Colours, Background &amp; Fonts
@@ -118,55 +129,56 @@ style.
             span#tp-save-status(style='font-size:13px')
         .tp-cols
             .tp-controls
-                each group in groups
-                    fieldset.tp-group
-                        legend= group.name
-                        each key in group.keys
-                            .tp-token
-                                label= key
-                                input.tp-swatch(type='color' data-token=key value=tokens[key])
-                fieldset.tp-group
-                    legend Background
-                    .tp-token
-                        label background colour
+                fieldset
+                    legend Core Colours
+                    p.field-hint(style='margin:0 0 6px') Pick five colours — the rest of the palette is derived automatically. Fine-tune individual tokens under Advanced.
+                    .tp-core
+                        each c in coreKeys
+                            .tp-row
+                                label #{c.label} &nbsp;#[span.tp-key= c.key]
+                                input.tp-swatch(type='color' data-core=c.key value=core[c.key])
+                    details.tp-adv
+                        summary Advanced — override individual tokens
+                        each group in groups
+                            div(style='margin-top:10px')
+                                div(style='font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--text-label);margin-bottom:4px')= group.name
+                                .tp-grid
+                                    each key in group.keys
+                                        .tp-cell
+                                            input.tp-swatch(type='color' data-token=key value=tokens[key])
+                                            span= key
+                fieldset
+                    legend Background &amp; Fonts
+                    .tp-sub-row
+                        label Background colour
                         input.tp-swatch(type='color' data-bg='color' value=(bg.color || tokens['color-bg']))
-                    .tp-token
-                        label scrim / overlay
+                    .tp-sub-row
+                        label Scrim / overlay
                         input.tp-text(type='text' data-bg='overlay' value=(bg.overlay || '') placeholder='rgba(0,0,0,.45) — over a bg image')
-                fieldset.tp-group
-                    legend Fonts
-                    .tp-token
-                        label body font
+                    .tp-sub-row
+                        label Body font
                         input.tp-text(type='text' data-font='body' value=(font.body || '') placeholder='e.g. Inter')
-                    .tp-token
-                        label heading font
+                    .tp-sub-row
+                        label Heading font
                         input.tp-text(type='text' data-font='heading' value=(font.heading || '') placeholder='e.g. Poppins')
-                    .tp-token
-                        label google fonts URL
+                    .tp-sub-row
+                        label Google Fonts URL
                         input.tp-text(type='text' data-font='googleUrl' value=(font.googleUrl || '') placeholder='https://fonts.googleapis.com/…')
-                fieldset.tp-group
-                    legend Mode
-                    .tp-token
-                        label light / dark
-                        select#tp-mode(data-mode)
-                            option(value='dark' selected=(mode==='dark')) Dark
-                            option(value='light' selected=(mode==='light')) Light
-                        span(style='font-size:11px;color:var(--text-faint);margin-left:8px') affects editor widgets (e.g. TinyMCE skin)
             .tp-preview-wrap
                 .tp-preview-label Live preview
                 #tp-preview(style=previewStyle)
-                    h2(style='color:var(--color-accent-strong);margin:0 0 8px') Heading
+                    h2(style='color:var(--color-accent-strong);margin:0 0 8px;font-size:18px') Heading
                     p(style='color:var(--color-muted);margin:0 0 10px;font-size:13px') Body text in the muted colour, with a #[a(href='#' style='color:var(--color-link)') link] inside it.
                     div(style='display:flex;gap:8px;margin-bottom:12px;align-items:center')
                         button.btn(type='button' onclick='return false') Primary
                         button.btn-secondary(type='button' onclick='return false') Secondary
-                        span.tp-badge(style='background:var(--color-accent-strong);color:var(--on-accent);font-size:11px;padding:1px 6px;border-radius:2px') Badge
+                        span(style='background:var(--color-accent-strong);color:var(--on-accent);font-size:11px;padding:1px 6px;border-radius:2px') Badge
                     div(style='background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:12px;margin-bottom:12px')
                         div(style='color:var(--text-strong);font-size:13px;font-weight:600;margin-bottom:4px') Surface card
-                        div(style='color:var(--text-dim);font-size:12px') Secondary text on a raised surface.
+                        div(style='color:var(--text-dim);font-size:12px') Secondary text on a surface.
                     input(type='text' value='Input field' style='background:var(--input-bg);color:var(--color-text);border:1px solid var(--input-border);padding:6px 10px;width:100%;box-sizing:border-box;margin-bottom:10px')
                     div(style='background:#1a4a1a;color:#fff;padding:6px 12px;border-left:4px solid #4caf50;font-size:12px') Status banner
 
-        script(type='application/json' id='tp-data')!= JSON.stringify({ tokens: tokens, mode: mode, background: bg, font: font, defaults: defaults, dark: defaults, light: lightPreset })
+        script(type='application/json' id='tp-data')!= JSON.stringify({ core: core, overrides: theme.overrides || {}, background: bg, font: font, defaults: defaults, darkCore: darkCore, lightCore: lightCore })
 
 script(src='/js/home-theme.js?v=' + buildHash)

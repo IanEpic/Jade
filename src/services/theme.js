@@ -46,7 +46,19 @@ export const LIGHT_PRESET = {
     'btn-secondary-text': '#1b2733', 'btn-secondary-border': '#9fb0bf', 'color-danger': '#cc4444',
 };
 
-// Editor layout — labelled groups of token keys.
+// Five CORE colours the editor exposes; everything else is derived from them client-side (with
+// optional per-token overrides in the Advanced section).
+export const CORE_KEYS = [
+    { key: 'accent',  label: 'Accent / brand' },
+    { key: 'bg',      label: 'Page background' },
+    { key: 'surface', label: 'Surface (cards)' },
+    { key: 'text',    label: 'Text' },
+    { key: 'border',  label: 'Borders' },
+];
+export const DARK_CORE  = { accent: '#cf9702', bg: '#000000', surface: '#1a1a1a', text: '#ffffff', border: '#555555' };
+export const LIGHT_CORE = { accent: '#0a66c2', bg: '#f4f6f8', surface: '#ffffff', text: '#1b2733', border: '#cdd7e0' };
+
+// Editor layout — labelled groups of token keys (Advanced section).
 export const TOKEN_GROUPS = [
     { name: 'Brand',            keys: ['color-accent', 'color-accent-strong', 'color-accent-nav', 'color-link', 'on-accent'] },
     { name: 'Base',             keys: ['color-bg', 'color-text', 'color-muted'] },
@@ -60,10 +72,22 @@ export const TOKEN_GROUPS = [
 // Validate + normalise a theme object posted from the editor (returns a clean object or throws).
 export function sanitizeThemeInput(raw) {
     const t = (raw && typeof raw === 'object') ? raw : {};
+    const isHex = (v) => /^#[0-9a-fA-F]{3,8}$/.test(String(v));
     const out = { mode: t.mode === 'light' ? 'light' : 'dark', tokens: {} };
     const tokens = (t.tokens && typeof t.tokens === 'object') ? t.tokens : {};
     for (const [k, v] of Object.entries(tokens)) {
-        if (/^[a-z0-9-]+$/i.test(k) && /^#[0-9a-fA-F]{3,8}$/.test(String(v))) out.tokens[k] = v;
+        if (/^[a-z0-9-]+$/i.test(k) && isHex(v)) out.tokens[k] = v;
+    }
+    // Core colours + per-token overrides (so the editor can reconstruct the derivation).
+    if (t.core && typeof t.core === 'object') {
+        const core = {};
+        for (const { key } of CORE_KEYS) if (isHex(t.core[key])) core[key] = t.core[key];
+        if (Object.keys(core).length) out.core = core;
+    }
+    if (t.overrides && typeof t.overrides === 'object') {
+        const ov = {};
+        for (const [k, v] of Object.entries(t.overrides)) if (/^[a-z0-9-]+$/i.test(k) && isHex(v)) ov[k] = v;
+        if (Object.keys(ov).length) out.overrides = ov;
     }
     if (t.background && typeof t.background === 'object') {
         const bg = {};
