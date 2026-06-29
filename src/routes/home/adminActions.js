@@ -196,8 +196,11 @@ export async function handleAdminAction(action, req, res, program, user) {
         // colour/background/font tokens for themed programs (1057+). Legacy programs (≤1056) show
         // the brand assets + a "classic template" note.
         const { parseTheme, DEFAULT_TOKENS, TOKEN_GROUPS, CORE_KEYS, DARK_CORE, LIGHT_CORE, FONTS } = await import('../../services/theme.js');
+        const { default: Entry } = await import('../../models/Entry.js');
         const theme = parseTheme(program);
-        return { view: 'home/theme', theme, themed: !!theme, DEFAULT_TOKENS, TOKEN_GROUPS, CORE_KEYS, DARK_CORE, LIGHT_CORE, FONTS };
+        // Can switch a non-themed program to a custom theme only if it has no entries (guards 1056).
+        const canEnable = theme ? false : (await Entry.count({ where: { programid: program.programid, deleted: false } })) === 0;
+        return { view: 'home/theme', theme, themed: !!theme, canEnable, DEFAULT_TOKENS, TOKEN_GROUPS, CORE_KEYS, DARK_CORE, LIGHT_CORE, FONTS };
     }
 
     if (action === 'cqdocs') {

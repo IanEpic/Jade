@@ -59,6 +59,31 @@ mediaDelete('docheader-delete-btn', '/admin/delete-docheader', 'Remove the docum
 mediaUpload('docheader-btn', 'docheader-input', 'docheader-status', '/admin/upload-docheader', 'docheader');
 wireDrop('docheader-box', 'docheader-input', 'docheader-status', '/admin/upload-docheader', 'docheader', /\.(png|jpe?g)$/i);
 
+// Themed-program assets: portal logo + background image
+mediaDelete('logo-delete-btn', '/admin/delete-logo', 'Remove the portal logo and use the program name as text?');
+mediaUpload('logo-btn', 'logo-input', 'logo-status', '/admin/upload-logo', 'logo');
+wireDrop('logo-box', 'logo-input', 'logo-status', '/admin/upload-logo', 'logo', /\.(svg|png|jpe?g|webp)$/i);
+mediaDelete('themebg-delete-btn', '/admin/delete-themebg', 'Remove the background image?');
+mediaUpload('themebg-btn', 'themebg-input', 'themebg-status', '/admin/upload-themebg', 'themebg');
+wireDrop('themebg-box', 'themebg-input', 'themebg-status', '/admin/upload-themebg', 'themebg', /\.(png|jpe?g|webp)$/i);
+
+// Enable theming on a non-themed program (creates a default dark theme; server guards on entries).
+(function () {
+    var btn = document.getElementById('tp-enable'), status = document.getElementById('tp-enable-status');
+    if (!btn) return;
+    btn.addEventListener('click', function () {
+        btn.disabled = true;
+        if (status) { status.style.color = ''; status.textContent = 'Enabling…'; }
+        fetch(window.JADE_BASE + '/admin/enable-theme', { method: 'POST' })
+            .then(function (r) { return r.json(); })
+            .then(function (r) {
+                if (r.status === 'OK') { location.reload(); }
+                else { btn.disabled = false; if (status) { status.style.color = '#c44'; status.textContent = r.status === 'E_HASENTRIES' ? '✗ Program has entries — cannot theme' : '✗ ' + r.status; } }
+            })
+            .catch(function () { btn.disabled = false; if (status) { status.style.color = '#c44'; status.textContent = '✗ Network error'; } });
+    });
+}());
+
 // ── Theme token editor: 5 core colours derive the full palette (+ overrides) ─────
 (function () {
     var dataEl = document.getElementById('tp-data');

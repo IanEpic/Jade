@@ -11,7 +11,8 @@ import { getPool, sql } from '../config/database.js';
 import multer   from 'multer';
 import path     from 'path';
 import { programDir, docHeaderPath } from '../services/cqDocs.js';
-import { sanitizeThemeInput } from '../services/theme.js';
+import { sanitizeThemeInput, parseTheme, DARK_CORE, DEFAULT_TOKENS } from '../services/theme.js';
+import Entry from '../models/Entry.js';
 import fs       from 'fs/promises';
 import fsSync   from 'fs';
 
@@ -202,7 +203,87 @@ router.post('/theme', async (req, res, next) => {
         let payload;
         try { payload = JSON.parse(req.body.theme || '{}'); } catch { return res.json({ status: 'E_BADJSON' }); }
         const clean = sanitizeThemeInput(payload);
+        // Preserve uploaded assets (logo, background image) — they're set by the upload routes, not
+        // sent in the editor's save payload, so re-attach them from the existing theme.
+        const existing = parseTheme(program) || {};
+        if (existing.logo) clean.logo = existing.logo;
+        if (existing.background && existing.background.image) {
+            clean.background = Object.assign({}, clean.background, { image: existing.background.image });
+        }
         await program.update({ theme: JSON.stringify(clean) });
+        bustProgramCache(program.slug, program.fqdn);
+        res.json({ status: 'OK' });
+    } catch (err) { next(err); }
+});
+
+// ── Themed-program assets: logo (header band) + background image ───────────────
+function themeAssetUpload(name) {
+    return multer({
+        storage: multer.diskStorage({
+            destination: async (req, file, cb) => {
+                const dir = programDir(req.user.programid);
+                await fs.mkdir(dir, { recursive: true });
+                cb(null, dir);
+            },
+            filename: (req, file, cb) => cb(null, name + (path.extname(file.originalname).toLowerCase() || '.png')),
+        }),
+        limits: { fileSize: 5 * 1024 * 1024 }, // 5 MB
+        fileFilter: (req, file, cb) => cb(null, ['.png', '.jpg', '.jpeg', '.svg', '.webp'].includes(path.extname(file.originalname).toLowerCase())),
+    });
+}
+const logoUpload    = themeAssetUpload('logo');
+const themeBgUpload = themeAssetUpload('themebg');
+
+async function saveThemeAsset(programid, mutate) {
+    const program = await Program.findByPk(programid);
+    const t = parseTheme(program) || {};
+    await mutate(t, program);
+    await program.update({ theme: JSON.stringify(t) });
+    bustProgramCache(program.slug, program.fqdn);
+}
+
+router.post('/upload-logo', logoUpload.single('logo'), async (req, res, next) => {
+    try {
+        if (!req.file) return res.json({ status: 'E_NOFILE' });
+        await saveThemeAsset(req.user.programid, (t) => { t.logo = req.file.filename; });
+        res.json({ status: 'OK' });
+    } catch (err) { next(err); }
+});
+router.post('/delete-logo', async (req, res, next) => {
+    try {
+        await saveThemeAsset(req.user.programid, async (t, program) => {
+            if (t.logo) { const p = docHeaderPath(program.programid, t.logo); if (p) await fs.unlink(p).catch(() => {}); delete t.logo; }
+        });
+        res.json({ status: 'OK' });
+    } catch (err) { next(err); }
+});
+router.post('/upload-themebg', themeBgUpload.single('themebg'), async (req, res, next) => {
+    try {
+        if (!req.file) return res.json({ status: 'E_NOFILE' });
+        await saveThemeAsset(req.user.programid, (t) => { t.background = Object.assign({}, t.background, { image: req.file.filename }); });
+        res.json({ status: 'OK' });
+    } catch (err) { next(err); }
+});
+router.post('/delete-themebg', async (req, res, next) => {
+    try {
+        await saveThemeAsset(req.user.programid, async (t, program) => {
+            const img = t.background && t.background.image;
+            if (img) { const p = docHeaderPath(program.programid, img); if (p) await fs.unlink(p).catch(() => {}); delete t.background.image; }
+        });
+        res.json({ status: 'OK' });
+    } catch (err) { next(err); }
+});
+
+// Enable token-driven theming on a program that doesn't have a theme yet. Guarded: refuses if the
+// program already has entries (protects live programs like 1056 from being switched to themed).
+router.post('/enable-theme', async (req, res, next) => {
+    try {
+        const program = await Program.findByPk(req.user.programid);
+        if (parseTheme(program)) return res.json({ status: 'OK' }); // already themed
+        const entryCount = await Entry.count({ where: { programid: program.programid, deleted: false } });
+        if (entryCount > 0) return res.json({ status: 'E_HASENTRIES' });
+        const theme = { mode: 'dark', core: { ...DARK_CORE }, overrides: {}, tokens: { ...DEFAULT_TOKENS } };
+        await program.update({ theme: JSON.stringify(theme) });
         bustProgramCache(program.slug, program.fqdn);
         res.json({ status: 'OK' });
     } catch (err) { next(err); }

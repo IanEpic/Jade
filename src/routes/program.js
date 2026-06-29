@@ -61,6 +61,8 @@ import voScriptRouter              from './voScript.js';
 import citationRouter              from './citation.js';
 import prExportRouter              from './prExport.js';
 import cqDocsRouter                from './cqDocs.js';
+import { parseTheme }              from '../services/theme.js';
+import { docHeaderPath }           from '../services/cqDocs.js';
 
 const router = Router({ mergeParams: true });
 
@@ -78,6 +80,20 @@ router.get('/admin/favicon', (req, res) => {
     if (!fs.existsSync(filePath)) return res.status(404).end();
     res.sendFile(filePath, err => { if (err && !res.headersSent) res.status(404).end(); });
 });
+
+// ── Public themed-program logo + background image ──────────────────────────────
+// Served without auth (they appear in the themed shell on the login page too).
+function serveThemeAsset(getFilename) {
+    return (req, res) => {
+        const theme = parseTheme(req.program);
+        const filename = theme && getFilename(theme);
+        const filePath = filename && docHeaderPath(req.program.programid, filename);
+        if (!filePath || !fs.existsSync(filePath)) return res.status(404).end();
+        res.sendFile(filePath, err => { if (err && !res.headersSent) res.status(404).end(); });
+    };
+}
+router.get('/admin/themelogo', serveThemeAsset(t => t.logo));
+router.get('/admin/themebg',   serveThemeAsset(t => t.background && t.background.image));
 
 // ── Session keep-alive ────────────────────────────────────────────────────────
 // Called by client JS every 10 min. Resets the rolling session cookie.

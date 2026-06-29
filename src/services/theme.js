@@ -145,8 +145,8 @@ export function parseTheme(program) {
     } catch { return null; }
 }
 
-// Build the injected <style> block (':root' token overrides + body background/scrim).
-export function buildThemeStyle(theme) {
+// Build the injected <style> block (':root' token overrides + body background image/scrim + fonts).
+export function buildThemeStyle(theme, { slug = '' } = {}) {
     if (!theme) return '';
     let root = '';
     for (const [k, v] of Object.entries(theme.tokens || {})) {
@@ -159,9 +159,10 @@ export function buildThemeStyle(theme) {
     // so there's no separate background-colour here — only an optional background IMAGE + scrim.
     const bg = theme.background || {};
     const parts = [];
-    const img     = bg.imageUrl ? safeCss(bg.imageUrl) : null;
+    // Uploaded image (filestore, served via /:slug/admin/themebg) takes precedence over an external URL.
+    const img     = bg.image ? `/${slug}/admin/themebg` : (bg.imageUrl ? safeCss(bg.imageUrl) : null);
     const overlay = safeCss(bg.overlay);
-    if (img && /^https?:\/\//i.test(img)) {
+    if (img) {
         const layers = overlay ? `linear-gradient(${overlay},${overlay}),url('${img}')` : `url('${img}')`;
         parts.push(`background-image:${layers}`);
         parts.push(`background-size:${safeCss(bg.size) || 'cover'}`);
@@ -194,9 +195,10 @@ export function buildThemedShell(program, theme, { useLoginShell = false, buildH
     // 'light' | 'dark' (default dark) — exposed on <body data-theme> so client widgets (e.g. the
     // TinyMCE editor skin) can match the theme. Legacy programs have no data-theme → 'dark'.
     const mode = (theme && theme.mode === 'light') ? 'light' : 'dark';
-    const logo  = theme && safeCss(theme.logoUrl);
-    const header = (logo && /^https?:\/\//i.test(logo))
-        ? `<header class="themed-header"><img src="${logo}" alt="${title}" class="themed-logo"></header>`
+    // Uploaded logo (filestore, served via /:slug/admin/themelogo) → header band; else program name.
+    const logoSrc = (theme && theme.logo) ? `/${program.slug}/admin/themelogo` : null;
+    const header = logoSrc
+        ? `<header class="themed-header"><img src="${logoSrc}" alt="${title}" class="themed-logo"></header>`
         : `<header class="themed-header"><span class="themed-title">${title}</span></header>`;
     return `<!doctype html>
 <html lang="en">
@@ -206,7 +208,7 @@ export function buildThemedShell(program, theme, { useLoginShell = false, buildH
 <title>${title}</title>
 <link rel="stylesheet" href="/css/main.css?v=${buildHash}">
 ${fontLink(theme)}
-${buildThemeStyle(theme)}
+${buildThemeStyle(theme, { slug: program.slug })}
 </head>
 <body class="themed${useLoginShell ? ' themed-login' : ''}" data-theme="${mode}">
 ${header}

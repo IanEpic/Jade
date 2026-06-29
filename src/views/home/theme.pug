@@ -113,6 +113,24 @@ style.
                         span#docheader-status
                     .media-note #[b Drag &amp; drop] an image here, or click to browse — PNG or JPG.
                 .field-hint Wide logo/banner shown in the header band of the generated Category Documents (PNG/JPG).
+        if themed
+            .asset-row
+                .asset-label Portal logo
+                .asset-ctl
+                    .media-box#logo-box
+                        .media-preview
+                            if theme.logo
+                                img(src='/admin/themelogo')
+                                span.fname= theme.logo
+                            else
+                                span.fnone Using program name (text)
+                        .media-actions
+                            input(type='file' id='logo-input' accept='.svg,.png,.jpg,.jpeg,.webp' style='display:none')
+                            button.btn(type='button' id='logo-btn') Upload Logo
+                            if theme.logo
+                                button.btn-secondary(type='button' id='logo-delete-btn') Delete
+                            span#logo-status
+                        .media-note #[b Drag &amp; drop] a logo here, or click to browse — shown in the portal header band.
 
     //- ── Look & feel ──────────────────────────────────────────────────────────
     if !themed
@@ -122,7 +140,13 @@ style.
                 p This program uses the #[b classic template] (year-named HTML shells). The colour /
                     |  background / font editor applies to #[b token-driven] programs, which is the model
                     |  for new programs (2027 onward).
-                p(style='margin-bottom:0') Its #[b favicon] and #[b document header image] above still apply.
+                p Its #[b favicon] and #[b document header image] above still apply.
+                if content.canEnable
+                    p(style='margin-bottom:0')
+                        button.btn(type='button' id='tp-enable') Enable custom theme
+                        span#tp-enable-status(style='margin-left:10px;font-size:13px')
+                else
+                    p(style='margin-bottom:0;color:var(--text-faint)') This program has entries, so it can’t be switched to a custom theme.
     else
         .tp-toolbar
             .tp-presets
@@ -163,6 +187,25 @@ style.
                         select.tp-text(data-font='heading')
                             each f in fonts
                                 option(value=f.stack data-google=f.google selected=(font.heading===f.stack))= f.name
+                fieldset
+                    legend Background image
+                    .media-box#themebg-box
+                        .media-preview
+                            if bg.image
+                                img(src='/admin/themebg')
+                                span.fname= bg.image
+                            else
+                                span.fnone Solid colour (Page background)
+                        .media-actions
+                            input(type='file' id='themebg-input' accept='.png,.jpg,.jpeg,.webp' style='display:none')
+                            button.btn(type='button' id='themebg-btn') Upload Image
+                            if bg.image
+                                button.btn-secondary(type='button' id='themebg-delete-btn') Delete
+                            span#themebg-status
+                        .media-note #[b Drag &amp; drop] a background image, or click to browse — JPG/PNG/WEBP.
+                    .tp-sub-row(style='margin-top:10px')
+                        label Scrim / overlay
+                        input.tp-text(type='text' data-bg='overlay' value=(bg.overlay || '') placeholder='rgba(0,0,0,.45) — darkens a busy image for legibility')
             .tp-preview-wrap
                 fieldset(style='margin:0')
                     legend Live Preview
