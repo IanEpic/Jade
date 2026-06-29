@@ -54,6 +54,7 @@
   --surface-sunken        #151515
   --surface-raised        #2a2a2a
   --border-2              #3a3a3a
+  --header-text           #fff
   --border-mid            #666
   --border-dashed         #444
   --border-row            #383838
@@ -550,6 +551,7 @@ select
 // Themed bodies don't inherit the eventawards background image; their theme sets its own (or none).
 body.themed
   background-image none
+  padding-bottom 0
 
 .themed-header
   background var(--header-bg)
@@ -558,7 +560,14 @@ body.themed
   display flex
   align-items center
   justify-content center
+  gap 16px
   border-bottom 1px solid var(--border-faint)
+
+.themed-brand
+  height 100%
+  display flex
+  align-items center
+  min-width 0
 
 .themed-logo
   height 100%
@@ -566,7 +575,40 @@ body.themed
   max-width 100%
   object-fit contain
 
+.themed-nav
+  display flex
+  flex-wrap wrap
+  align-items center
+  gap 2px
+
+  a
+    color var(--header-text)
+    padding 6px 12px
+    font-size 15px
+    text-decoration none
+    border-radius 4px
+    white-space nowrap
+
+    &:hover
+      color var(--color-accent-nav)
+
+// Themed programs render the top button menu in the header, so hide the content copy.
+body.themed #top-menu-bar
+  display none
+
+.themed-footer
+  background var(--footer-bg)
+  color var(--color-muted)
+  text-align center
+  padding 16px 22px
+  font-size 13px
+  border-top 1px solid var(--border-faint)
+  margin-top 40px
+
+  a
+    color var(--color-link)
+
 .themed-title
-  color var(--color-text)
+  color var(--header-text)
   font-size 22px
   font-weight 600

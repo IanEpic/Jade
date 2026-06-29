@@ -22,7 +22,7 @@ export const DEFAULT_TOKENS = {
     'border': '#555555', 'border-mid': '#666666', 'border-2': '#3a3a3a', 'border-subtle': '#333333',
     'border-faint': '#2a2a2a', 'border-dashed': '#444444', 'border-row': '#383838', 'border-strong': '#ffffff',
     'surface': '#1a1a1a', 'surface-1': '#1e1e1e', 'surface-2': '#222222', 'surface-deep': '#111111',
-    'surface-sunken': '#151515', 'surface-raised': '#2a2a2a', 'header-bg': '#000000', 'footer-bg': '#000000',
+    'surface-sunken': '#151515', 'surface-raised': '#2a2a2a', 'header-bg': '#000000', 'header-text': '#ffffff', 'footer-bg': '#000000',
     'text-strong': '#dddddd', 'text-label': '#bbbbbb', 'text-dim': '#888888', 'text-faint': '#777777',
     'text-fainter': '#999999', 'text-arrow': '#aaaaaa',
     'input-bg': '#000000', 'input-border': '#ffffff',
@@ -89,7 +89,7 @@ export const FONTS = [
 export const TOKEN_GROUPS = [
     { name: 'Brand',            keys: ['color-accent', 'color-accent-strong', 'color-accent-nav', 'color-link', 'on-accent'] },
     { name: 'Base',             keys: ['color-bg', 'color-text', 'color-muted'] },
-    { name: 'Surfaces',         keys: ['surface', 'surface-1', 'surface-2', 'surface-deep', 'surface-sunken', 'surface-raised', 'header-bg', 'footer-bg'] },
+    { name: 'Surfaces',         keys: ['surface', 'surface-1', 'surface-2', 'surface-deep', 'surface-sunken', 'surface-raised', 'header-bg', 'header-text', 'footer-bg'] },
     { name: 'Borders',          keys: ['border', 'border-mid', 'border-2', 'border-subtle', 'border-faint', 'border-dashed', 'border-row', 'border-strong'] },
     { name: 'Text scale',       keys: ['text-strong', 'text-label', 'text-dim', 'text-faint', 'text-fainter', 'text-arrow'] },
     { name: 'Inputs & buttons', keys: ['input-bg', 'input-border', 'btn-bg', 'btn-text', 'btn-active-text', 'btn-secondary-text', 'btn-secondary-border'] },
@@ -126,6 +126,9 @@ export function sanitizeThemeInput(raw) {
     }
     if (['left', 'center', 'right'].includes(t.logoAlign)) out.logoAlign = t.logoAlign;
     if (['fill', 'large', 'medium', 'small'].includes(t.logoSize)) out.logoSize = t.logoSize;
+    const hh = parseInt(t.headerHeight, 10);
+    if (hh) out.headerHeight = Math.min(160, Math.max(44, hh));
+    if (typeof t.footer === 'string' && t.footer.trim()) out.footer = t.footer.slice(0, 4000);
     if (t.font && typeof t.font === 'object') {
         const f = {};
         if (safeCss(t.font.body)) f.body = String(t.font.body).slice(0, 60);
@@ -190,6 +193,16 @@ export function buildThemeStyle(theme, { slug = '' } = {}) {
     return `<style>${root ? `:root{${root}}` : ''}${body}${headings}</style>`;
 }
 
+// Footer HTML — admin-authored, but strip anything executable before injecting into the shell.
+function safeFooter(html) {
+    if (!html || typeof html !== 'string') return '';
+    return html
+        .replace(/<\s*script[\s\S]*?<\s*\/\s*script\s*>/gi, '')
+        .replace(/\son\w+\s*=\s*("[^"]*"|'[^']*'|[^\s>]+)/gi, '')
+        .replace(/javascript:/gi, '')
+        .slice(0, 4000);
+}
+
 // Optional Google Fonts <link> for the theme's fonts.
 function fontLink(theme) {
     const url = theme && theme.font && safeCss(theme.font.googleUrl);
@@ -199,7 +212,7 @@ function fontLink(theme) {
 
 // The shared shell for themed programs. Mirrors the legacy shell contract: contains `</head>` and
 // `<CGIINSERT>` so app.js's existing favicon/content/rewriter/nonce injection works unchanged.
-export function buildThemedShell(program, theme, { useLoginShell = false, buildHash = '' } = {}) {
+export function buildThemedShell(program, theme, { useLoginShell = false, buildHash = '', menuButtons = [] } = {}) {
     const title = (program.name || 'JADE Awards').replace(/[<>]/g, '');
     // 'light' | 'dark' (default dark) — exposed on <body data-theme> so client widgets (e.g. the
     // TinyMCE editor skin) can match the theme. Legacy programs have no data-theme → 'dark'.
@@ -209,9 +222,24 @@ export function buildThemedShell(program, theme, { useLoginShell = false, buildH
     const align = theme && theme.logoAlign === 'left' ? 'flex-start'
                 : theme && theme.logoAlign === 'right' ? 'flex-end' : 'center';
     const logoH = ({ fill: '100%', large: '52px', medium: '40px', small: '28px' })[theme && theme.logoSize] || '100%';
-    const header = logoSrc
-        ? `<header class="themed-header" style="justify-content:${align}"><img src="${logoSrc}" alt="${title}" class="themed-logo" style="height:${logoH}"></header>`
-        : `<header class="themed-header" style="justify-content:${align}"><span class="themed-title">${title}</span></header>`;
+    const headerH = Math.min(160, Math.max(44, parseInt(theme && theme.headerHeight, 10) || 72));
+
+    const brand = logoSrc
+        ? `<img src="${logoSrc}" alt="${title}" class="themed-logo" style="height:${logoH}">`
+        : `<span class="themed-title">${title}</span>`;
+    // Top button menu (from the page locals) rendered into the header for themed programs; the
+    // content copy (#top-menu-bar) is hidden via CSS so it isn't duplicated.
+    const nav = (menuButtons && menuButtons.length)
+        ? `<nav class="themed-nav">${menuButtons.map(b =>
+              `<a href="${String(b.url || '#').replace(/"/g, '&quot;')}"${b.newwindow ? ' target="_blank"' : ''}>${b.text || '&nbsp;'}</a>`).join('')}</nav>`
+        : '';
+    const headerStyle = `height:${headerH}px;justify-content:${nav ? 'space-between' : align}`;
+    const header = `<header class="themed-header" style="${headerStyle}"><div class="themed-brand">${brand}</div>${nav}</header>`;
+
+    // Footer (editable HTML, sanitised) — falls back to a simple copyright line.
+    const footerHtml = safeFooter(theme && theme.footer) || `&copy; ${new Date().getFullYear()} ${title}`;
+    const footer = `<footer class="themed-footer">${footerHtml}</footer>`;
+
     return `<!doctype html>
 <html lang="en">
 <head>
@@ -227,6 +255,7 @@ ${header}
 <div id="cgiContent">
 <CGIINSERT>
 </div>
+${footer}
 </body>
 </html>`;
 }

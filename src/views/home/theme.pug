@@ -223,6 +223,15 @@ style.
                         select.tp-text(data-font='heading')
                             each f in fonts
                                 option(value=f.stack data-google=f.google selected=(font.heading===f.stack))= f.name
+                fieldset
+                    legend Header &amp; Footer
+                    .tp-sub-row
+                        label Header height (px)
+                        input.tp-text(type='number' min='44' max='160' data-headerh value=(theme.headerHeight || 72) style='width:80px;flex:none')
+                    .tp-sub-row(style='align-items:flex-start')
+                        label(style='padding-top:6px') Footer
+                        textarea.tp-text(data-footer rows='3' placeholder='Footer text — simple HTML allowed (links, ©). Leave blank for a default copyright line.')= theme.footer || ''
+                    p.field-hint(style='margin-top:4px') The top button menu appears in the header for themed programs. Header height &amp; footer apply after #[b Save Theme] + reload.
             .tp-preview-wrap
                 fieldset(style='margin:0')
                     legend Live Preview
@@ -245,6 +254,6 @@ style.
             span#tp-save-status(style='font-size:13px')
             button.btn#tp-save(type='button') Save Theme
 
-        script(type='application/json' id='tp-data')!= JSON.stringify({ core: core, overrides: theme.overrides || {}, background: bg, font: font, logoAlign: theme.logoAlign || 'center', logoSize: theme.logoSize || 'fill', defaults: defaults, darkCore: darkCore, lightCore: lightCore })
+        script(type='application/json' id='tp-data')!= JSON.stringify({ core: core, overrides: theme.overrides || {}, background: bg, font: font, logoAlign: theme.logoAlign || 'center', logoSize: theme.logoSize || 'fill', headerHeight: theme.headerHeight || 72, footer: theme.footer || '', defaults: defaults, darkCore: darkCore, lightCore: lightCore })
 
 script(src='/js/home-theme.js?v=' + buildHash)

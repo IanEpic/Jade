@@ -240,6 +240,7 @@ app.use((req, res, next) => {
         shell = buildThemedShell(program, theme, {
           useLoginShell: options.useLoginShell,
           buildHash: res.locals.buildHash,
+          menuButtons: locals.menuButtons || [],
         });
       } else {
         const shellFile = options.useLoginShell ? program.loginhtml : program.standardhtml;
