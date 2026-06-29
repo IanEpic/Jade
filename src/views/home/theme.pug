@@ -47,6 +47,8 @@ style.
     .tp-toolbar { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
     .tp-toolbar .tp-presets { display: flex; align-items: center; gap: 10px; margin-right: auto; }
     .tp-toolbar button { margin: 0; min-width: 64px; }
+    .tp-save-bar { display: flex; align-items: center; justify-content: flex-end; gap: 12px; margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--border-faint); }
+    .tp-save-bar button { margin: 0; }
     .tp-cols { display: flex; gap: 18px; align-items: flex-start; }
     .tp-controls { flex: 1; min-width: 0; }
     .tp-core { display: flex; flex-direction: column; gap: 2px; }
@@ -185,11 +187,9 @@ style.
     else
         .tp-toolbar
             .tp-presets
-                span(style='font-size:13px;color:var(--text-label)') Preset:
+                span(style='font-size:13px;color:var(--text-label)') Start from a preset:
                 button.btn-secondary(type='button' data-preset='dark') Dark
                 button.btn-secondary(type='button' data-preset='light') Light
-            button.btn#tp-save(type='button') Save Theme
-            span#tp-save-status(style='font-size:13px')
         .tp-cols
             .tp-controls
                 fieldset
@@ -239,6 +239,10 @@ style.
                         div(style='background:var(--ok-bg);color:var(--ok-text);padding:5px 10px;border-left:4px solid var(--ok-border);font-size:12px;margin-bottom:6px') Success message
                         div(style='background:var(--err-bg);color:var(--err-text);padding:5px 10px;border-left:4px solid var(--err-border);font-size:12px;margin-bottom:6px') Error message
                         div(style='background:var(--info-bg);color:var(--info-text);padding:5px 10px;border-left:4px solid var(--info-border);font-size:12px') Info message
+
+        .tp-save-bar
+            span#tp-save-status(style='font-size:13px')
+            button.btn#tp-save(type='button') Save Theme
 
         script(type='application/json' id='tp-data')!= JSON.stringify({ core: core, overrides: theme.overrides || {}, background: bg, font: font, logoAlign: theme.logoAlign || 'center', logoSize: theme.logoSize || 'fill', defaults: defaults, darkCore: darkCore, lightCore: lightCore })
 
