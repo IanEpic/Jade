@@ -44,14 +44,15 @@ style.
     .tp-legacy { background: var(--surface-sunken); border: 1px solid var(--border); border-radius: 6px; padding: 16px 18px; font-size: 13px; color: var(--text-label); line-height: 1.6; }
     .tp-legacy b { color: var(--text-strong); }
     //- Editor
-    .tp-toolbar { display: flex; align-items: center; gap: 8px; margin-bottom: 14px; }
+    .tp-toolbar { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }
+    .tp-toolbar button[data-preset] { min-width: 64px; }
     .tp-cols { display: flex; gap: 18px; align-items: flex-start; }
     .tp-controls { flex: 1; min-width: 0; }
     .tp-core { display: flex; flex-direction: column; gap: 2px; }
     .tp-row { display: flex; align-items: center; gap: 12px; padding: 6px 0; }
     .tp-row label { flex: 1; font-size: 13px; color: var(--text-label); }
     .tp-row .tp-key { font-family: monospace; font-size: 11px; color: var(--text-faint); }
-    .tp-swatch { width: 46px; height: 28px; padding: 0; border: 1px solid var(--border); border-radius: 4px; background: none; cursor: pointer; flex-shrink: 0; }
+    .tp-swatch { width: 46px; height: 28px; padding: 0; border: 1px solid var(--border); border-radius: 4px; cursor: pointer; flex-shrink: 0; }
     .tp-text { background: var(--input-bg); color: var(--color-text); border: 1px solid var(--border); border-radius: 3px; padding: 5px 8px; font-size: 12px; width: 100%; box-sizing: border-box; }
     details.tp-adv { margin-top: 12px; }
     details.tp-adv > summary { cursor: pointer; font-size: 12px; color: var(--text-dim); user-select: none; }
@@ -169,7 +170,7 @@ style.
                 #tp-preview(style=previewStyle)
                     h2(style='color:var(--color-accent-strong);margin:0 0 8px;font-size:18px') Heading
                     p(style='color:var(--color-muted);margin:0 0 10px;font-size:13px') Body text in the muted colour, with a #[a(href='#' style='color:var(--color-link)') link] inside it.
-                    div(style='display:flex;gap:8px;margin-bottom:12px;align-items:center')
+                    div(style='display:flex;gap:8px;margin-bottom:12px;align-items:center;flex-wrap:wrap')
                         button.btn(type='button' onclick='return false') Primary
                         button.btn-secondary(type='button' onclick='return false') Secondary
                         span(style='background:var(--color-accent-strong);color:var(--on-accent);font-size:11px;padding:1px 6px;border-radius:2px') Badge
