@@ -13,6 +13,74 @@
 //   }
 // Token keys map to the --<key> CSS custom properties defined in styles/main.styl.
 
+// Dark defaults — mirror the :root values in styles/main.styl. A theme overrides a subset; the
+// editor pre-fills unset tokens from here. Keep in sync with main.styl.
+export const DEFAULT_TOKENS = {
+    'color-bg': '#000000', 'color-text': '#ffffff', 'color-muted': '#cccccc',
+    'color-accent': '#cf9702', 'color-accent-strong': '#c48f06', 'color-accent-nav': '#ffba01',
+    'color-link': '#baab85', 'on-accent': '#000000',
+    'border': '#555555', 'border-mid': '#666666', 'border-2': '#3a3a3a', 'border-subtle': '#333333',
+    'border-faint': '#2a2a2a', 'border-dashed': '#444444', 'border-row': '#383838', 'border-strong': '#ffffff',
+    'surface': '#1a1a1a', 'surface-1': '#1e1e1e', 'surface-2': '#222222', 'surface-deep': '#111111',
+    'surface-sunken': '#151515', 'surface-raised': '#2a2a2a', 'header-bg': '#000000', 'footer-bg': '#000000',
+    'text-strong': '#dddddd', 'text-label': '#bbbbbb', 'text-dim': '#888888', 'text-faint': '#777777',
+    'text-fainter': '#999999', 'text-arrow': '#aaaaaa',
+    'input-bg': '#000000', 'input-border': '#ffffff',
+    'btn-bg': '#ffffff', 'btn-text': '#000000', 'btn-active-text': '#ffffff',
+    'btn-secondary-text': '#bbbbbb', 'btn-secondary-border': '#888888', 'color-danger': '#cc4444',
+};
+
+// A sensible neutral LIGHT preset (admins tweak from here / via AI-from-website later).
+export const LIGHT_PRESET = {
+    'color-bg': '#f4f6f8', 'color-text': '#1b2733', 'color-muted': '#475663',
+    'color-accent': '#0a66c2', 'color-accent-strong': '#084f96', 'color-accent-nav': '#0a66c2',
+    'color-link': '#0a66c2', 'on-accent': '#ffffff',
+    'border': '#cdd7e0', 'border-mid': '#b8c4cf', 'border-2': '#dbe3ea', 'border-subtle': '#e2e8ee',
+    'border-faint': '#eef2f6', 'border-dashed': '#c2cdd8', 'border-row': '#e2e8ee', 'border-strong': '#9fb0bf',
+    'surface': '#ffffff', 'surface-1': '#f7f9fb', 'surface-2': '#f0f3f6', 'surface-deep': '#e8edf2',
+    'surface-sunken': '#eef2f6', 'surface-raised': '#e2e8ee', 'header-bg': '#0a66c2', 'footer-bg': '#0a66c2',
+    'text-strong': '#1b2733', 'text-label': '#5b6b7b', 'text-dim': '#6b7a89', 'text-faint': '#8a96a3',
+    'text-fainter': '#6b7a89', 'text-arrow': '#7c8a98',
+    'input-bg': '#ffffff', 'input-border': '#cdd7e0',
+    'btn-bg': '#0a66c2', 'btn-text': '#ffffff', 'btn-active-text': '#ffffff',
+    'btn-secondary-text': '#1b2733', 'btn-secondary-border': '#9fb0bf', 'color-danger': '#cc4444',
+};
+
+// Editor layout — labelled groups of token keys.
+export const TOKEN_GROUPS = [
+    { name: 'Brand',            keys: ['color-accent', 'color-accent-strong', 'color-accent-nav', 'color-link', 'on-accent'] },
+    { name: 'Base',             keys: ['color-bg', 'color-text', 'color-muted'] },
+    { name: 'Surfaces',         keys: ['surface', 'surface-1', 'surface-2', 'surface-deep', 'surface-sunken', 'surface-raised', 'header-bg', 'footer-bg'] },
+    { name: 'Borders',          keys: ['border', 'border-mid', 'border-2', 'border-subtle', 'border-faint', 'border-dashed', 'border-row', 'border-strong'] },
+    { name: 'Text scale',       keys: ['text-strong', 'text-label', 'text-dim', 'text-faint', 'text-fainter', 'text-arrow'] },
+    { name: 'Inputs & buttons', keys: ['input-bg', 'input-border', 'btn-bg', 'btn-text', 'btn-active-text', 'btn-secondary-text', 'btn-secondary-border'] },
+    { name: 'Status',           keys: ['color-danger'] },
+];
+
+// Validate + normalise a theme object posted from the editor (returns a clean object or throws).
+export function sanitizeThemeInput(raw) {
+    const t = (raw && typeof raw === 'object') ? raw : {};
+    const out = { mode: t.mode === 'light' ? 'light' : 'dark', tokens: {} };
+    const tokens = (t.tokens && typeof t.tokens === 'object') ? t.tokens : {};
+    for (const [k, v] of Object.entries(tokens)) {
+        if (/^[a-z0-9-]+$/i.test(k) && /^#[0-9a-fA-F]{3,8}$/.test(String(v))) out.tokens[k] = v;
+    }
+    if (t.background && typeof t.background === 'object') {
+        const bg = {};
+        if (/^#[0-9a-fA-F]{3,8}$/.test(String(t.background.color || ''))) bg.color = t.background.color;
+        if (/^#[0-9a-fA-F]{3,8}$|^rgba?\(/.test(String(t.background.overlay || ''))) bg.overlay = t.background.overlay;
+        if (Object.keys(bg).length) out.background = bg;
+    }
+    if (t.font && typeof t.font === 'object') {
+        const f = {};
+        if (safeCss(t.font.body)) f.body = String(t.font.body).slice(0, 60);
+        if (safeCss(t.font.heading)) f.heading = String(t.font.heading).slice(0, 60);
+        if (t.font.googleUrl && /^https:\/\/fonts\.(googleapis|gstatic)\.com\//i.test(t.font.googleUrl)) f.googleUrl = t.font.googleUrl;
+        if (Object.keys(f).length) out.font = f;
+    }
+    return out;
+}
+
 // Conservative CSS-value sanitiser: blocks anything that could break out of the <style>/property
 // (`< > ; { } @` and url(javascript:)). Allows colours, rgb()/rgba(), url('…'), %, fonts, etc.
 function safeCss(v) {

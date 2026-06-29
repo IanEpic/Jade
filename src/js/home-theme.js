@@ -58,3 +58,68 @@ wireDrop('favicon-box', 'favicon-input', 'favicon-status', '/admin/upload-favico
 mediaDelete('docheader-delete-btn', '/admin/delete-docheader', 'Remove the document header image and use the program name as text?');
 mediaUpload('docheader-btn', 'docheader-input', 'docheader-status', '/admin/upload-docheader', 'docheader');
 wireDrop('docheader-box', 'docheader-input', 'docheader-status', '/admin/upload-docheader', 'docheader', /\.(png|jpe?g)$/i);
+
+// ── Theme token editor (themed programs) ────────────────────────────────────────
+(function () {
+    var dataEl = document.getElementById('tp-data');
+    var preview = document.getElementById('tp-preview');
+    if (!dataEl || !preview) return;
+    var data = JSON.parse(dataEl.textContent);
+    var state = { tokens: Object.assign({}, data.tokens), mode: data.mode, background: Object.assign({}, data.background), font: Object.assign({}, data.font) };
+
+    function applyPreview() {
+        var css = Object.keys(state.tokens).map(function (k) { return '--' + k + ':' + state.tokens[k]; }).join(';');
+        preview.setAttribute('style', css + (state.background.color ? ';background:' + state.background.color : ''));
+    }
+
+    // Colour token swatches
+    Array.prototype.forEach.call(document.querySelectorAll('input[data-token]'), function (inp) {
+        inp.addEventListener('input', function () { state.tokens[inp.getAttribute('data-token')] = inp.value; applyPreview(); });
+    });
+    // Background colour + scrim
+    Array.prototype.forEach.call(document.querySelectorAll('input[data-bg]'), function (inp) {
+        inp.addEventListener('input', function () { state.background[inp.getAttribute('data-bg')] = inp.value; applyPreview(); });
+    });
+    // Fonts
+    Array.prototype.forEach.call(document.querySelectorAll('input[data-font]'), function (inp) {
+        inp.addEventListener('input', function () { state.font[inp.getAttribute('data-font')] = inp.value; });
+    });
+    // Mode
+    var modeSel = document.getElementById('tp-mode');
+    if (modeSel) modeSel.addEventListener('change', function () { state.mode = modeSel.value; });
+
+    // Presets — fill every swatch + state from the preset map, then refresh preview.
+    Array.prototype.forEach.call(document.querySelectorAll('button[data-preset]'), function (btn) {
+        btn.addEventListener('click', function () {
+            var preset = data[btn.getAttribute('data-preset')] || {};
+            Object.keys(preset).forEach(function (k) {
+                state.tokens[k] = preset[k];
+                var sw = document.querySelector('input[data-token="' + k + '"]');
+                if (sw) sw.value = preset[k];
+            });
+            state.mode = btn.getAttribute('data-preset') === 'light' ? 'light' : 'dark';
+            if (modeSel) modeSel.value = state.mode;
+            applyPreview();
+        });
+    });
+
+    // Save
+    var saveBtn = document.getElementById('tp-save');
+    var saveStatus = document.getElementById('tp-save-status');
+    if (saveBtn) saveBtn.addEventListener('click', function () {
+        saveBtn.disabled = true;
+        if (saveStatus) { saveStatus.style.color = ''; saveStatus.textContent = 'Saving…'; }
+        var payload = { mode: state.mode, tokens: state.tokens, background: state.background, font: state.font };
+        var body = 'theme=' + encodeURIComponent(JSON.stringify(payload));
+        fetch(window.JADE_BASE + '/admin/theme', { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: body })
+            .then(function (r) { return r.json(); })
+            .then(function (r) {
+                saveBtn.disabled = false;
+                if (r.status === 'OK') { if (saveStatus) { saveStatus.style.color = '#4caf50'; saveStatus.textContent = '✓ Saved — reload to see it applied'; } }
+                else if (saveStatus) { saveStatus.style.color = '#c44'; saveStatus.textContent = '✗ ' + r.status; }
+            })
+            .catch(function () { saveBtn.disabled = false; if (saveStatus) { saveStatus.style.color = '#c44'; saveStatus.textContent = '✗ Network error'; } });
+    });
+
+    applyPreview();
+}());

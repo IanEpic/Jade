@@ -11,6 +11,7 @@ import { getPool, sql } from '../config/database.js';
 import multer   from 'multer';
 import path     from 'path';
 import { programDir, docHeaderPath } from '../services/cqDocs.js';
+import { sanitizeThemeInput } from '../services/theme.js';
 import fs       from 'fs/promises';
 import fsSync   from 'fs';
 
@@ -187,6 +188,23 @@ router.post('/upload-favicon', faviconUpload.single('favicon'), async (req, res,
         await program.update({ faviconfile: req.file.filename });
         bustProgramCache(program.slug, program.fqdn);
         res.json({ status: 'OK', filename: req.file.filename });
+    } catch (err) { next(err); }
+});
+
+// ── POST /admin/theme ─────────────────────────────────────────────────────────
+// Save the look-and-feel design tokens (JSON) from the Theme editor. Refuses to theme a legacy
+// program that doesn't already have a theme would be a no-op concern — we only ever save for a
+// program the admin is actively theming; guard keeps 1056 (no theme) from accidentally becoming
+// token-driven unless explicitly enabled.
+router.post('/theme', async (req, res, next) => {
+    try {
+        const program = await Program.findByPk(req.user.programid);
+        let payload;
+        try { payload = JSON.parse(req.body.theme || '{}'); } catch { return res.json({ status: 'E_BADJSON' }); }
+        const clean = sanitizeThemeInput(payload);
+        await program.update({ theme: JSON.stringify(clean) });
+        bustProgramCache(program.slug, program.fqdn);
+        res.json({ status: 'OK' });
     } catch (err) { next(err); }
 });
 

@@ -195,9 +195,9 @@ export async function handleAdminAction(action, req, res, program, user) {
         // Admin → Theme (Look & Feel): brand assets (favicon, doc header, logo) for all programs;
         // colour/background/font tokens for themed programs (1057+). Legacy programs (≤1056) show
         // the brand assets + a "classic template" note.
-        const { parseTheme } = await import('../../services/theme.js');
+        const { parseTheme, DEFAULT_TOKENS, LIGHT_PRESET, TOKEN_GROUPS } = await import('../../services/theme.js');
         const theme = parseTheme(program);
-        return { view: 'home/theme', theme, themed: !!theme };
+        return { view: 'home/theme', theme, themed: !!theme, DEFAULT_TOKENS, LIGHT_PRESET, TOKEN_GROUPS };
     }
 
     if (action === 'cqdocs') {
