@@ -223,15 +223,6 @@ style.
                         select.tp-text(data-font='heading')
                             each f in fonts
                                 option(value=f.stack data-google=f.google selected=(font.heading===f.stack))= f.name
-                fieldset
-                    legend Header &amp; Footer
-                    .tp-sub-row
-                        label Header height (px)
-                        input.tp-text(type='number' min='44' max='160' data-headerh value=(theme.headerHeight || 72) style='width:80px;flex:none')
-                    .tp-sub-row(style='align-items:flex-start')
-                        label(style='padding-top:6px') Footer
-                        textarea.tp-text(data-footer rows='3' placeholder='Footer text — simple HTML allowed (links, ©). Leave blank for a default copyright line.')= theme.footer || ''
-                    p.field-hint(style='margin-top:4px') The top button menu appears in the header for themed programs. Header height &amp; footer apply after #[b Save Theme] + reload.
             .tp-preview-wrap
                 fieldset(style='margin:0')
                     legend Live Preview
@@ -249,6 +240,16 @@ style.
                         div(style='background:var(--ok-bg);color:var(--ok-text);padding:5px 10px;border-left:4px solid var(--ok-border);font-size:12px;margin-bottom:6px') Success message
                         div(style='background:var(--err-bg);color:var(--err-text);padding:5px 10px;border-left:4px solid var(--err-border);font-size:12px;margin-bottom:6px') Error message
                         div(style='background:var(--info-bg);color:var(--info-text);padding:5px 10px;border-left:4px solid var(--info-border);font-size:12px') Info message
+
+        fieldset
+            legend Header &amp; Footer
+            .tp-sub-row
+                label(style='width:160px') Header height (px)
+                input.tp-text(type='number' min='44' max='160' data-headerh value=(theme.headerHeight || 72) style='width:90px;flex:none')
+            .tp-sub-row(style='align-items:flex-start')
+                label(style='width:160px;padding-top:6px') Footer
+                textarea.tp-text(data-footer rows='4' placeholder='Footer text — simple HTML allowed (links, ©). Leave blank for a default copyright line.')= theme.footer || ''
+            p.field-hint(style='margin-top:4px') The top button menu appears in the header for themed programs. Header height &amp; footer apply after #[b Save Theme] + reload.
 
         .tp-save-bar
             span#tp-save-status(style='font-size:13px')
