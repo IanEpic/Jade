@@ -123,3 +123,49 @@ if (docHeaderBtn && docHeaderInput) {
             });
     });
 }
+
+// ── Drag & drop upload for the media-box cards (favicon, doc header) ─────────────
+function wireMediaDrop(boxId, inputId, statusEl, url, field, accept) {
+    var box = document.getElementById(boxId);
+    if (!box) return;
+    var input = document.getElementById(inputId);
+
+    // Click anywhere on the card (except the buttons/links) opens the file picker.
+    box.addEventListener('click', function (e) {
+        if (e.target.closest('button, a, input')) return;
+        if (input) input.click();
+    });
+
+    ['dragenter', 'dragover'].forEach(function (ev) {
+        box.addEventListener(ev, function (e) { e.preventDefault(); e.stopPropagation(); box.classList.add('drag-over'); });
+    });
+    ['dragleave', 'dragend', 'drop'].forEach(function (ev) {
+        box.addEventListener(ev, function (e) { e.preventDefault(); e.stopPropagation(); box.classList.remove('drag-over'); });
+    });
+
+    box.addEventListener('drop', function (e) {
+        var file = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+        if (!file) return;
+        if (accept && !accept.test(file.name)) {
+            if (statusEl) { statusEl.style.color = '#c44'; statusEl.textContent = '✗ Unsupported file type'; }
+            return;
+        }
+        if (statusEl) { statusEl.style.color = ''; statusEl.textContent = 'Uploading…'; }
+        var fd = new FormData();
+        fd.append(field, file);
+        fetch(window.JADE_BASE + url, { method: 'POST', body: fd })
+            .then(function (r) { return r.json(); })
+            .then(function (r) {
+                if (r.status === 'OK') { location.reload(); }
+                else if (statusEl) { statusEl.style.color = '#c44'; statusEl.textContent = '✗ Upload failed (' + r.status + ')'; }
+            })
+            .catch(function () {
+                if (statusEl) { statusEl.style.color = '#c44'; statusEl.textContent = '✗ Network error'; }
+            });
+    });
+}
+
+wireMediaDrop('favicon-box', 'favicon-input', document.getElementById('favicon-status'),
+    '/admin/upload-favicon', 'favicon', /\.(svg|png|ico)$/i);
+wireMediaDrop('docheader-box', 'docheader-input', document.getElementById('docheader-status'),
+    '/admin/upload-docheader', 'docheader', /\.(png|jpe?g)$/i);

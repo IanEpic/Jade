@@ -27,6 +27,23 @@ else
         .admin-form .accordion-body { display: none; }
         .admin-form .tech-table td:first-child { text-align: left; white-space: nowrap; }
         .admin-form input[type=datetime-local]::-webkit-calendar-picker-indicator { filter: invert(1); cursor: pointer; }
+        //- Clean settings rows: left-aligned labels, grouped media controls, clear separators
+        .admin-form .field-rows td { padding: 16px 10px; border-bottom: 1px solid #383838; vertical-align: middle; }
+        .admin-form .field-rows tr:last-child td { border-bottom: none; }
+        .admin-form .field-rows td:first-child { text-align: left; color: #bbb; font-size: 13px; width: 168px; }
+        .admin-form .media-box { display: flex; flex-direction: column; gap: 11px; width: 100%; box-sizing: border-box; padding: 14px; background: #151515; border: 1px dashed #444; border-radius: 6px; cursor: pointer; transition: border-color .15s, background .15s; }
+        .admin-form .media-box:hover { border-color: #666; }
+        .admin-form .media-box.drag-over { border-color: #c48f06; border-style: solid; background: rgba(196,143,6,.07); }
+        .admin-form .media-note { font-size: 12px; color: #777; }
+        .admin-form .media-note b { color: #999; font-weight: 600; }
+        .admin-form .media-preview { display: flex; align-items: center; gap: 10px; }
+        .admin-form .media-preview img { width: 30px; height: 30px; object-fit: contain; border-radius: 3px; background: #2a2a2a; flex-shrink: 0; }
+        .admin-form .media-preview img.on-dark { background: #000; padding: 3px 6px; height: 30px; width: auto; }
+        .admin-form .media-preview .fname { font-size: 13px; color: #ddd; }
+        .admin-form .media-preview .fnone { font-size: 13px; color: #777; font-style: italic; }
+        .admin-form .media-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+        .admin-form .media-actions span { font-size: 13px; }
+        .admin-form .field-hint { color: #888; font-size: 12px; margin-top: 8px; max-width: 480px; }
 
     form.admin-form(method='POST' action='/admin')
 
@@ -35,37 +52,45 @@ else
         //- ── General ──────────────────────────────────────────────────────────
         fieldset
             legend General
-            table
+            table.field-rows
                 tr
                     td Program Name
                     td: input(type='text' name='name' value=program.name size='50' maxlength='300')
                 tr
                     td Favicon
                     td
-                        if program.faviconfile
-                            img(src='/admin/favicon' style='width:32px;height:32px;vertical-align:middle;margin-right:10px;')
-                            span(style='font-size:13px;color:#aaa;margin-right:12px;')= program.faviconfile
-                        else
-                            span(style='font-size:13px;color:#666;margin-right:12px;') Using JADE default
-                        input(type='file' id='favicon-input' accept='.svg,.png,.ico' style='display:none')
-                        button.btn(type='button' id='favicon-btn') Upload Icon
-                        if program.faviconfile
-                            button.btn-secondary(type='button' id='favicon-delete-btn' style='margin-left:6px;') Delete
-                        span#favicon-status(style='margin-left:10px;font-size:13px;')
+                        .media-box#favicon-box
+                            .media-preview
+                                if program.faviconfile
+                                    img(src='/admin/favicon')
+                                    span.fname= program.faviconfile
+                                else
+                                    span.fnone Using JADE default
+                            .media-actions
+                                input(type='file' id='favicon-input' accept='.svg,.png,.ico' style='display:none')
+                                button.btn(type='button' id='favicon-btn') Upload Icon
+                                if program.faviconfile
+                                    button.btn-secondary(type='button' id='favicon-delete-btn') Delete
+                                span#favicon-status
+                            .media-note #[b Drag &amp; drop] an icon here, or click to browse — SVG, PNG or ICO.
                 tr
                     td Document header image
                     td
-                        if program.docheaderimage
-                            img(src='/admin/docheader' style='height:32px;vertical-align:middle;margin-right:10px;background:#000;padding:2px 4px;border-radius:3px;')
-                            span(style='font-size:13px;color:#aaa;margin-right:12px;')= program.docheaderimage
-                        else
-                            span(style='font-size:13px;color:#666;margin-right:12px;') Using program name (text)
-                        input(type='file' id='docheader-input' accept='.png,.jpg,.jpeg' style='display:none')
-                        button.btn(type='button' id='docheader-btn') Upload Image
-                        if program.docheaderimage
-                            button.btn-secondary(type='button' id='docheader-delete-btn' style='margin-left:6px;') Delete
-                        span#docheader-status(style='margin-left:10px;font-size:13px;')
-                        div(style='font-size:12px;color:#888;margin-top:4px;') Wide logo/banner shown in the header band of the generated Category Documents (PNG/JPG).
+                        .media-box#docheader-box
+                            .media-preview
+                                if program.docheaderimage
+                                    img.on-dark(src='/admin/docheader')
+                                    span.fname= program.docheaderimage
+                                else
+                                    span.fnone Using program name (text)
+                            .media-actions
+                                input(type='file' id='docheader-input' accept='.png,.jpg,.jpeg' style='display:none')
+                                button.btn(type='button' id='docheader-btn') Upload Image
+                                if program.docheaderimage
+                                    button.btn-secondary(type='button' id='docheader-delete-btn') Delete
+                                span#docheader-status
+                            .media-note #[b Drag &amp; drop] an image here, or click to browse — PNG or JPG.
+                        .field-hint Wide logo/banner shown in the header band of the generated Category Documents (PNG/JPG).
 
         //- ── Portal Flags ─────────────────────────────────────────────────────
         fieldset

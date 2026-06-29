@@ -6,90 +6,91 @@
 -
     var slug = program.slug
     var manifest = content.manifest
-    var when = manifest ? new Date(manifest.generatedAt).toLocaleString('en-AU', { day:'numeric', month:'long', year:'numeric', hour:'2-digit', minute:'2-digit' }) : null
+    var files = (manifest && manifest.files) ? manifest.files : []
+    var when = manifest ? new Date(manifest.generatedAt).toLocaleString('en-AU', { day:'numeric', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' }) : null
+    var job = content.job
+    var inflight = job && (job.status === 'pending' || job.status === 'running')
 
 style.
-    .cq-wrap { max-width: 760px; margin: 0 auto; }
-    .cq-wrap h2 { color: #c48f06; margin-bottom: 6px; text-align: center; }
-    .cq-intro { color: #aaa; font-size: 13px; margin: 0 auto 18px; line-height: 1.5; text-align: center; }
-    .cq-actions { display: flex; gap: 10px; justify-content: center; align-items: center; flex-wrap: wrap; margin-bottom: 6px; }
-    .cq-status { text-align: center; font-size: 13px; color: #bcd; min-height: 20px; margin-bottom: 14px; }
-    .cq-spinner { width: 16px; height: 16px; border: 2px solid #3a6e8a; border-top-color: transparent; border-radius: 50%; display: inline-block; vertical-align: -3px; margin-right: 7px; animation: cq-spin .8s linear infinite; }
+    .cq-wrap { max-width: 720px; margin: 0 auto; }
+    .cq-wrap h2 { color: #c48f06; margin: 0 0 4px; text-align: center; }
+    .cq-sub { color: #888; font-size: 13px; line-height: 1.5; text-align: center; margin: 0 auto 22px; max-width: 600px; }
+    .cq-card { border: 1px solid #3a3a3a; border-radius: 8px; background: #1a1a1a; margin-bottom: 16px; }
+    .cq-card-pad { padding: 16px 20px; }
+    .cq-bar { display: flex; align-items: center; gap: 16px; }
+    .cq-bar-text { flex: 1; font-size: 13px; color: #bbb; line-height: 1.5; }
+    .cq-bar-text .cq-last { color: #777; font-size: 12px; }
+    .cq-bar-text .cq-last b { color: #aaa; font-weight: 600; }
+    .cq-btn-col { flex-shrink: 0; text-align: right; }
+    .cq-status { font-size: 13px; color: #bcd; min-height: 0; margin-top: 0; transition: margin .2s; }
+    .cq-status:not(:empty) { margin-top: 12px; padding-top: 12px; border-top: 1px solid #2a2a2a; }
+    .cq-spinner { width: 15px; height: 15px; border: 2px solid #3a6e8a; border-top-color: transparent; border-radius: 50%; display: inline-block; vertical-align: -3px; margin-right: 7px; animation: cq-spin .8s linear infinite; }
     @keyframes cq-spin { to { transform: rotate(360deg); } }
     .cq-ok { color: #7fe07f; }
     .cq-err { color: #f88; }
-    .cq-meta { text-align: center; color: #888; font-size: 12px; margin-bottom: 14px; }
+    .cq-card-head { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; color: #c48f06; padding: 12px 20px; border-bottom: 1px solid #2a2a2a; }
     table.cq-table { border-collapse: collapse; width: 100%; }
-    table.cq-table th { text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: #c48f06; padding: 6px 12px; border-bottom: 1px solid #444; }
-    table.cq-table th.c { text-align: center; }
-    table.cq-table td { padding: 6px 12px; font-size: 13px; border-bottom: 1px solid #222; }
+    table.cq-table th { text-align: left; font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; color: #777; padding: 8px 20px; border-bottom: 1px solid #2a2a2a; }
+    table.cq-table th.c { text-align: center; width: 70px; }
+    table.cq-table td { padding: 9px 20px; font-size: 13px; color: #ddd; border-bottom: 1px solid #232323; vertical-align: middle; }
     table.cq-table td.c { text-align: center; }
-    table.cq-table tr.all td { font-weight: 600; border-bottom: 2px solid #444; }
-    table.cq-table a { color: #64b5f6; }
-    .cq-na { color: #666; }
+    table.cq-table tbody tr:last-child td { border-bottom: none; }
+    table.cq-table tbody tr:hover td { background: rgba(255,255,255,.025); }
+    table.cq-table tr.cq-combined td { background: rgba(196,143,6,.06); font-weight: 600; color: #f0d9a8; }
+    table.cq-table tr.cq-combined:hover td { background: rgba(196,143,6,.10); }
+    .cq-dl { display: inline-block; font-size: 11px; font-weight: 600; padding: 2px 9px; border-radius: 3px; text-decoration: none; border: 1px solid; }
+    .cq-dl-word { color: #64b5f6; border-color: #2a4a63; }
+    .cq-dl-word:hover { background: #2a4a63; color: #fff; }
+    .cq-dl-pdf { color: #f0866a; border-color: #5a2e22; }
+    .cq-dl-pdf:hover { background: #5a2e22; color: #fff; }
+    .cq-na { color: #555; font-size: 12px; }
+    .cq-empty { text-align: center; color: #777; font-size: 13px; padding: 28px 20px; }
 
 .cq-wrap
     h2 Category Documents
-    p.cq-intro Generates a branded Word &amp; PDF guide — category descriptions, eligibility, judging criteria
-        |  and entry-form questions — one document per category plus a combined all-categories file. This also
-        |  (re)builds the portal <b>Downloads</b> page that links them. Re-run after editing categories,
-        |  criteria or questions during setup.
+    p.cq-sub A branded Word &amp; PDF guide of each category’s description, eligibility, judging criteria and
+        |  entry-form questions — one document per category plus a combined all-categories file. Generating
+        |  also rebuilds the portal <b>Downloads</b> page. Re-run after editing categories, criteria or questions.
+        br
+        | #[b Generating can take a few minutes] (a Word + PDF for every category). It runs in the background —
+        |  you can leave this page and come back; it’ll still be working.
 
-    .cq-actions
-        button.btn#cq-build(type='button' data-url='/' + slug + '/cqDocs/generate') #{manifest ? 'Regenerate Documents' : 'Generate Documents'}
-        a.btn-secondary(href='/' + slug + '/home?action=program') Back to Admin
-    .cq-status#cq-status
+    //- ── Action card ──────────────────────────────────────────────────────────
+    .cq-card
+        .cq-card-pad
+            .cq-bar
+                .cq-bar-text
+                    if when
+                        span.cq-last Last generated #[b #{when}] · #{files.length} document#{files.length === 1 ? '' : 's'}
+                    else
+                        | No documents generated yet — click Generate to build them and publish the Downloads page.
+                .cq-btn-col
+                    button.btn#cq-build(type='button' disabled=inflight data-generate='/' + slug + '/cqDocs/generate' data-status='/' + slug + '/cqDocs/status') #{manifest ? 'Regenerate' : 'Generate Documents'}
+            .cq-status#cq-status(data-jobid=(job ? job.cqdocsjobid : '') data-inflight=(inflight ? '1' : ''))
 
-    if when
-        p.cq-meta Last generated #{when}
+    //- ── Documents card ───────────────────────────────────────────────────────
+    if files.length
+        .cq-card
+            .cq-card-head Generated documents
+            table.cq-table
+                thead
+                    tr
+                        th Document
+                        th.c Word
+                        th.c PDF
+                tbody
+                    each f in files
+                        tr(class=(f.categoryid == null ? 'cq-combined' : ''))
+                            td= f.label
+                            td.c
+                                if f.docx
+                                    a.cq-dl.cq-dl-word(href='/' + slug + '/cqDocs/download?file=' + encodeURIComponent(f.docx)) Word
+                                else
+                                    span.cq-na —
+                            td.c
+                                if f.pdf
+                                    a.cq-dl.cq-dl-pdf(href='/' + slug + '/cqDocs/download?file=' + encodeURIComponent(f.pdf)) PDF
+                                else
+                                    span.cq-na —
 
-    if manifest && manifest.files && manifest.files.length
-        table.cq-table
-            thead
-                tr
-                    th Document
-                    th.c Word
-                    th.c PDF
-            tbody
-                each f in manifest.files
-                    tr(class=(f.categoryid == null ? 'all' : ''))
-                        td= f.label
-                        td.c
-                            if f.docx
-                                a(href='/' + slug + '/cqDocs/download?file=' + encodeURIComponent(f.docx)) Word
-                            else
-                                span.cq-na n/a
-                        td.c
-                            if f.pdf
-                                a(href='/' + slug + '/cqDocs/download?file=' + encodeURIComponent(f.pdf)) PDF
-                            else
-                                span.cq-na n/a
-    else
-        p.cq-intro No documents generated yet.
-
-script(nonce=nonce).
-    (function () {
-        var btn = document.getElementById('cq-build');
-        var status = document.getElementById('cq-status');
-        if (!btn) return;
-        btn.addEventListener('click', function () {
-            btn.disabled = true;
-            status.className = 'cq-status';
-            status.innerHTML = '<span class="cq-spinner"></span>Building documents — this can take a minute…';
-            fetch(btn.dataset.url, { method: 'POST' })
-                .then(function (r) { return r.json(); })
-                .then(function (r) {
-                    if (r.ok) {
-                        status.innerHTML = '<span class="cq-ok">✓ Done — ' + r.manifest.files.length + ' documents generated. Reloading…</span>';
-                        setTimeout(function () { location.reload(); }, 900);
-                    } else {
-                        btn.disabled = false;
-                        status.innerHTML = '<span class="cq-err">✗ ' + (r.error || 'Generation failed') + '</span>';
-                    }
-                })
-                .catch(function () {
-                    btn.disabled = false;
-                    status.innerHTML = '<span class="cq-err">✗ Network error</span>';
-                });
-        });
-    })();
+script(src='/js/home-cqdocs.js?v=' + buildHash)

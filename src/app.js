@@ -16,6 +16,7 @@ import { setupAssociations } from './models/associations.js';
 import { autoCloseAllPrograms } from './services/autoClose.js';
 import { startCommentReviewJob } from './services/commentReviewJob.js';
 import { startPrExportJob } from './services/prExportJob.js';
+import { startCqDocsJob } from './services/cqDocsJob.js';
 import { startLeaderLoop } from './services/jobLease.js';
 import { resolveProgram } from './middleware/resolveProgram.js';
 import rootLoginRouter   from './routes/rootLogin.js';
@@ -397,6 +398,7 @@ async function start() {
     startLeaderLoop();
     startCommentReviewJob();   // comment review (repetition / entry-specificity)
     startPrExportJob();        // PR-media export builder (zip + email)
+    startCqDocsJob();          // Category Documents builder (Word/PDF + Downloads page)
   } catch (err) {
     console.error('Failed to start:', err);
     process.exit(1);

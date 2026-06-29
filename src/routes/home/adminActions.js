@@ -192,11 +192,15 @@ export async function handleAdminAction(action, req, res, program, user) {
     }
 
     if (action === 'cqdocs') {
-        // Tools: Category Documents — build branded Word/PDF of categories, criteria & questions
-        // and (re)write the portal Downloads page. Shows the last-generated manifest.
-        const { getCQManifest } = await import('../../services/cqDocs.js');
-        const manifest = await getCQManifest(program.programid);
-        return { view: 'home/cqdocs', manifest };
+        // Tools: Category Documents — queue a branded Word/PDF build of categories, criteria &
+        // questions (background worker) which also (re)writes the portal Downloads page. Shows the
+        // last-generated manifest and resumes tracking any in-flight job.
+        const { getCQManifest, getLatestCqDocsJob } = await import('../../services/cqDocs.js');
+        const [manifest, job] = await Promise.all([
+            getCQManifest(program.programid),
+            getLatestCqDocsJob(program.programid),
+        ]);
+        return { view: 'home/cqdocs', manifest, job };
     }
 
     if (action === 'voscript') {

@@ -14,13 +14,14 @@ import fs from 'fs';
 import fsp from 'fs/promises';
 import path from 'path';
 import os from 'os';
+import { pathToFileURL } from 'url';
 import { spawn } from 'child_process';
 import sharp from 'sharp';
 import {
     Document, Packer, Paragraph, TextRun, ImageRun, Header, Footer,
     AlignmentType, PageNumber, BorderStyle, Tab, TabStopType, TabStopPosition,
 } from 'docx';
-import { getPool } from '../config/database.js';
+import { getPool, sql } from '../config/database.js';
 import { filestore } from '../config.js';
 import Program from '../models/Program.js';
 
@@ -91,13 +92,17 @@ export async function getProgramCQData(programId) {
 // unbalanced tags (closing an unopened format is ignored). Other inline tags are dropped but
 // their text kept. Returns an array of TextRun.
 
+// Strip characters not permitted in XML 1.0 (keeps \t \n \r). Stray control chars in DB text
+// otherwise produce an invalid .docx that Word rejects as "unreadable content".
+const xmlSafe = (s) => String(s).replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g, '');
+
 function decodeEntities(s) {
-    return String(s)
+    return xmlSafe(String(s)
         .replace(/&nbsp;/gi, ' ').replace(/&amp;/gi, '&').replace(/&lt;/gi, '<')
         .replace(/&gt;/gi, '>').replace(/&quot;/gi, '"').replace(/&#39;|&apos;/gi, "'")
         .replace(/&rsquo;/gi, '’').replace(/&lsquo;/gi, '‘')
         .replace(/&rdquo;/gi, '”').replace(/&ldquo;/gi, '“')
-        .replace(/&mdash;/gi, '—').replace(/&ndash;/gi, '–');
+        .replace(/&mdash;/gi, '—').replace(/&ndash;/gi, '–'));
 }
 
 function inlineRuns(html, base = {}) {
@@ -197,7 +202,7 @@ function categoryChildren(cat, { pageBreakBefore = false } = {}) {
     kids.push(new Paragraph({
         pageBreakBefore,
         spacing: { before: pageBreakBefore ? 0 : 120, after: 120 },
-        children: [new TextRun({ text: cat.name, bold: true, size: 40, color: TEAL })],
+        children: [new TextRun({ text: xmlSafe(cat.name), bold: true, size: 40, color: TEAL })],
     }));
     if (cat.description) kids.push(body(inlineRuns(cat.description), { after: 160 }));
 
@@ -272,12 +277,20 @@ function categoryChildren(cat, { pageBreakBefore = false } = {}) {
                     kids.push(heading(flat, { size: 24, before: 220, after: 40 }));
                     if (q.description) kids.push(helperNote(q.description, 0));
                 } else {
-                    // Standing instruction(s): one bullet per <br>/<li> line.
                     const lines = String(q.questiontext || '')
                         .split(/<br\s*\/?>|<\/li>|<li[^>]*>/i)
                         .map(stripTags).filter(Boolean);
-                    lines.forEach(l => kids.push(listItem('•', [new TextRun({ text: l })], 0)));
-                    if (q.description) kids.push(helperNote(q.description, 0));
+                    if (qnum === 0) {
+                        // Top standing-instructions block (before the questions start): a bulleted
+                        // list, like the reference. Helper note aligns under the bullet text.
+                        lines.forEach(l => kids.push(listItem('•', [new TextRun({ text: l })], 0)));
+                        if (q.description) kids.push(helperNote(q.description, 1));
+                    } else {
+                        // Instructions/notes between questions (e.g. "To assist us… submit:",
+                        // "NOTE: …") are plain paragraphs in the reference — not bullets.
+                        lines.forEach(l => kids.push(body([new TextRun({ text: l })], { after: 40 })));
+                        if (q.description) kids.push(helperNote(q.description, 0));
+                    }
                 }
                 continue;
             }
@@ -317,7 +330,11 @@ async function buildHeader(program) {
                 const meta = await sharp(buf).metadata();
                 const maxW = 200, maxH = 60; // points
                 const ratio = Math.min(maxW / (meta.width || maxW), maxH / (meta.height || maxH), 1);
+                // docx v9 requires an explicit image `type` — without it the embedded image part is
+                // malformed and Word reports "unreadable content" (LibreOffice tolerates it).
+                const type = ({ jpeg: 'jpg', jpg: 'jpg', png: 'png', gif: 'gif', bmp: 'bmp' })[meta.format] || 'png';
                 imageChild = new ImageRun({
+                    type,
                     data: buf,
                     transformation: { width: Math.round((meta.width || maxW) * ratio), height: Math.round((meta.height || maxH) * ratio) },
                 });
@@ -379,21 +396,32 @@ async function buildDoc(program, categories, { combined }) {
 
 // ── docx → pdf (LibreOffice) ─────────────────────────────────────────────────────
 
-async function docxToPdf(docxPath, outDir) {
-    // Use an isolated user profile so concurrent/headless runs don't clash.
-    const profile = 'file://' + path.join(os.tmpdir(), `lo_profile_${process.pid}_${Date.now()}`).replace(/\\/g, '/');
+// Convert every .docx to PDF in ONE LibreOffice invocation. soffice processes the files
+// sequentially within a single process, so this pays the (slow) startup cost once instead of
+// once per file — much faster, and lighter on low-RAM nodes than spawning it dozens of times.
+// Per-file success is decided by the caller checking which .pdf files appeared on disk, so a
+// single bad document doesn't fail the whole batch.
+async function docxBatchToPdf(docxPaths, outDir) {
+    if (!docxPaths.length) return;
+    // Isolated user profile per run. pathToFileURL gives a valid file URL on both Windows
+    // (file:///C:/…) and Linux (file:///…) — a hand-built 'file://' + path is malformed on
+    // Windows (C: is read as a host) and LibreOffice then fails with a "config corrupt" error.
+    const profileDir = path.join(os.tmpdir(), `lo_profile_${process.pid}_${Date.now()}`);
+    const profile = pathToFileURL(profileDir).href;
     await new Promise((resolve, reject) => {
         const args = ['--headless', '--norestore', `-env:UserInstallation=${profile}`,
-            '--convert-to', 'pdf:writer_pdf_Export', '--outdir', outDir, docxPath];
+            '--convert-to', 'pdf:writer_pdf_Export', '--outdir', outDir, ...docxPaths];
         const p = spawn(SOFFICE, args, { stdio: ['ignore', 'pipe', 'pipe'] });
         let err = '';
         p.stderr.on('data', d => { err += d; });
-        p.on('error', reject);
-        p.on('close', code => code === 0 ? resolve() : reject(new Error(`soffice exited ${code}: ${err}`)));
+        p.on('error', reject);   // binary missing etc. — fatal
+        p.on('close', code => {
+            // Non-zero can mean one document failed while others converted; don't fail the batch
+            // (the caller checks which PDFs exist). Log it for diagnostics.
+            if (code !== 0) console.warn(`[cqDocs] soffice batch exited ${code}: ${err.trim()}`);
+            resolve();
+        });
     });
-    const pdfPath = path.join(outDir, path.basename(docxPath).replace(/\.docx$/i, '.pdf'));
-    if (!fs.existsSync(pdfPath)) throw new Error('PDF not produced by LibreOffice');
-    return pdfPath;
 }
 
 // ── Orchestration ────────────────────────────────────────────────────────────────
@@ -411,26 +439,31 @@ export async function generateCQDocs(programId) {
 
     const prefix = slugify(program.slug || program.name);
     const files = [];
+    const docxPaths = [];
 
-    const writePair = async (baseName, label, cats, combined, categoryid) => {
+    const writeDocx = async (baseName, label, cats, combined, categoryid) => {
         const docxPath = path.join(dir, `${baseName}.docx`);
-        const buf = await buildDoc(program, cats, { combined });
-        await fsp.writeFile(docxPath, buf);
-        let pdfName = null;
-        try {
-            const pdfPath = await docxToPdf(docxPath, dir);
-            pdfName = path.basename(pdfPath);
-        } catch (e) {
-            console.error('[cqDocs] PDF conversion failed for', baseName, '-', e.message);
-        }
-        files.push({ categoryid: categoryid || null, label, docx: `${baseName}.docx`, pdf: pdfName });
+        await fsp.writeFile(docxPath, await buildDoc(program, cats, { combined }));
+        files.push({ categoryid: categoryid || null, label, docx: `${baseName}.docx`, pdf: null, base: baseName });
+        docxPaths.push(docxPath);
     };
 
-    // Combined document (all categories)
-    await writePair(`${prefix}_All_Categories`, 'All Categories', categories, true, null);
-    // Per-category
+    // Write all the Word documents first: combined (all categories) + one per category.
+    await writeDocx(`${prefix}_All_Categories`, 'All Categories', categories, true, null);
     for (const cat of categories) {
-        await writePair(`${prefix}_${slugify(cat.shortname || cat.name)}`, cat.name, [cat], false, cat.categoryid);
+        await writeDocx(`${prefix}_${slugify(cat.shortname || cat.name)}`, cat.name, [cat], false, cat.categoryid);
+    }
+
+    // Convert them all to PDF in a single LibreOffice run, then record which PDFs were produced.
+    try {
+        await docxBatchToPdf(docxPaths, dir);
+    } catch (e) {
+        console.error('[cqDocs] PDF batch conversion failed -', e.message);
+    }
+    for (const entry of files) {
+        const pdfName = `${entry.base}.pdf`;
+        if (fs.existsSync(path.join(dir, pdfName))) entry.pdf = pdfName;
+        delete entry.base;
     }
 
     const manifest = { generatedAt: new Date().toISOString(), programName: program.name, files };
@@ -440,6 +473,37 @@ export async function generateCQDocs(programId) {
     await program.update({ downloadpagehtml: buildDownloadHtml(program, manifest) });
 
     return manifest;
+}
+
+// ── Background job (queued generation; worker in services/cqDocsJob.js) ─────────────
+
+export async function getLatestCqDocsJob(programId) {
+    const pool = await getPool();
+    return (await pool.request().input('p', sql.Int, programId).query(`
+        SELECT TOP 1 cqdocsjobid, status, filecount, errormsg, requestedat, finishedat
+        FROM CqDocsJob WHERE programid=@p ORDER BY cqdocsjobid DESC`)).recordset[0] || null;
+}
+
+// Run one claimed job row: generate the documents, stamp the row done/error. Called by the worker.
+export async function runCqDocsJob(row) {
+    const pool = await getPool();
+    const id = row.cqdocsjobid;
+    try {
+        const manifest = await generateCQDocs(row.programid);
+        await pool.request().input('id', sql.Int, id).input('n', sql.Int, manifest.files.length)
+            .query("UPDATE CqDocsJob SET status='done', filecount=@n, finishedat=SYSUTCDATETIME() WHERE cqdocsjobid=@id");
+        // downloadpagehtml changed — bust this node's program cache (other nodes expire via 60s TTL).
+        try {
+            const { bustProgramCache } = await import('./auth.js');
+            const p = await Program.findByPk(row.programid);
+            if (p) bustProgramCache(p.slug, p.fqdn);
+        } catch { /* non-fatal */ }
+        return { ok: true, count: manifest.files.length };
+    } catch (err) {
+        await pool.request().input('id', sql.Int, id).input('e', sql.NVarChar, String(err.message).slice(0, 1000))
+            .query("UPDATE CqDocsJob SET status='error', errormsg=@e, finishedat=SYSUTCDATETIME() WHERE cqdocsjobid=@id").catch(() => {});
+        return { ok: false, error: err.message };
+    }
 }
 
 export async function getCQManifest(programId) {

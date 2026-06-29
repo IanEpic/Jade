@@ -378,3 +378,16 @@ generated Word/PDF). Null = text-only band (program name). Companion feature:
 requires `libreoffice-writer` installed on each node (docx→pdf via headless soffice).
 
 - Applied to DEV (local): 2026-06-29 ✓  | PROD: pending (deploy with the Category Documents feature)
+
+## 075 — CqDocsJob (Category Documents background-job queue)
+
+`075_cqdocs_job.sql`
+
+Creates `CqDocsJob (cqdocsjobid PK, programid, status, filecount, errormsg, requestedby,
+requestedat, finishedat)` + index on (programid, status). The admin "Generate" button enqueues a
+row; the leader node's worker (`services/cqDocsJob.js`, started in app.js) atomically claims it
+(pending → running) and runs the Word/PDF build, marking it done/error. The page polls status so
+the build survives navigating away / request timeout. Mirrors the PrExport job pattern. Additive —
+does not touch downloadpagehtml (only a Generate run rewrites that).
+
+- Applied to DEV (local): 2026-06-29 ✓  | PROD: pending (deploy with the Category Documents feature)
