@@ -87,6 +87,31 @@ function esDrop(boxId, inputId, statusId, url, field, accept) {
     });
 })();
 
+// Send test email — uses the saved From/SMTP; reports success or the failure detail.
+(function () {
+    var btn = document.getElementById('es-test-send'), to = document.getElementById('es-test-to'), status = document.getElementById('es-test-status');
+    if (!btn) return;
+    btn.addEventListener('click', function () {
+        var addr = to ? to.value.trim() : '';
+        if (!addr) { if (status) { status.style.color = '#c44'; status.textContent = '✗ Enter an address'; } return; }
+        btn.disabled = true;
+        if (status) { status.style.color = ''; status.textContent = 'Sending…'; }
+        fetch(window.JADE_BASE + '/admin/test-email', {
+            method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: 'to=' + encodeURIComponent(addr),
+        })
+            .then(function (r) { return r.json(); })
+            .then(function (r) {
+                btn.disabled = false;
+                if (!status) return;
+                if (r.status === 'OK') { status.style.color = ''; status.textContent = '✓ Sent to ' + addr; }
+                else if (r.status === 'E_BADEMAIL') { status.style.color = '#c44'; status.textContent = '✗ Invalid address'; }
+                else { status.style.color = '#c44'; status.textContent = '✗ Send failed' + (r.detail ? ' — ' + r.detail : ''); }
+            })
+            .catch(function () { btn.disabled = false; if (status) { status.style.color = '#c44'; status.textContent = '✗ Network error'; } });
+    });
+})();
+
 esUpload('emailheader-btn', 'emailheader-input', 'emailheader-status', '/admin/upload-emailheader', 'emailheader');
 esDelete('emailheader-delete-btn', '/admin/delete-emailheader', 'Remove the email banner and use the portal logo on the masthead instead?');
 esDrop('emailheader-box', 'emailheader-input', 'emailheader-status', '/admin/upload-emailheader', 'emailheader', /\.(png|jpe?g)$/i);

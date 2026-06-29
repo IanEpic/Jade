@@ -54,6 +54,13 @@ style.
         .es-row(style='margin-top:10px')
             button.btn#es-delivery-save(type='button') Save delivery
             span#es-delivery-status
+        hr(style='border:none;border-top:1px solid var(--border-faint);margin:14px 0')
+        .es-row
+            label(for='es-test-to' style='width:130px') Send test to
+            input#es-test-to.es-input(type='text' value=content.testEmailTo || '' placeholder='you@example.com' style='width:240px')
+            button.btn#es-test-send(type='button') Send test
+            span#es-test-status
+        .media-note Sends a sample branded email using the From address &amp; SMTP above (save first if you changed them).
 
     if !content.themed
         .es-note

@@ -211,7 +211,7 @@ export async function handleAdminAction(action, req, res, program, user) {
         const previewHtml = theme ? buildSampleEmail(program, theme) : null;
         const tk = theme ? Object.assign({}, DEFAULT_TOKENS, theme.tokens || {}) : {};
         const mastheadBg = (theme && theme.emailHeaderBg) || tk['header-bg'] || '#000000';
-        return { view: 'home/emailsetup', themed: !!theme, hasBanner: !!(theme && theme.emailHeader), previewHtml, mastheadBg };
+        return { view: 'home/emailsetup', themed: !!theme, hasBanner: !!(theme && theme.emailHeader), previewHtml, mastheadBg, testEmailTo: user.email || '' };
     }
 
     if (action === 'cqdocs') {

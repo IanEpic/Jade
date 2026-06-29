@@ -11,7 +11,8 @@ import { getPool, sql } from '../config/database.js';
 import multer   from 'multer';
 import path     from 'path';
 import { programDir, docHeaderPath } from '../services/cqDocs.js';
-import { sanitizeThemeInput, parseTheme, DARK_CORE, DEFAULT_TOKENS } from '../services/theme.js';
+import { sanitizeThemeInput, parseTheme, DARK_CORE, DEFAULT_TOKENS, renderTestEmail } from '../services/theme.js';
+import { mailHtml, parseSmtp } from '../services/mailer.js';
 import Entry from '../models/Entry.js';
 import fs       from 'fs/promises';
 import fsSync   from 'fs';
@@ -311,6 +312,21 @@ router.post('/email-settings', async (req, res, next) => {
         }
         res.json({ status: 'OK' });
     } catch (err) { next(err); }
+});
+
+// Send a sample branded email to verify delivery + branding, using the program's From/SMTP.
+router.post('/test-email', async (req, res, next) => {
+    try {
+        const to = String(req.body.to || '').trim();
+        if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(to)) return res.json({ status: 'E_BADEMAIL' });
+        const program = await Program.findByPk(req.user.programid);
+        const html = await renderTestEmail(program);
+        const fail = await mailHtml({
+            to, subject: `${program.name} — test email`, html,
+            from: program.emailfromaddress, ...parseSmtp(program.smtpserver),
+        });
+        res.json(fail ? { status: 'E_SEND', detail: String(fail) } : { status: 'OK' });
+    } catch (err) { res.json({ status: 'E_SEND', detail: err.message }); }
 });
 
 // Enable token-driven theming on a program that doesn't have a theme yet. Guarded: refuses if the

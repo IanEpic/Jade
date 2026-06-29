@@ -362,6 +362,11 @@ export function brandEmailIfThemed(program, contentHtml) {
     return theme ? buildThemedEmail(program, theme, contentHtml) : null;
 }
 
+// Full sample email for the "send test" action — branded for themed programs, legacy file otherwise.
+export async function renderTestEmail(program) {
+    return renderEmailShell(program, `<p style="color:var(--color-text);margin:0 0 12px;">This is a <b>test email</b> from your portal's Email Setup — if the branding and colours look right, you're good to go.</p>${SAMPLE_EMAIL_CONTENT}`);
+}
+
 // Wrap rendered email content in the program's shell (themed or legacy file). Async (legacy reads a file).
 export async function renderEmailShell(program, contentHtml) {
     const theme = parseTheme(program);

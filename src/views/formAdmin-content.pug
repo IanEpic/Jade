@@ -169,15 +169,18 @@ else
             legend.accordion-legend.collapsed(data-action='toggle-accordion') Technical
             div.accordion-body
                 table.tech-table
-                    tr
-                        td Standard HTML File
-                        td: input(type='text' name='standardhtml' value=program.standardhtml || '' size='50' maxlength='200')
-                    tr
-                        td Email HTML File
-                        td: input(type='text' name='emailhtml' value=program.emailhtml || '' size='50' maxlength='200')
-                    tr
-                        td Login HTML File
-                        td: input(type='text' name='loginhtml' value=program.loginhtml || '' size='50' maxlength='200')
+                    //- Legacy HTML-shell filenames — only relevant to the file-shell programs (≤1056).
+                    //- Token-driven programs (>1056) render from the theme, so these are hidden.
+                    if program.programid <= 1056
+                        tr
+                            td Standard HTML File
+                            td: input(type='text' name='standardhtml' value=program.standardhtml || '' size='50' maxlength='200')
+                        tr
+                            td Email HTML File
+                            td: input(type='text' name='emailhtml' value=program.emailhtml || '' size='50' maxlength='200')
+                        tr
+                            td Login HTML File
+                            td: input(type='text' name='loginhtml' value=program.loginhtml || '' size='50' maxlength='200')
                     tr
                         td(colspan='2' style='font-size:12px;color:var(--text-faint);font-style:italic') SMTP host/port &amp; the From address have moved to #[b Theme → Email Setup].
                     tr
