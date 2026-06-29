@@ -13,6 +13,12 @@
 //   }
 // Token keys map to the --<key> CSS custom properties defined in styles/main.styl.
 
+import fsp from 'fs/promises';
+import path from 'path';
+import { server } from '../config.js';
+
+const TEMPLATE_ROOT = process.env.TEMPLATE_ROOT || 'C:/Data/WebProjects/Apache/htdocs/jade/cgi-bin/design';
+
 // Dark defaults — mirror the :root values in styles/main.styl. A theme overrides a subset; the
 // editor pre-fills unset tokens from here. Keep in sync with main.styl.
 export const DEFAULT_TOKENS = {
@@ -272,4 +278,43 @@ ${header}
 ${footer}
 </body>
 </html>`;
+}
+
+// ── Transactional email shell ──────────────────────────────────────────────────
+// Content partials use CSS custom properties (var(--token)), which email clients don't support, so
+// resolve them to literal values before sending. Themed programs (1057+) get a token-driven inline
+// branded shell; legacy programs (≤1056) keep their emailhtml file (vars resolved to dark defaults
+// so 1056 invoice emails render correctly).
+
+export function resolveCssVars(html, tokens) {
+    const t = tokens || DEFAULT_TOKENS;
+    return String(html).replace(/var\(\s*--([a-z0-9-]+)\s*\)/gi, (m, k) => t[k] || DEFAULT_TOKENS[k] || m);
+}
+
+export function buildThemedEmail(program, theme, contentHtml) {
+    const tk = Object.assign({}, DEFAULT_TOKENS, (theme && theme.tokens) || {});
+    const title = (program.name || 'JADE Awards').replace(/[<>]/g, '');
+    const base = (server.baseUrl || '').replace(/\/+$/, '');
+    const logo = theme && theme.logo ? `${base}/${program.slug}/admin/themelogo` : null;
+    const headerInner = logo
+        ? `<img src="${logo}" alt="${title}" style="max-height:50px;max-width:260px;">`
+        : `<span style="color:${tk['header-text']};font-size:20px;font-weight:600;">${title}</span>`;
+    const footer = safeFooter(theme && theme.footer) || `&copy; ${new Date().getFullYear()} ${title}`;
+    const body = resolveCssVars(contentHtml, tk);
+    return `<!doctype html>
+<html><body style="margin:0;padding:24px 12px;background:${tk['color-bg']};font-family:Arial,Helvetica,sans-serif;">
+<table align="center" width="600" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;width:100%;margin:0 auto;background:${tk['surface']};border:1px solid ${tk['border']};border-radius:8px;overflow:hidden;">
+<tr><td style="background:${tk['header-bg']};padding:18px 24px;text-align:center;">${headerInner}</td></tr>
+<tr><td style="padding:24px;color:${tk['color-text']};font-size:14px;line-height:1.55;">${body}</td></tr>
+<tr><td style="background:${tk['footer-bg']};padding:16px 24px;text-align:center;color:${tk['color-muted']};font-size:12px;border-top:1px solid ${tk['border']};">${footer}</td></tr>
+</table></body></html>`;
+}
+
+// Wrap rendered email content in the program's shell (themed or legacy file). Async (legacy reads a file).
+export async function renderEmailShell(program, contentHtml) {
+    const theme = parseTheme(program);
+    if (theme) return buildThemedEmail(program, theme, contentHtml);
+    const resolved = resolveCssVars(contentHtml, DEFAULT_TOKENS);
+    const shell = await fsp.readFile(path.join(TEMPLATE_ROOT, program.emailhtml), 'utf8');
+    return shell.replace('<CGIINSERT>', resolved);
 }

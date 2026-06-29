@@ -14,6 +14,7 @@ import TravelPackage        from '../models/TravelPackage.js';
 import { getPool, sql }     from '../config/database.js';
 import { currency, currentDatetime } from '../services/helpers.js';
 import { mailHtml, parseSmtp } from '../services/mailer.js';
+import { renderEmailShell } from '../services/theme.js';
 import { getApplicableDiscounts, computeBestDiscount, incrementDiscountUsecount } from '../services/pricing.js';
 import ProgramDiscount from '../models/ProgramDiscount.js';
 import fs                   from 'fs/promises';
@@ -209,8 +210,6 @@ router.post('/', async (req, res, next) => {
             const address  = await Address.findByPk(invoice.postaladdressid);
             const totals   = await calcTotals(program, entries, { invoice });
             const invoiceNo = invoiceNumber(program, invoice.invoiceid);
-            const TEMPLATE_ROOT = process.env.TEMPLATE_ROOT;
-            const emailShell = await fs.readFile(path.join(TEMPLATE_ROOT, program.emailhtml), 'utf8');
             const invoiceLocals = {
                 user, program, invoice, entries, address, totals, invoiceNo,
                 pmtInstructions: substituteInvoiceNo(program.paymentinstructionstext, invoiceNo),
@@ -219,7 +218,7 @@ router.post('/', async (req, res, next) => {
             };
             res.render('formInvoice-content', invoiceLocals, async (renderErr, content) => {
                 if (!renderErr) {
-                    const html = emailShell.replace('<CGIINSERT>', content);
+                    const html = await renderEmailShell(program, content);
                     await mailHtml({
                         to:       body.emailto || invoice.email,
                         subject:  `${program.name} Invoice No ${invoiceNo}`,
@@ -397,8 +396,6 @@ router.post('/', async (req, res, next) => {
             const invoiceNo = invoiceNumber(program, invoice.invoiceid);
             const address   = await Address.findByPk(postaladdressid);
 
-            const TEMPLATE_ROOT = process.env.TEMPLATE_ROOT;
-            const emailShell    = await fs.readFile(path.join(TEMPLATE_ROOT, program.emailhtml), 'utf8');
             const invoiceLocals = {
                 user, program, invoice, entries, address, totals, invoiceNo,
                 pmtInstructions: substituteInvoiceNo(program.paymentinstructionstext, invoiceNo),
@@ -407,7 +404,7 @@ router.post('/', async (req, res, next) => {
             };
             res.render('formInvoice-content', invoiceLocals, async (err, content) => {
                 if (!err) {
-                    const html = emailShell.replace('<CGIINSERT>', content);
+                    const html = await renderEmailShell(program, content);
                     await mailHtml({
                         to:       invoice.email,
                         subject:  `${program.name} Invoice No ${invoiceNo}`,
