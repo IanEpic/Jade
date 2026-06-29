@@ -132,19 +132,19 @@ style.
                                 button.btn-secondary(type='button' id='logo-delete-btn') Delete
                             span#logo-status
                         .media-note #[b Drag &amp; drop] a logo here, or click to browse — shown in the portal header band.
-                        .tp-logo-opts
-                            label(style='font-size:12px;color:var(--text-dim)') Position
-                            select.tp-text(data-logo='align' style='width:auto')
-                                option(value='left' selected=(theme.logoAlign==='left')) Left
-                                option(value='center' selected=(theme.logoAlign!=='left' && theme.logoAlign!=='right')) Center
-                                option(value='right' selected=(theme.logoAlign==='right')) Right
-                            label(style='font-size:12px;color:var(--text-dim);margin-left:10px') Size
-                            select.tp-text(data-logo='size' style='width:auto')
-                                option(value='fill' selected=(!theme.logoSize || theme.logoSize==='fill')) Fill height
-                                option(value='large' selected=(theme.logoSize==='large')) Large
-                                option(value='medium' selected=(theme.logoSize==='medium')) Medium
-                                option(value='small' selected=(theme.logoSize==='small')) Small
-                        p.field-hint(style='margin-top:6px') Position &amp; size apply after #[b Save Theme] + reload.
+                    .tp-logo-opts
+                        label(style='font-size:12px;color:var(--text-dim)') Position
+                        select.tp-text(data-logo='align' style='width:auto')
+                            option(value='left' selected=(theme.logoAlign==='left')) Left
+                            option(value='center' selected=(theme.logoAlign!=='left' && theme.logoAlign!=='right')) Center
+                            option(value='right' selected=(theme.logoAlign==='right')) Right
+                        label(style='font-size:12px;color:var(--text-dim);margin-left:10px') Size
+                        select.tp-text(data-logo='size' style='width:auto')
+                            option(value='fill' selected=(!theme.logoSize || theme.logoSize==='fill')) Fill height
+                            option(value='large' selected=(theme.logoSize==='large')) Large
+                            option(value='medium' selected=(theme.logoSize==='medium')) Medium
+                            option(value='small' selected=(theme.logoSize==='small')) Small
+                    p.field-hint(style='margin-top:6px') Position &amp; size apply after #[b Save Theme] + reload.
             .asset-row
                 .asset-label Background image
                 .asset-ctl
