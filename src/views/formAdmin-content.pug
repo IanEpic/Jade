@@ -179,15 +179,7 @@ else
                         td Login HTML File
                         td: input(type='text' name='loginhtml' value=program.loginhtml || '' size='50' maxlength='200')
                     tr
-                        td SMTP Host
-                        - let smtpParsed = (() => { try { return JSON.parse(program.smtpserver || '{}'); } catch(e) { return { host: program.smtpserver || '' }; } })()
-                        td: input(type='text' name='smtp_host' placeholder='host' value=smtpParsed.host || '' size='50' maxlength='200')
-                    tr
-                        td SMTP Port
-                        td: input(type='number' name='smtp_port' placeholder='25' value=smtpParsed.port || '' size='6' maxlength='5' style='width:80px')
-                    tr
-                        td Email From Address
-                        td: input(type='text' name='emailfromaddress' value=program.emailfromaddress || '' size='50' maxlength='200')
+                        td(colspan='2' style='font-size:12px;color:var(--text-faint);font-style:italic') SMTP host/port &amp; the From address have moved to #[b Theme → Email Setup].
                     tr
                         td Invoice Number Precursor
                         td: input(type='text' name='invoicenoprecursor' value=program.invoicenoprecursor || '' size='5' maxlength='5' style='width:80px')

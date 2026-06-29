@@ -67,6 +67,26 @@ function esDrop(boxId, inputId, statusId, url, field, accept) {
     });
 })();
 
+// Delivery settings save (from address, SMTP host/port) — program columns, no preview reload needed.
+(function () {
+    var btn = document.getElementById('es-delivery-save'), status = document.getElementById('es-delivery-status');
+    if (!btn) return;
+    btn.addEventListener('click', function () {
+        var from = document.getElementById('es-from'), host = document.getElementById('es-host'), port = document.getElementById('es-port');
+        btn.disabled = true;
+        if (status) { status.style.color = ''; status.textContent = 'Saving…'; }
+        var body = 'emailfromaddress=' + encodeURIComponent(from ? from.value : '') +
+                   '&smtp_host=' + encodeURIComponent(host ? host.value : '') +
+                   '&smtp_port=' + encodeURIComponent(port ? port.value : '');
+        fetch(window.JADE_BASE + '/admin/email-settings', {
+            method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: body,
+        })
+            .then(function (r) { return r.json(); })
+            .then(function (r) { btn.disabled = false; if (status) { if (r.status === 'OK') { status.style.color = ''; status.textContent = '✓ Saved'; } else { status.style.color = '#c44'; status.textContent = '✗ Save failed'; } } })
+            .catch(function () { btn.disabled = false; if (status) { status.style.color = '#c44'; status.textContent = '✗ Network error'; } });
+    });
+})();
+
 esUpload('emailheader-btn', 'emailheader-input', 'emailheader-status', '/admin/upload-emailheader', 'emailheader');
 esDelete('emailheader-delete-btn', '/admin/delete-emailheader', 'Remove the email banner and use the portal logo on the masthead instead?');
 esDrop('emailheader-box', 'emailheader-input', 'emailheader-status', '/admin/upload-emailheader', 'emailheader', /\.(png|jpe?g)$/i);

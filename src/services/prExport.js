@@ -10,6 +10,7 @@ import { ZipArchive } from 'archiver';   // archiver v8 is ESM-native: format-sp
 import { getPool, sql } from '../config/database.js';
 import { filestore } from '../config.js';
 import { mailHtml, parseSmtp } from './mailer.js';
+import { brandEmailIfThemed } from './theme.js';
 import Program from '../models/Program.js';
 
 const PR_DIR = path.join(filestore.root, 'prExports');
@@ -137,14 +138,15 @@ export async function buildPrExport(row) {
             const base = (row.baseurl || '').replace(/\/+$/, '');
             const link = `${base}/${program?.slug}/prExport/download?id=${id}`;
             try {
+                const content = `<p>Your PR media export for <strong>${program?.name || program?.slug}</strong> is ready ` +
+                          `(${plan.length} file${plan.length === 1 ? '' : 's'}).</p>` +
+                          `<p><a href="${link}">Download the zip</a></p>` +
+                          `<p>The file is removed shortly after download.</p>`;
                 const fail = await mailHtml({
                     to: row.requestedemail,
                     from: program?.emailfromaddress || undefined,
                     subject: 'Your PR media export is ready',
-                    html: `<p>Your PR media export for <strong>${program?.name || program?.slug}</strong> is ready ` +
-                          `(${plan.length} file${plan.length === 1 ? '' : 's'}).</p>` +
-                          `<p><a href="${link}">Download the zip</a></p>` +
-                          `<p>The file is removed shortly after download.</p>`,
+                    html: (program && brandEmailIfThemed(program, content)) || content,
                     ...parseSmtp(program?.smtpserver),
                 });
                 if (fail) console.error('[prExport] notify email failed:', fail);

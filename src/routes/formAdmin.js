@@ -291,13 +291,24 @@ router.post('/delete-emailheader', async (req, res, next) => {
         res.json({ status: 'OK' });
     } catch (err) { next(err); }
 });
-// Email masthead colour override (blank/invalid → revert to the Look & Feel header colour).
+// Email settings (Theme → Email Setup): masthead colour override (theme JSON) and/or delivery
+// fields (program columns). Updates only the fields present in the request.
 router.post('/email-settings', async (req, res, next) => {
     try {
-        const bg = String(req.body.emailHeaderBg || '').trim();
-        await saveThemeAsset(req.user.programid, (t) => {
-            if (/^#[0-9a-f]{6}$/i.test(bg)) t.emailHeaderBg = bg; else delete t.emailHeaderBg;
-        });
+        const program = await Program.findByPk(req.user.programid);
+        if ('emailHeaderBg' in req.body) {
+            const bg = String(req.body.emailHeaderBg || '').trim();
+            await saveThemeAsset(req.user.programid, (t) => {
+                if (/^#[0-9a-f]{6}$/i.test(bg)) t.emailHeaderBg = bg; else delete t.emailHeaderBg;
+            });
+        }
+        const updates = {};
+        if ('emailfromaddress' in req.body) updates.emailfromaddress = String(req.body.emailfromaddress || '').trim();
+        if ('smtp_host' in req.body) updates.smtpserver = buildSmtpJson(req.body, program);
+        if (Object.keys(updates).length) {
+            await program.update(updates);
+            bustProgramCache(program.slug, program.fqdn);
+        }
         res.json({ status: 'OK' });
     } catch (err) { next(err); }
 });

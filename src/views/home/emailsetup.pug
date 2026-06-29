@@ -30,10 +30,30 @@ style.
     .es-row input[type=color]::-webkit-color-swatch { border: none; border-radius: 3px; }
     .es-row button { margin: 0; }
     .es-row span { font-size: 13px; }
+    .es-input { background: var(--input-bg); color: var(--color-text); border: 1px solid var(--border); border-radius: 3px; padding: 5px 8px; font-size: 13px; width: 320px; max-width: 100%; }
+    .es-row input[type=number] { background: var(--input-bg); color: var(--color-text); border: 1px solid var(--border); border-radius: 3px; padding: 5px 8px; font-size: 13px; }
 
 .es-page
     h2 Email Setup
-    p.es-sub How your transactional emails (invoices &amp; payment receipts) are branded.
+    p.es-sub Delivery settings and branding for all portal emails.
+
+    -
+        var smtpParsed = (function () { try { return JSON.parse(program.smtpserver || '{}'); } catch (e) { return { host: program.smtpserver || '' }; } })()
+
+    fieldset
+        legend Delivery
+        .es-row
+            label(for='es-from' style='width:130px') From address
+            input#es-from.es-input(type='text' value=program.emailfromaddress || '' placeholder='awards@example.com')
+        .es-row
+            label(for='es-host' style='width:130px') SMTP host
+            input#es-host.es-input(type='text' value=smtpParsed.host || '' placeholder='smtp.example.com')
+        .es-row
+            label(for='es-port' style='width:130px') SMTP port
+            input#es-port(type='number' value=smtpParsed.port || '' placeholder='25' style='width:90px')
+        .es-row(style='margin-top:10px')
+            button.btn#es-delivery-save(type='button') Save delivery
+            span#es-delivery-status
 
     if !content.themed
         .es-note

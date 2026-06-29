@@ -8,6 +8,7 @@ import { requireAuth, requireAdmin } from '../middleware/auth.js';
 import User           from '../models/User.js';
 import UserCredential  from '../models/UserCredential.js';
 import { mailHtml, parseSmtp } from '../services/mailer.js';
+import { brandEmailIfThemed } from '../services/theme.js';
 import { randomPassword, encryptPassword } from '../services/helpers.js';
 
 const router = Router();
@@ -54,10 +55,11 @@ router.post('/', async (req, res, next) => {
                 msg = salutation + existingUserText + signoff;
             }
 
+            const content = `<p>${msg.replace(/\n/g, '<br>')}</p>`;
             mailHtml({
                 to:      judge.email,
                 subject: `${program.name} Judging Open`,
-                html:    msg.replace(/\n/g, '<br>'),
+                html:    brandEmailIfThemed(program, content) || msg.replace(/\n/g, '<br>'),
                 from:    program.emailfromaddress,
                 ...parseSmtp(program.smtpserver),
             }).catch(err => console.warn(`Judge email failed for ${judge.email}:`, err.message));

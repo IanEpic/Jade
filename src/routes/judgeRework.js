@@ -18,6 +18,7 @@ import Category         from '../models/Category.js';
 import JudgeComment     from '../models/JudgeComment.js';
 import JudgingModel     from '../models/JudgingModel.js';
 import { mailHtml, parseSmtp } from '../services/mailer.js';
+import { brandEmailIfThemed } from '../services/theme.js';
 
 const router = Router();
 router.use(requireAuth, requireAdmin);
@@ -76,10 +77,11 @@ router.post('/', async (req, res, next) => {
                 `Best Regards,\n\nThe ${program.name} Team`;
 
             if (email) {
+                const content = `<p>${msg.replace(/\n/g, '<br>')}</p>`;
                 mailHtml({
                     to:      email,
                     subject: `${program.name} — judge comments to revise`,
-                    html:    msg.replace(/\n/g, '<br>'),
+                    html:    brandEmailIfThemed(program, content) || msg.replace(/\n/g, '<br>'),
                     from:    program.emailfromaddress,
                     ...parseSmtp(program.smtpserver),
                 }).catch(err => console.warn(`Rework email failed for ${email}:`, err.message));

@@ -354,6 +354,14 @@ export function buildSampleEmail(program, theme) {
     return buildThemedEmail(program, theme || parseTheme(program), SAMPLE_EMAIL_CONTENT);
 }
 
+// Brand an email body in the program's themed shell IF the program is themed (1057+); returns null
+// for legacy programs (≤1056) so callers keep their existing plain HTML unchanged. Use:
+//   const html = brandEmailIfThemed(program, content) || legacyPlainHtml;
+export function brandEmailIfThemed(program, contentHtml) {
+    const theme = parseTheme(program);
+    return theme ? buildThemedEmail(program, theme, contentHtml) : null;
+}
+
 // Wrap rendered email content in the program's shell (themed or legacy file). Async (legacy reads a file).
 export async function renderEmailShell(program, contentHtml) {
     const theme = parseTheme(program);
