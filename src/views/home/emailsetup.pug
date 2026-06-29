@@ -23,6 +23,13 @@ style.
     .es-preview-frame { width: 100%; height: 560px; border: 1px solid var(--border); border-radius: 6px; background: #fff; }
     .es-note { background: var(--surface-sunken); border: 1px solid var(--border); border-radius: 6px; padding: 14px 16px; font-size: 13px; color: var(--text-label); line-height: 1.6; }
     .es-note b { color: var(--text-strong); }
+    .es-row { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
+    .es-row label { font-size: 13px; color: var(--text-label); }
+    .es-row input[type=color] { -webkit-appearance: none; appearance: none; width: 46px; height: 28px; padding: 0; border: 1px solid var(--border); border-radius: 4px; cursor: pointer; }
+    .es-row input[type=color]::-webkit-color-swatch-wrapper { padding: 0; }
+    .es-row input[type=color]::-webkit-color-swatch { border: none; border-radius: 3px; }
+    .es-row button { margin: 0; }
+    .es-row span { font-size: 13px; }
 
 .es-page
     h2 Email Setup
@@ -33,8 +40,14 @@ style.
             p This program uses the #[b classic email template] (a fixed HTML file). Branded email setup becomes available once the program is on the token-driven theme system — set up colours &amp; logo under #[b Theme → Look &amp; Feel] first.
     else
         fieldset
-            legend Email Banner
-            .asset-label Email header image (optional)
+            legend Masthead
+            .es-row
+                label(for='es-mhbg') Header colour
+                input#es-mhbg(type='color' value=content.mastheadBg)
+                button.btn#es-mhbg-save(type='button') Save colour
+                span#es-mhbg-status
+            .media-note Defaults to the #[b Look &amp; Feel] header colour; set one here to use a different colour for emails only.
+            .asset-label(style='margin-top:16px') Email header image (optional)
             .media-box#emailheader-box
                 .media-preview
                     if content.hasBanner

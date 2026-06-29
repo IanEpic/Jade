@@ -206,10 +206,12 @@ export async function handleAdminAction(action, req, res, program, user) {
     if (action === 'emailsetup') {
         // Admin → Theme → Email Setup: live preview of the branded transactional email + optional
         // dedicated email banner upload. Themed programs (1057+) only; legacy shows a note.
-        const { parseTheme, buildSampleEmail } = await import('../../services/theme.js');
+        const { parseTheme, buildSampleEmail, DEFAULT_TOKENS } = await import('../../services/theme.js');
         const theme = parseTheme(program);
         const previewHtml = theme ? buildSampleEmail(program, theme) : null;
-        return { view: 'home/emailsetup', themed: !!theme, hasBanner: !!(theme && theme.emailHeader), previewHtml };
+        const tk = theme ? Object.assign({}, DEFAULT_TOKENS, theme.tokens || {}) : {};
+        const mastheadBg = (theme && theme.emailHeaderBg) || tk['header-bg'] || '#000000';
+        return { view: 'home/emailsetup', themed: !!theme, hasBanner: !!(theme && theme.emailHeader), previewHtml, mastheadBg };
     }
 
     if (action === 'cqdocs') {

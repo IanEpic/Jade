@@ -208,6 +208,7 @@ router.post('/theme', async (req, res, next) => {
         const existing = parseTheme(program) || {};
         if (existing.logo) clean.logo = existing.logo;
         if (existing.emailHeader) clean.emailHeader = existing.emailHeader;
+        if (existing.emailHeaderBg) clean.emailHeaderBg = existing.emailHeaderBg;
         if (existing.background && existing.background.image) {
             clean.background = Object.assign({}, clean.background, { image: existing.background.image });
         }
@@ -286,6 +287,16 @@ router.post('/delete-emailheader', async (req, res, next) => {
     try {
         await saveThemeAsset(req.user.programid, async (t, program) => {
             if (t.emailHeader) { const p = docHeaderPath(program.programid, t.emailHeader); if (p) await fs.unlink(p).catch(() => {}); delete t.emailHeader; }
+        });
+        res.json({ status: 'OK' });
+    } catch (err) { next(err); }
+});
+// Email masthead colour override (blank/invalid → revert to the Look & Feel header colour).
+router.post('/email-settings', async (req, res, next) => {
+    try {
+        const bg = String(req.body.emailHeaderBg || '').trim();
+        await saveThemeAsset(req.user.programid, (t) => {
+            if (/^#[0-9a-f]{6}$/i.test(bg)) t.emailHeaderBg = bg; else delete t.emailHeaderBg;
         });
         res.json({ status: 'OK' });
     } catch (err) { next(err); }

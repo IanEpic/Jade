@@ -287,6 +287,14 @@ ${footer}
 // shows) over a white body with dark text. Themed programs (1057+) use buildThemedEmail; legacy
 // programs (≤1056) keep their emailhtml file (vars resolved to dark defaults to match 1056's design).
 
+// Contrasting text colour (white on dark, dark on light) for a given hex background.
+function onColor(hex) {
+    const h = String(hex || '').replace('#', '');
+    if (h.length < 6) return '#ffffff';
+    const r = parseInt(h.slice(0, 2), 16), g = parseInt(h.slice(2, 4), 16), b = parseInt(h.slice(4, 6), 16);
+    return (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255 < 0.55 ? '#ffffff' : '#1b2733';
+}
+
 export function resolveCssVars(html, tokens) {
     const t = tokens || DEFAULT_TOKENS;
     return String(html).replace(/var\(\s*--([a-z0-9-]+)\s*\)/gi, (m, k) => t[k] || DEFAULT_TOKENS[k] || m);
@@ -307,15 +315,18 @@ export function buildThemedEmail(program, theme, contentHtml) {
     const lt = emailLightTokens(theme);                                              // light body + brand accent
     const title = (program.name || 'JADE Awards').replace(/[<>]/g, '');
     const base = (server.baseUrl || '').replace(/\/+$/, '');
+    // Masthead colour: explicit email override → else the program's header colour.
+    const mastheadBg = (theme && theme.emailHeaderBg) || themeTk['header-bg'];
+    const mastheadText = onColor(mastheadBg);
     // A dedicated full-width email banner (theme.emailHeader) takes precedence; else the portal logo
     // on the masthead colour; else the program name as text.
     const banner = theme && theme.emailHeader ? `${base}/${program.slug}/admin/emailheader` : null;
     const logo = theme && theme.logo ? `${base}/${program.slug}/admin/themelogo` : null;
     const mastheadRow = banner
-        ? `<tr><td style="padding:0;line-height:0;background:${themeTk['header-bg']};"><img src="${banner}" alt="${title}" style="display:block;width:100%;max-width:600px;"></td></tr>`
-        : `<tr><td style="background:${themeTk['header-bg']};padding:18px 24px;text-align:center;">${logo
+        ? `<tr><td style="padding:0;line-height:0;background:${mastheadBg};"><img src="${banner}" alt="${title}" style="display:block;width:100%;max-width:600px;"></td></tr>`
+        : `<tr><td style="background:${mastheadBg};padding:18px 24px;text-align:center;">${logo
             ? `<img src="${logo}" alt="${title}" style="max-height:50px;max-width:260px;">`
-            : `<span style="color:${themeTk['header-text']};font-size:20px;font-weight:600;">${title}</span>`}</td></tr>`;
+            : `<span style="color:${mastheadText};font-size:20px;font-weight:600;">${title}</span>`}</td></tr>`;
     const footer = safeFooter(theme && theme.footer) || `&copy; ${new Date().getFullYear()} ${title}`;
     const body = resolveCssVars(contentHtml, lt);
     return `<!doctype html>

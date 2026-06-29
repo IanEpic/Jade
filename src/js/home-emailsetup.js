@@ -50,6 +50,23 @@ function esDrop(boxId, inputId, statusId, url, field, accept) {
     });
 }
 
+// Masthead colour save — POST the hex, reload to refresh the live preview.
+(function () {
+    var btn = document.getElementById('es-mhbg-save'), input = document.getElementById('es-mhbg'), status = document.getElementById('es-mhbg-status');
+    if (!btn || !input) return;
+    btn.addEventListener('click', function () {
+        btn.disabled = true;
+        if (status) { status.style.color = ''; status.textContent = 'Saving…'; }
+        fetch(window.JADE_BASE + '/admin/email-settings', {
+            method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: 'emailHeaderBg=' + encodeURIComponent(input.value),
+        })
+            .then(function (r) { return r.json(); })
+            .then(function (r) { if (r.status === 'OK') location.reload(); else { btn.disabled = false; if (status) { status.style.color = '#c44'; status.textContent = '✗ Save failed'; } } })
+            .catch(function () { btn.disabled = false; if (status) { status.style.color = '#c44'; status.textContent = '✗ Network error'; } });
+    });
+})();
+
 esUpload('emailheader-btn', 'emailheader-input', 'emailheader-status', '/admin/upload-emailheader', 'emailheader');
 esDelete('emailheader-delete-btn', '/admin/delete-emailheader', 'Remove the email banner and use the portal logo on the masthead instead?');
 esDrop('emailheader-box', 'emailheader-input', 'emailheader-status', '/admin/upload-emailheader', 'emailheader', /\.(png|jpe?g)$/i);
