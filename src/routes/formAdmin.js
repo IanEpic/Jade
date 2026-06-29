@@ -11,9 +11,24 @@ import { getPool, sql } from '../config/database.js';
 import multer   from 'multer';
 import path     from 'path';
 import fs       from 'fs/promises';
+import fsSync   from 'fs';
 
 const FILESTORE_ROOT  = process.env.FILESTORE_ROOT || 'C:/Data/LocalJadeFilestore';
 const FAVICONS_DIR    = path.join(FILESTORE_ROOT, 'favicons');
+const DOCHEADERS_DIR  = path.join(FILESTORE_ROOT, 'docheaders');
+
+const docHeaderUpload = multer({
+    storage: multer.diskStorage({
+        destination: async (req, file, cb) => {
+            const dir = path.join(DOCHEADERS_DIR, String(req.user.programid));
+            await fs.mkdir(dir, { recursive: true });
+            cb(null, dir);
+        },
+        filename: (req, file, cb) => cb(null, 'docheader' + (path.extname(file.originalname).toLowerCase() || '.png')),
+    }),
+    limits: { fileSize: 2 * 1024 * 1024 }, // 2 MB
+    fileFilter: (req, file, cb) => cb(null, ['.png', '.jpg', '.jpeg'].includes(path.extname(file.originalname).toLowerCase())),
+});
 
 const faviconUpload = multer({
     storage: multer.diskStorage({
@@ -173,6 +188,41 @@ router.post('/upload-favicon', faviconUpload.single('favicon'), async (req, res,
         bustProgramCache(program.slug, program.fqdn);
         res.json({ status: 'OK', filename: req.file.filename });
     } catch (err) { next(err); }
+});
+
+// ── POST /admin/upload-docheader ──────────────────────────────────────────────
+// Wide logo/banner used in the header band of the generated Category Documents.
+
+router.post('/upload-docheader', docHeaderUpload.single('docheader'), async (req, res, next) => {
+    try {
+        if (!req.file) return res.json({ status: 'E_NOFILE' });
+        const program = await Program.findByPk(req.user.programid);
+        await program.update({ docheaderimage: req.file.filename });
+        bustProgramCache(program.slug, program.fqdn);
+        res.json({ status: 'OK', filename: req.file.filename });
+    } catch (err) { next(err); }
+});
+
+router.post('/delete-docheader', async (req, res, next) => {
+    try {
+        const program = await Program.findByPk(req.user.programid);
+        if (program.docheaderimage) {
+            await fs.unlink(path.join(DOCHEADERS_DIR, String(program.programid), program.docheaderimage)).catch(() => {});
+            await program.update({ docheaderimage: null });
+            bustProgramCache(program.slug, program.fqdn);
+        }
+        res.json({ status: 'OK' });
+    } catch (err) { next(err); }
+});
+
+// ── GET /admin/docheader ──────────────────────────────────────────────────────
+// Serves the current doc header image into the admin preview.
+router.get('/docheader', async (req, res) => {
+    const program = await Program.findByPk(req.user.programid);
+    if (!program?.docheaderimage) return res.status(404).end();
+    const filePath = path.join(DOCHEADERS_DIR, String(program.programid), program.docheaderimage);
+    if (!fsSync.existsSync(filePath)) return res.status(404).end();
+    res.sendFile(filePath, err => { if (err && !res.headersSent) res.status(404).end(); });
 });
 
 // ── DELETE /admin/favicon ─────────────────────────────────────────────────────

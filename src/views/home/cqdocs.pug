@@ -1,0 +1,95 @@
+//- home/cqdocs.pug
+//- Admin (Tools): Category Documents — build branded Word/PDF of each category's description,
+//- eligibility, judging criteria and entry-form questions, plus a combined all-categories file,
+//- and (re)write the portal Downloads page so entrants can download them.
+
+-
+    var slug = program.slug
+    var manifest = content.manifest
+    var when = manifest ? new Date(manifest.generatedAt).toLocaleString('en-AU', { day:'numeric', month:'long', year:'numeric', hour:'2-digit', minute:'2-digit' }) : null
+
+style.
+    .cq-wrap { max-width: 760px; margin: 0 auto; }
+    .cq-wrap h2 { color: #c48f06; margin-bottom: 6px; text-align: center; }
+    .cq-intro { color: #aaa; font-size: 13px; margin: 0 auto 18px; line-height: 1.5; text-align: center; }
+    .cq-actions { display: flex; gap: 10px; justify-content: center; align-items: center; flex-wrap: wrap; margin-bottom: 6px; }
+    .cq-status { text-align: center; font-size: 13px; color: #bcd; min-height: 20px; margin-bottom: 14px; }
+    .cq-spinner { width: 16px; height: 16px; border: 2px solid #3a6e8a; border-top-color: transparent; border-radius: 50%; display: inline-block; vertical-align: -3px; margin-right: 7px; animation: cq-spin .8s linear infinite; }
+    @keyframes cq-spin { to { transform: rotate(360deg); } }
+    .cq-ok { color: #7fe07f; }
+    .cq-err { color: #f88; }
+    .cq-meta { text-align: center; color: #888; font-size: 12px; margin-bottom: 14px; }
+    table.cq-table { border-collapse: collapse; width: 100%; }
+    table.cq-table th { text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: #c48f06; padding: 6px 12px; border-bottom: 1px solid #444; }
+    table.cq-table th.c { text-align: center; }
+    table.cq-table td { padding: 6px 12px; font-size: 13px; border-bottom: 1px solid #222; }
+    table.cq-table td.c { text-align: center; }
+    table.cq-table tr.all td { font-weight: 600; border-bottom: 2px solid #444; }
+    table.cq-table a { color: #64b5f6; }
+    .cq-na { color: #666; }
+
+.cq-wrap
+    h2 Category Documents
+    p.cq-intro Generates a branded Word &amp; PDF guide — category descriptions, eligibility, judging criteria
+        |  and entry-form questions — one document per category plus a combined all-categories file. This also
+        |  (re)builds the portal <b>Downloads</b> page that links them. Re-run after editing categories,
+        |  criteria or questions during setup.
+
+    .cq-actions
+        button.btn#cq-build(type='button' data-url='/' + slug + '/cqDocs/generate') #{manifest ? 'Regenerate Documents' : 'Generate Documents'}
+        a.btn-secondary(href='/' + slug + '/home?action=program') Back to Admin
+    .cq-status#cq-status
+
+    if when
+        p.cq-meta Last generated #{when}
+
+    if manifest && manifest.files && manifest.files.length
+        table.cq-table
+            thead
+                tr
+                    th Document
+                    th.c Word
+                    th.c PDF
+            tbody
+                each f in manifest.files
+                    tr(class=(f.categoryid == null ? 'all' : ''))
+                        td= f.label
+                        td.c
+                            if f.docx
+                                a(href='/' + slug + '/cqDocs/download?file=' + encodeURIComponent(f.docx)) Word
+                            else
+                                span.cq-na n/a
+                        td.c
+                            if f.pdf
+                                a(href='/' + slug + '/cqDocs/download?file=' + encodeURIComponent(f.pdf)) PDF
+                            else
+                                span.cq-na n/a
+    else
+        p.cq-intro No documents generated yet.
+
+script(nonce=nonce).
+    (function () {
+        var btn = document.getElementById('cq-build');
+        var status = document.getElementById('cq-status');
+        if (!btn) return;
+        btn.addEventListener('click', function () {
+            btn.disabled = true;
+            status.className = 'cq-status';
+            status.innerHTML = '<span class="cq-spinner"></span>Building documents — this can take a minute…';
+            fetch(btn.dataset.url, { method: 'POST' })
+                .then(function (r) { return r.json(); })
+                .then(function (r) {
+                    if (r.ok) {
+                        status.innerHTML = '<span class="cq-ok">✓ Done — ' + r.manifest.files.length + ' documents generated. Reloading…</span>';
+                        setTimeout(function () { location.reload(); }, 900);
+                    } else {
+                        btn.disabled = false;
+                        status.innerHTML = '<span class="cq-err">✗ ' + (r.error || 'Generation failed') + '</span>';
+                    }
+                })
+                .catch(function () {
+                    btn.disabled = false;
+                    status.innerHTML = '<span class="cq-err">✗ Network error</span>';
+                });
+        });
+    })();

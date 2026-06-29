@@ -364,3 +364,16 @@ enableArithAbort:true). Verified on DEV: the app's atomic upsert still works and
 insert is correctly blocked. Applied while no one was logged into 1056.
 
 - Applied to DEV: 2026-06-28 ✓  | PROD: 2026-06-28 ✓ (0 dup groups; index present; live upsert DML verified)
+
+## 074 — Program.docheaderimage (Category Documents header logo)
+
+`074_program_docheaderimage.sql`
+
+Adds `Program.docheaderimage` (NVARCHAR(255), nullable) — filename of a wide logo/banner the
+admin uploads (Admin → Program → Document header image) for the black header band of the
+generated "Categories, Criteria & Questions" Word/PDF documents. Stored under
+filestore/docheaders/{programid}/. Null = text-only band (program name). Companion feature:
+`services/cqDocs.js` + `routes/cqDocs.js` + Admin → Tools → Category Documents. PDF rendering
+requires `libreoffice-writer` installed on each node (docx→pdf via headless soffice).
+
+- Applied to DEV (local): 2026-06-29 ✓  | PROD: pending (deploy with the Category Documents feature)

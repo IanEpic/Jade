@@ -52,6 +52,20 @@ else
                         if program.faviconfile
                             button.btn-secondary(type='button' id='favicon-delete-btn' style='margin-left:6px;') Delete
                         span#favicon-status(style='margin-left:10px;font-size:13px;')
+                tr
+                    td Document header image
+                    td
+                        if program.docheaderimage
+                            img(src='/admin/docheader' style='height:32px;vertical-align:middle;margin-right:10px;background:#000;padding:2px 4px;border-radius:3px;')
+                            span(style='font-size:13px;color:#aaa;margin-right:12px;')= program.docheaderimage
+                        else
+                            span(style='font-size:13px;color:#666;margin-right:12px;') Using program name (text)
+                        input(type='file' id='docheader-input' accept='.png,.jpg,.jpeg' style='display:none')
+                        button.btn(type='button' id='docheader-btn') Upload Image
+                        if program.docheaderimage
+                            button.btn-secondary(type='button' id='docheader-delete-btn' style='margin-left:6px;') Delete
+                        span#docheader-status(style='margin-left:10px;font-size:13px;')
+                        div(style='font-size:12px;color:#888;margin-top:4px;') Wide logo/banner shown in the header band of the generated Category Documents (PNG/JPG).
 
         //- ── Portal Flags ─────────────────────────────────────────────────────
         fieldset

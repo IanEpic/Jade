@@ -221,6 +221,7 @@ export async function buildSidebar(user, program, data) {
                 { href: url('/home?action=voscript'), label: 'Finalist VO Script' },
                 { href: url('/home?action=citations'), label: 'Citations' },
                 { href: url('/home?action=prexport'), label: 'Export PR Info' },
+                { href: url('/home?action=cqdocs'), label: 'Category Documents' },
             ],
         };
         const statsPrograms = await getStatsPrograms();

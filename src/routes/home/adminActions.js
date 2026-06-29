@@ -191,6 +191,14 @@ export async function handleAdminAction(action, req, res, program, user) {
         return { view: 'home/prexport', latest };
     }
 
+    if (action === 'cqdocs') {
+        // Tools: Category Documents — build branded Word/PDF of categories, criteria & questions
+        // and (re)write the portal Downloads page. Shows the last-generated manifest.
+        const { getCQManifest } = await import('../../services/cqDocs.js');
+        const manifest = await getCQManifest(program.programid);
+        return { view: 'home/cqdocs', manifest };
+    }
+
     if (action === 'voscript') {
         // Tools: editable Finalist VO Script — tweak the wording, save, export to Word.
         const { items, saved } = await getVoScriptItems(program.programid);
