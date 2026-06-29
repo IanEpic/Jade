@@ -1,0 +1,93 @@
+//- home/theme.pug
+//- Admin → Theme (Look & Feel). 3a: brand assets (favicon, doc header image) for ALL programs.
+//- The colour/background/font token editor (3b) is shown for themed programs (1057+); legacy
+//- programs (≤1056) see a "classic template" note instead.
+
+-
+    var themed = content.themed
+    var theme = content.theme
+
+style.
+    .theme-page { max-width: 760px; margin: 0 auto; }
+    .theme-page h2 { color: var(--color-accent-strong); text-align: center; margin: 0 0 4px; }
+    .theme-page .tp-sub { color: var(--text-dim); font-size: 13px; text-align: center; margin: 0 auto 22px; max-width: 580px; line-height: 1.5; }
+    .theme-page fieldset { border: 1px solid var(--border-mid); border-radius: 6px; margin-bottom: 18px; padding: 8px 18px 16px; }
+    .theme-page legend { font-weight: bold; padding: 0 6px; font-size: 13px; text-transform: uppercase; letter-spacing: .04em; color: var(--color-accent-strong); }
+    .theme-page .asset-row { display: flex; align-items: flex-start; gap: 18px; padding: 14px 0; border-bottom: 1px solid var(--border-row); }
+    .theme-page .asset-row:last-child { border-bottom: none; }
+    .theme-page .asset-label { width: 150px; flex-shrink: 0; font-size: 13px; color: var(--text-label); padding-top: 12px; }
+    .theme-page .asset-ctl { flex: 1; }
+    .media-box { display: flex; flex-direction: column; gap: 11px; width: 100%; box-sizing: border-box; padding: 14px; background: var(--surface-sunken); border: 1px dashed var(--border-dashed); border-radius: 6px; cursor: pointer; transition: border-color .15s, background .15s; }
+    .media-box:hover { border-color: var(--border-mid); }
+    .media-box.drag-over { border-color: var(--color-accent-strong); border-style: solid; background: rgba(196,143,6,.07); }
+    .media-preview { display: flex; align-items: center; gap: 10px; }
+    .media-preview img { width: 30px; height: 30px; object-fit: contain; border-radius: 3px; background: var(--surface-raised); flex-shrink: 0; }
+    .media-preview img.on-dark { background: #000; padding: 3px 6px; height: 30px; width: auto; }
+    .media-preview .fname { font-size: 13px; color: var(--text-strong); }
+    .media-preview .fnone { font-size: 13px; color: var(--text-faint); font-style: italic; }
+    .media-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .media-actions span { font-size: 13px; }
+    .media-note { font-size: 12px; color: var(--text-faint); }
+    .media-note b { color: var(--text-fainter); font-weight: 600; }
+    .field-hint { color: var(--text-dim); font-size: 12px; margin-top: 8px; max-width: 480px; }
+    .tp-legacy { background: var(--surface-sunken); border: 1px solid var(--border); border-radius: 6px; padding: 16px 18px; font-size: 13px; color: var(--text-label); line-height: 1.6; }
+    .tp-legacy b { color: var(--text-strong); }
+    .tp-soon { color: var(--text-faint); font-size: 13px; text-align: center; padding: 20px; }
+
+.theme-page
+    h2 Theme — Look &amp; Feel
+    p.tp-sub Brand assets and (for new token-driven programs) the colour scheme, background and fonts
+        |  of this program’s portal.
+
+    //- ── Brand assets (all programs) ──────────────────────────────────────────
+    fieldset
+        legend Brand Assets
+        .asset-row
+            .asset-label Favicon
+            .asset-ctl
+                .media-box#favicon-box
+                    .media-preview
+                        if program.faviconfile
+                            img(src='/admin/favicon')
+                            span.fname= program.faviconfile
+                        else
+                            span.fnone Using JADE default
+                    .media-actions
+                        input(type='file' id='favicon-input' accept='.svg,.png,.ico' style='display:none')
+                        button.btn(type='button' id='favicon-btn') Upload Icon
+                        if program.faviconfile
+                            button.btn-secondary(type='button' id='favicon-delete-btn') Delete
+                        span#favicon-status
+                    .media-note #[b Drag &amp; drop] an icon here, or click to browse — SVG, PNG or ICO.
+        .asset-row
+            .asset-label Document header image
+            .asset-ctl
+                .media-box#docheader-box
+                    .media-preview
+                        if program.docheaderimage
+                            img.on-dark(src='/admin/docheader')
+                            span.fname= program.docheaderimage
+                        else
+                            span.fnone Using program name (text)
+                    .media-actions
+                        input(type='file' id='docheader-input' accept='.png,.jpg,.jpeg' style='display:none')
+                        button.btn(type='button' id='docheader-btn') Upload Image
+                        if program.docheaderimage
+                            button.btn-secondary(type='button' id='docheader-delete-btn') Delete
+                        span#docheader-status
+                    .media-note #[b Drag &amp; drop] an image here, or click to browse — PNG or JPG.
+                .field-hint Wide logo/banner shown in the header band of the generated Category Documents (PNG/JPG).
+
+    //- ── Look & feel (themed programs only) ───────────────────────────────────
+    fieldset
+        legend Colours, Background &amp; Fonts
+        if themed
+            p.tp-soon The colour, background and font editor is coming next (this program is token-driven).
+        else
+            .tp-legacy
+                p This program uses the #[b classic template] (year-named HTML shells). The colour /
+                    |  background / font editor applies to #[b token-driven] programs, which is the model
+                    |  for new programs (2027 onward).
+                p(style='margin-bottom:0') Its #[b favicon] and #[b document header image] above still apply.
+
+script(src='/js/home-theme.js?v=' + buildHash)

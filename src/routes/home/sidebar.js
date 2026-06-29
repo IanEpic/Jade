@@ -172,6 +172,7 @@ export async function buildSidebar(user, program, data) {
             back: 'main', backLabel: '< Main Menu',
             items: [
                 { href: url('/home?action=program'), label: 'Program' },
+                { href: url('/home?action=theme'), label: 'Theme' },
                 { submenu: 'setup',    label: 'Setup' },
                 { submenu: 'judging',  label: 'Judging' },
                 { submenu: 'airules',  label: 'AI Rules' },
