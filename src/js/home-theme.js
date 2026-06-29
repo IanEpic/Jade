@@ -98,7 +98,8 @@ wireDrop('docheader-box', 'docheader-input', 'docheader-status', '/admin/upload-
     function applyPreview() {
         var t = tokens();
         var css = Object.keys(t).map(function (k) { return '--' + k + ':' + t[k]; }).join(';');
-        preview.setAttribute('style', css + (state.background.color ? ';background:' + state.background.color : ''));
+        // Paint the page-background colour on the preview directly so it updates live.
+        preview.setAttribute('style', css + ';background:' + t['color-bg']);
     }
     function refreshAdvanced() {
         var t = tokens();
