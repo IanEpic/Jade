@@ -172,13 +172,20 @@ export async function buildSidebar(user, program, data) {
             back: 'main', backLabel: '< Main Menu',
             items: [
                 { href: url('/home?action=program'), label: 'Program' },
-                { href: url('/home?action=theme'), label: 'Theme' },
+                { submenu: 'theme',    label: 'Theme' },
                 { submenu: 'setup',    label: 'Setup' },
                 { submenu: 'judging',  label: 'Judging' },
                 { submenu: 'airules',  label: 'AI Rules' },
                 { submenu: 'adminpay', label: 'Payments' },
                 { submenu: 'tools',    label: 'Tools' },
                 { submenu: 'reports',  label: 'Reports' },
+            ],
+        };
+        panels.theme = {
+            back: 'admin', backLabel: '< Admin',
+            items: [
+                { href: url('/home?action=theme'),     label: 'Look & Feel' },
+                { href: url('/home?action=emailsetup'), label: 'Email Setup' },
             ],
         };
         panels.setup = {

@@ -307,19 +307,40 @@ export function buildThemedEmail(program, theme, contentHtml) {
     const lt = emailLightTokens(theme);                                              // light body + brand accent
     const title = (program.name || 'JADE Awards').replace(/[<>]/g, '');
     const base = (server.baseUrl || '').replace(/\/+$/, '');
+    // A dedicated full-width email banner (theme.emailHeader) takes precedence; else the portal logo
+    // on the masthead colour; else the program name as text.
+    const banner = theme && theme.emailHeader ? `${base}/${program.slug}/admin/emailheader` : null;
     const logo = theme && theme.logo ? `${base}/${program.slug}/admin/themelogo` : null;
-    const headerInner = logo
-        ? `<img src="${logo}" alt="${title}" style="max-height:50px;max-width:260px;">`
-        : `<span style="color:${themeTk['header-text']};font-size:20px;font-weight:600;">${title}</span>`;
+    const mastheadRow = banner
+        ? `<tr><td style="padding:0;line-height:0;background:${themeTk['header-bg']};"><img src="${banner}" alt="${title}" style="display:block;width:100%;max-width:600px;"></td></tr>`
+        : `<tr><td style="background:${themeTk['header-bg']};padding:18px 24px;text-align:center;">${logo
+            ? `<img src="${logo}" alt="${title}" style="max-height:50px;max-width:260px;">`
+            : `<span style="color:${themeTk['header-text']};font-size:20px;font-weight:600;">${title}</span>`}</td></tr>`;
     const footer = safeFooter(theme && theme.footer) || `&copy; ${new Date().getFullYear()} ${title}`;
     const body = resolveCssVars(contentHtml, lt);
     return `<!doctype html>
 <html><body style="margin:0;padding:24px 12px;background:${lt['color-bg']};font-family:Arial,Helvetica,sans-serif;">
 <table align="center" width="600" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;width:100%;margin:0 auto;background:${lt['surface']};border:1px solid ${lt['border']};border-radius:8px;overflow:hidden;">
-<tr><td style="background:${themeTk['header-bg']};padding:18px 24px;text-align:center;">${headerInner}</td></tr>
+${mastheadRow}
 <tr><td style="padding:24px;color:${lt['color-text']};font-size:14px;line-height:1.55;">${body}</td></tr>
 <tr><td style="background:${lt['surface-2']};padding:16px 24px;text-align:center;color:${lt['color-muted']};font-size:12px;border-top:1px solid ${lt['border']};">${footer}</td></tr>
 </table></body></html>`;
+}
+
+// Representative invoice content for the Email Setup live preview (uses var() like the real
+// formInvoice-content, so the preview exercises the same colour resolution).
+const SAMPLE_EMAIL_CONTENT = `
+<h2 style="color:var(--color-accent-strong);margin:0 0 4px;font-size:18px;">Tax Invoice</h2>
+<p style="color:var(--color-muted);margin:0 0 16px;font-size:13px;">Invoice No 1042 &nbsp;·&nbsp; Issued today</p>
+<p style="color:var(--color-text);margin:0 0 14px;">Dear entrant, thank you for your entry. Your invoice is below.</p>
+<table style="width:100%;border-collapse:collapse;margin-bottom:14px;">
+  <tr><td style="border-bottom:1px solid var(--border-subtle);padding:7px 4px;color:var(--color-text);">Best Live Event &mdash; "Harbour Festival"</td><td style="border-bottom:1px solid var(--border-subtle);padding:7px 4px;text-align:right;color:var(--color-text);">$550.00</td></tr>
+  <tr><td style="padding:7px 4px;color:var(--color-text);font-weight:700;">Total (inc GST)</td><td style="padding:7px 4px;text-align:right;color:var(--color-text);font-weight:700;">$550.00</td></tr>
+</table>
+<p style="color:var(--color-muted);font-size:12px;margin:0;">Payment instructions: pay by EFT to BSB 000-000, Acc 12345678, ref INV1042.</p>`;
+
+export function buildSampleEmail(program, theme) {
+    return buildThemedEmail(program, theme || parseTheme(program), SAMPLE_EMAIL_CONTENT);
 }
 
 // Wrap rendered email content in the program's shell (themed or legacy file). Async (legacy reads a file).

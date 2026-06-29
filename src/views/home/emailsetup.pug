@@ -1,0 +1,60 @@
+//- home/emailsetup.pug
+//- Admin → Theme → Email Setup. Live preview of the branded transactional email (invoice/payment),
+//- an optional dedicated email banner upload, and a note on where the colours/footer come from.
+
+style.
+    .es-page { max-width: 720px; margin: 0 auto; }
+    .es-page h2 { color: var(--color-accent-strong); text-align: center; margin: 0 0 4px; }
+    .es-page .es-sub { color: var(--text-dim); font-size: 13px; text-align: center; margin: 0 auto 22px; max-width: 580px; line-height: 1.5; }
+    .es-page fieldset { border: 1px solid var(--border-mid); border-radius: 6px; margin-bottom: 18px; padding: 8px 18px 16px; }
+    .es-page legend { font-weight: bold; padding: 0 6px; font-size: 13px; text-transform: uppercase; letter-spacing: .04em; color: var(--color-accent-strong); }
+    .asset-label { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .03em; color: var(--text-label); margin-bottom: 8px; }
+    .media-box { display: flex; flex-direction: column; gap: 11px; width: 100%; box-sizing: border-box; padding: 14px; background: var(--surface-sunken); border: 1px dashed var(--border-dashed); border-radius: 6px; cursor: pointer; transition: border-color .15s, background .15s; }
+    .media-box:hover { border-color: var(--border-mid); }
+    .media-box.drag-over { border-color: var(--color-accent-strong); border-style: solid; background: rgba(196,143,6,.07); }
+    .media-preview { display: flex; align-items: center; gap: 10px; }
+    .media-preview img.on-dark { background: #000; padding: 3px 6px; height: 34px; width: auto; max-width: 260px; object-fit: contain; border-radius: 3px; flex-shrink: 0; }
+    .media-preview .fname { font-size: 13px; color: var(--text-strong); }
+    .media-preview .fnone { font-size: 13px; color: var(--text-faint); font-style: italic; }
+    .media-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .media-actions span { font-size: 13px; }
+    .media-note { font-size: 12px; color: var(--text-faint); }
+    .media-note b { color: var(--text-fainter); font-weight: 600; }
+    .es-preview-frame { width: 100%; height: 560px; border: 1px solid var(--border); border-radius: 6px; background: #fff; }
+    .es-note { background: var(--surface-sunken); border: 1px solid var(--border); border-radius: 6px; padding: 14px 16px; font-size: 13px; color: var(--text-label); line-height: 1.6; }
+    .es-note b { color: var(--text-strong); }
+
+.es-page
+    h2 Email Setup
+    p.es-sub How your transactional emails (invoices &amp; payment receipts) are branded.
+
+    if !content.themed
+        .es-note
+            p This program uses the #[b classic email template] (a fixed HTML file). Branded email setup becomes available once the program is on the token-driven theme system — set up colours &amp; logo under #[b Theme → Look &amp; Feel] first.
+    else
+        fieldset
+            legend Email Banner
+            .asset-label Email header image (optional)
+            .media-box#emailheader-box
+                .media-preview
+                    if content.hasBanner
+                        img.on-dark(src='/admin/emailheader')
+                        span.fname email banner set
+                    else
+                        span.fnone Using the portal logo on the masthead colour
+                .media-actions
+                    input(type='file' id='emailheader-input' accept='.png,.jpg,.jpeg' style='display:none')
+                    button.btn(type='button' id='emailheader-btn') Upload Banner
+                    if content.hasBanner
+                        button.btn-secondary(type='button' id='emailheader-delete-btn') Delete
+                    span#emailheader-status
+                .media-note #[b Drag &amp; drop] a wide banner here, or click to browse — PNG or JPG, ~600px wide. Overrides the portal logo in emails.
+
+        fieldset
+            legend Live Preview
+            iframe.es-preview-frame(srcdoc=content.previewHtml title='Email preview')
+
+        .es-note
+            p Emails are #[b always light] for inbox readability: a branded masthead (your header colour + logo, or the banner above) over a white body. #[b Colours, logo and the footer] come from #[b Theme → Look &amp; Feel] — change them there and they flow through to email automatically.
+
+    script(defer src='/js/home-emailsetup.js?v=' + buildHash)

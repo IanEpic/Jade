@@ -207,6 +207,7 @@ router.post('/theme', async (req, res, next) => {
         // sent in the editor's save payload, so re-attach them from the existing theme.
         const existing = parseTheme(program) || {};
         if (existing.logo) clean.logo = existing.logo;
+        if (existing.emailHeader) clean.emailHeader = existing.emailHeader;
         if (existing.background && existing.background.image) {
             clean.background = Object.assign({}, clean.background, { image: existing.background.image });
         }
@@ -231,8 +232,9 @@ function themeAssetUpload(name) {
         fileFilter: (req, file, cb) => cb(null, ['.png', '.jpg', '.jpeg', '.svg', '.webp'].includes(path.extname(file.originalname).toLowerCase())),
     });
 }
-const logoUpload    = themeAssetUpload('logo');
-const themeBgUpload = themeAssetUpload('themebg');
+const logoUpload        = themeAssetUpload('logo');
+const themeBgUpload     = themeAssetUpload('themebg');
+const emailHeaderUpload = themeAssetUpload('emailheader');
 
 async function saveThemeAsset(programid, mutate) {
     const program = await Program.findByPk(programid);
@@ -269,6 +271,21 @@ router.post('/delete-themebg', async (req, res, next) => {
         await saveThemeAsset(req.user.programid, async (t, program) => {
             const img = t.background && t.background.image;
             if (img) { const p = docHeaderPath(program.programid, img); if (p) await fs.unlink(p).catch(() => {}); delete t.background.image; }
+        });
+        res.json({ status: 'OK' });
+    } catch (err) { next(err); }
+});
+router.post('/upload-emailheader', emailHeaderUpload.single('emailheader'), async (req, res, next) => {
+    try {
+        if (!req.file) return res.json({ status: 'E_NOFILE' });
+        await saveThemeAsset(req.user.programid, (t) => { t.emailHeader = req.file.filename; });
+        res.json({ status: 'OK', filename: req.file.filename });
+    } catch (err) { next(err); }
+});
+router.post('/delete-emailheader', async (req, res, next) => {
+    try {
+        await saveThemeAsset(req.user.programid, async (t, program) => {
+            if (t.emailHeader) { const p = docHeaderPath(program.programid, t.emailHeader); if (p) await fs.unlink(p).catch(() => {}); delete t.emailHeader; }
         });
         res.json({ status: 'OK' });
     } catch (err) { next(err); }

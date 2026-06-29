@@ -92,8 +92,9 @@ function serveThemeAsset(getFilename) {
         res.sendFile(filePath, err => { if (err && !res.headersSent) res.status(404).end(); });
     };
 }
-router.get('/admin/themelogo', serveThemeAsset(t => t.logo));
-router.get('/admin/themebg',   serveThemeAsset(t => t.background && t.background.image));
+router.get('/admin/themelogo',   serveThemeAsset(t => t.logo));
+router.get('/admin/themebg',     serveThemeAsset(t => t.background && t.background.image));
+router.get('/admin/emailheader', serveThemeAsset(t => t.emailHeader));
 
 // ── Session keep-alive ────────────────────────────────────────────────────────
 // Called by client JS every 10 min. Resets the rolling session cookie.

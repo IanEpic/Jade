@@ -203,6 +203,15 @@ export async function handleAdminAction(action, req, res, program, user) {
         return { view: 'home/theme', theme, themed: !!theme, canEnable, DEFAULT_TOKENS, TOKEN_GROUPS, CORE_KEYS, DARK_CORE, LIGHT_CORE, FONTS };
     }
 
+    if (action === 'emailsetup') {
+        // Admin → Theme → Email Setup: live preview of the branded transactional email + optional
+        // dedicated email banner upload. Themed programs (1057+) only; legacy shows a note.
+        const { parseTheme, buildSampleEmail } = await import('../../services/theme.js');
+        const theme = parseTheme(program);
+        const previewHtml = theme ? buildSampleEmail(program, theme) : null;
+        return { view: 'home/emailsetup', themed: !!theme, hasBanner: !!(theme && theme.emailHeader), previewHtml };
+    }
+
     if (action === 'cqdocs') {
         // Tools: Category Documents — queue a branded Word/PDF build of categories, criteria &
         // questions (background worker) which also (re)writes the portal Downloads page. Shows the
