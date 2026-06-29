@@ -30,7 +30,7 @@ style.
     h3= isNew ? 'New Judge' : 'Edit Judge — ' + judge.firstname + ' ' + judge.lastname
 
     if content.error
-        p(style='background:#3a1a1a; color:var(--color-text); padding:8px 12px; border-left:4px solid #c44; margin-bottom:14px')= content.error
+        p(style='background:#3a1a1a; color:#fff; padding:8px 12px; border-left:4px solid #c44; margin-bottom:14px')= content.error
 
     if existingUser
         .conflict-notice
