@@ -119,6 +119,8 @@ export function sanitizeThemeInput(raw) {
         if (/^#[0-9a-fA-F]{3,8}$|^rgba?\(/.test(String(t.background.overlay || ''))) bg.overlay = t.background.overlay;
         if (Object.keys(bg).length) out.background = bg;
     }
+    if (['left', 'center', 'right'].includes(t.logoAlign)) out.logoAlign = t.logoAlign;
+    if (['fill', 'large', 'medium', 'small'].includes(t.logoSize)) out.logoSize = t.logoSize;
     if (t.font && typeof t.font === 'object') {
         const f = {};
         if (safeCss(t.font.body)) f.body = String(t.font.body).slice(0, 60);
@@ -172,7 +174,9 @@ export function buildThemeStyle(theme, { slug = '' } = {}) {
     }
     const fontBody = theme.font && safeCss(theme.font.body);
     if (fontBody) parts.push(`font-family:${fontBody}`);
-    const body = parts.length ? `body{${parts.join(';')}}` : '';
+    // Target body.themed (matches the legacy `body.themed{background-image:none}` specificity and
+    // comes later in source) so the theme background image actually wins.
+    const body = parts.length ? `body.themed{${parts.join(';')}}` : '';
 
     const fontHeading = theme.font && safeCss(theme.font.heading);
     const headings = fontHeading ? `h1,h2,h3,h4,h5,h6{font-family:${fontHeading}}` : '';
@@ -197,9 +201,12 @@ export function buildThemedShell(program, theme, { useLoginShell = false, buildH
     const mode = (theme && theme.mode === 'light') ? 'light' : 'dark';
     // Uploaded logo (filestore, served via /:slug/admin/themelogo) → header band; else program name.
     const logoSrc = (theme && theme.logo) ? `/${program.slug}/admin/themelogo` : null;
+    const align = theme && theme.logoAlign === 'left' ? 'flex-start'
+                : theme && theme.logoAlign === 'right' ? 'flex-end' : 'center';
+    const logoH = ({ fill: '100%', large: '52px', medium: '40px', small: '28px' })[theme && theme.logoSize] || '100%';
     const header = logoSrc
-        ? `<header class="themed-header"><img src="${logoSrc}" alt="${title}" class="themed-logo"></header>`
-        : `<header class="themed-header"><span class="themed-title">${title}</span></header>`;
+        ? `<header class="themed-header" style="justify-content:${align}"><img src="${logoSrc}" alt="${title}" class="themed-logo" style="height:${logoH}"></header>`
+        : `<header class="themed-header" style="justify-content:${align}"><span class="themed-title">${title}</span></header>`;
     return `<!doctype html>
 <html lang="en">
 <head>

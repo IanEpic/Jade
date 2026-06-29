@@ -542,14 +542,18 @@ body.themed
 
 .themed-header
   background var(--header-bg)
-  padding 14px 20px
-  text-align center
+  height 72px
+  padding 0 22px
+  display flex
+  align-items center
+  justify-content center
   border-bottom 1px solid var(--border-faint)
 
 .themed-logo
-  max-height 56px
+  height 100%
   width auto
-  display inline-block
+  max-width 100%
+  object-fit contain
 
 .themed-title
   color var(--color-text)

@@ -116,7 +116,12 @@ wireDrop('themebg-box', 'themebg-input', 'themebg-status', '/admin/upload-themeb
         };
     }
 
-    var state = { core: Object.assign({}, data.core), overrides: Object.assign({}, data.overrides), background: Object.assign({}, data.background), font: Object.assign({}, data.font) };
+    var state = { core: Object.assign({}, data.core), overrides: Object.assign({}, data.overrides), background: Object.assign({}, data.background), font: Object.assign({}, data.font), logoAlign: data.logoAlign, logoSize: data.logoSize };
+
+    // Logo position/size selects (in Brand Assets) — saved with the theme.
+    Array.prototype.forEach.call(document.querySelectorAll('select[data-logo]'), function (sel) {
+        sel.addEventListener('change', function () { state['logo' + sel.getAttribute('data-logo').charAt(0).toUpperCase() + sel.getAttribute('data-logo').slice(1)] = sel.value; });
+    });
 
     function tokens() { return Object.assign(derive(state.core), state.overrides); }
 
@@ -185,7 +190,7 @@ wireDrop('themebg-box', 'themebg-input', 'themebg-status', '/admin/upload-themeb
         saveBtn.disabled = true;
         if (saveStatus) { saveStatus.style.color = ''; saveStatus.textContent = 'Saving…'; }
         var mode = lum(state.core.bg) > 0.55 ? 'light' : 'dark';
-        var payload = { mode: mode, core: state.core, overrides: state.overrides, tokens: tokens(), background: state.background, font: state.font };
+        var payload = { mode: mode, core: state.core, overrides: state.overrides, tokens: tokens(), background: state.background, font: state.font, logoAlign: state.logoAlign, logoSize: state.logoSize };
         fetch(window.JADE_BASE + '/admin/theme', { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: 'theme=' + encodeURIComponent(JSON.stringify(payload)) })
             .then(function (r) { return r.json(); })
             .then(function (r) {

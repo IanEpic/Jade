@@ -65,6 +65,7 @@ style.
     .tp-grid .tp-swatch { width: 34px; height: 22px; }
     .tp-sub-row { display: flex; align-items: center; gap: 10px; padding: 6px 0; }
     .tp-sub-row label { width: 150px; flex-shrink: 0; font-size: 12px; color: var(--text-dim); }
+    .tp-logo-opts { display: flex; align-items: center; gap: 6px; margin-top: 10px; flex-wrap: wrap; }
     .tp-preview-wrap { width: 280px; flex-shrink: 0; position: sticky; top: 12px; }
     #tp-preview { padding: 14px; border-radius: 6px; background: var(--color-bg); background-size: cover; background-position: center; }
     select.tp-text { -webkit-appearance: menulist; }
@@ -131,6 +132,39 @@ style.
                                 button.btn-secondary(type='button' id='logo-delete-btn') Delete
                             span#logo-status
                         .media-note #[b Drag &amp; drop] a logo here, or click to browse — shown in the portal header band.
+                        .tp-logo-opts
+                            label(style='font-size:12px;color:var(--text-dim)') Position
+                            select.tp-text(data-logo='align' style='width:auto')
+                                option(value='left' selected=(theme.logoAlign==='left')) Left
+                                option(value='center' selected=(theme.logoAlign!=='left' && theme.logoAlign!=='right')) Center
+                                option(value='right' selected=(theme.logoAlign==='right')) Right
+                            label(style='font-size:12px;color:var(--text-dim);margin-left:10px') Size
+                            select.tp-text(data-logo='size' style='width:auto')
+                                option(value='fill' selected=(!theme.logoSize || theme.logoSize==='fill')) Fill height
+                                option(value='large' selected=(theme.logoSize==='large')) Large
+                                option(value='medium' selected=(theme.logoSize==='medium')) Medium
+                                option(value='small' selected=(theme.logoSize==='small')) Small
+                        p.field-hint(style='margin-top:6px') Position &amp; size apply after #[b Save Theme] + reload.
+            .asset-row
+                .asset-label Background image
+                .asset-ctl
+                    .media-box#themebg-box
+                        .media-preview
+                            if bg.image
+                                img(src='/admin/themebg')
+                                span.fname= bg.image
+                            else
+                                span.fnone Solid colour (Page background)
+                        .media-actions
+                            input(type='file' id='themebg-input' accept='.png,.jpg,.jpeg,.webp' style='display:none')
+                            button.btn(type='button' id='themebg-btn') Upload Image
+                            if bg.image
+                                button.btn-secondary(type='button' id='themebg-delete-btn') Delete
+                            span#themebg-status
+                        .media-note #[b Drag &amp; drop] a background image, or click to browse — JPG/PNG/WEBP.
+                    .tp-logo-opts
+                        label(style='font-size:12px;color:var(--text-dim)') Scrim / overlay
+                        input.tp-text(type='text' data-bg='overlay' value=(bg.overlay || '') placeholder='rgba(0,0,0,.45) — darkens a busy image' style='flex:1')
 
     //- ── Look & feel ──────────────────────────────────────────────────────────
     if !themed
@@ -187,25 +221,6 @@ style.
                         select.tp-text(data-font='heading')
                             each f in fonts
                                 option(value=f.stack data-google=f.google selected=(font.heading===f.stack))= f.name
-                fieldset
-                    legend Background image
-                    .media-box#themebg-box
-                        .media-preview
-                            if bg.image
-                                img(src='/admin/themebg')
-                                span.fname= bg.image
-                            else
-                                span.fnone Solid colour (Page background)
-                        .media-actions
-                            input(type='file' id='themebg-input' accept='.png,.jpg,.jpeg,.webp' style='display:none')
-                            button.btn(type='button' id='themebg-btn') Upload Image
-                            if bg.image
-                                button.btn-secondary(type='button' id='themebg-delete-btn') Delete
-                            span#themebg-status
-                        .media-note #[b Drag &amp; drop] a background image, or click to browse — JPG/PNG/WEBP.
-                    .tp-sub-row(style='margin-top:10px')
-                        label Scrim / overlay
-                        input.tp-text(type='text' data-bg='overlay' value=(bg.overlay || '') placeholder='rgba(0,0,0,.45) — darkens a busy image for legibility')
             .tp-preview-wrap
                 fieldset(style='margin:0')
                     legend Live Preview
@@ -222,6 +237,6 @@ style.
                         input(type='text' value='Input field' style='background:var(--input-bg);color:var(--color-text);border:1px solid var(--input-border);padding:6px 10px;width:100%;box-sizing:border-box;margin-bottom:10px')
                         div(style='background:#1a4a1a;color:#fff;padding:6px 12px;border-left:4px solid #4caf50;font-size:12px') Status banner
 
-        script(type='application/json' id='tp-data')!= JSON.stringify({ core: core, overrides: theme.overrides || {}, background: bg, font: font, defaults: defaults, darkCore: darkCore, lightCore: lightCore })
+        script(type='application/json' id='tp-data')!= JSON.stringify({ core: core, overrides: theme.overrides || {}, background: bg, font: font, logoAlign: theme.logoAlign || 'center', logoSize: theme.logoSize || 'fill', defaults: defaults, darkCore: darkCore, lightCore: lightCore })
 
 script(src='/js/home-theme.js?v=' + buildHash)
