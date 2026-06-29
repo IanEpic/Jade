@@ -22,7 +22,10 @@ router.get('/', async (req, res, next) => {
       }, { useLoginShell: true });
     }
 
-    if (req.session.userId) return res.redirect('/home');
+    // Only bounce to /home when the session belongs to THIS program. Otherwise (logged into a
+    // different program, no access here) fall through and show the login page — without this guard,
+    // requireAuth on /home redirects back to /login and the two ping-pong ("too many redirects").
+    if (req.session.userId && req.session.programId === req.program.programid) return res.redirect('/home');
 
     if (req.query.action === 'change_email') {
       return res.renderInShell('login', {
