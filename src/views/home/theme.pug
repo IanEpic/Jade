@@ -42,6 +42,8 @@ style.
     .media-note { font-size: 12px; color: var(--text-faint); }
     .media-note b { color: var(--text-fainter); font-weight: 600; }
     .field-hint { color: var(--text-dim); font-size: 12px; margin-top: 8px; max-width: 480px; }
+    .tp-banner { background: var(--surface-sunken); border: 1px solid var(--border); border-left: 4px solid var(--color-accent); border-radius: 6px; padding: 12px 16px; font-size: 13px; color: var(--text-label); line-height: 1.55; margin-bottom: 18px; }
+    .tp-banner b { color: var(--text-strong); }
     .tp-legacy { background: var(--surface-sunken); border: 1px solid var(--border); border-radius: 6px; padding: 16px 18px; font-size: 13px; color: var(--text-label); line-height: 1.6; }
     .tp-legacy b { color: var(--text-strong); }
     .tp-toolbar { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
@@ -77,6 +79,9 @@ style.
     h2 Theme — Look &amp; Feel
     p.tp-sub Brand assets and (for token-driven programs) the colour scheme, background and fonts of
         |  this program’s portal.
+
+    if !themed
+        .tp-banner This program uses the #[b classic template]. You can manage #[b brand assets] (favicon, document header) below — colour, background &amp; font customisation applies to token-driven programs (2027 onward).
 
     //- ── Brand assets (all programs) ──────────────────────────────────────────
     fieldset
