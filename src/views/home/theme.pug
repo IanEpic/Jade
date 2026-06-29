@@ -45,7 +45,8 @@ style.
     .tp-legacy b { color: var(--text-strong); }
     //- Editor
     .tp-toolbar { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }
-    .tp-toolbar button[data-preset] { min-width: 64px; }
+    .tp-toolbar .tp-presets { display: flex; align-items: center; gap: 10px; margin-right: auto; }
+    .tp-toolbar button { margin: 0; min-width: 64px; }
     .tp-cols { display: flex; gap: 18px; align-items: flex-start; }
     .tp-controls { flex: 1; min-width: 0; }
     .tp-core { display: flex; flex-direction: column; gap: 2px; }
@@ -122,10 +123,10 @@ style.
                 p(style='margin-bottom:0') Its #[b favicon] and #[b document header image] above still apply.
     else
         .tp-toolbar
-            span(style='font-size:13px;color:var(--text-label)') Preset:
-            button.btn-secondary(type='button' data-preset='dark') Dark
-            button.btn-secondary(type='button' data-preset='light') Light
-            span(style='flex:1')
+            .tp-presets
+                span(style='font-size:13px;color:var(--text-label)') Preset:
+                button.btn-secondary(type='button' data-preset='dark') Dark
+                button.btn-secondary(type='button' data-preset='light') Light
             button.btn#tp-save(type='button') Save Theme
             span#tp-save-status(style='font-size:13px')
         .tp-cols
