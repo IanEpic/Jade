@@ -25,15 +25,21 @@ import { filestore } from '../config.js';
 import Program from '../models/Program.js';
 
 const FILESTORE_ROOT = process.env.FILESTORE_ROOT || filestore.root;
-const DOCHEADERS_DIR  = path.join(FILESTORE_ROOT, 'docheaders');
 const SOFFICE = process.env.SOFFICE_PATH || 'soffice';
+
+// One folder per program on the shared filestore holds all its generated assets.
+//   {root}/programs/{programid}/docheader.<ext>   ← uploaded header logo
+//   {root}/programs/{programid}/cqdocs/           ← generated Word/PDF + manifest.json
+export const programDir = (programId) => path.join(FILESTORE_ROOT, 'programs', String(programId));
+export const docHeaderPath = (programId, filename) =>
+    (!filename || /[\\/]|\.\./.test(filename)) ? null : path.join(programDir(programId), filename);
 
 const TEAL   = '1F6F8B';   // category title
 const DARK   = '222222';   // section headings / body
 const GREY   = '666666';   // helper text
 const ACCENT = 'C48F06';   // word-limit accent (matches portal)
 
-const cqDir = (programId) => path.join(FILESTORE_ROOT, 'cqdocs', String(programId));
+const cqDir = (programId) => path.join(programDir(programId), 'cqdocs');
 
 // ── Data ──────────────────────────────────────────────────────────────────────
 
@@ -291,8 +297,8 @@ async function buildHeader(program) {
     // Black band; logo image if the program has one, else the program name in white.
     let imageChild = null;
     if (program.docheaderimage) {
-        const imgPath = path.join(DOCHEADERS_DIR, String(program.programid), program.docheaderimage);
-        if (fs.existsSync(imgPath)) {
+        const imgPath = docHeaderPath(program.programid, program.docheaderimage);
+        if (imgPath && fs.existsSync(imgPath)) {
             try {
                 const buf = await fsp.readFile(imgPath);
                 const meta = await sharp(buf).metadata();

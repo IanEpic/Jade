@@ -371,8 +371,9 @@ insert is correctly blocked. Applied while no one was logged into 1056.
 
 Adds `Program.docheaderimage` (NVARCHAR(255), nullable) — filename of a wide logo/banner the
 admin uploads (Admin → Program → Document header image) for the black header band of the
-generated "Categories, Criteria & Questions" Word/PDF documents. Stored under
-filestore/docheaders/{programid}/. Null = text-only band (program name). Companion feature:
+generated "Categories, Criteria & Questions" Word/PDF documents. Stored under the program's
+shared-filestore folder programs/{programid}/ (alongside programs/{programid}/cqdocs/ for the
+generated Word/PDF). Null = text-only band (program name). Companion feature:
 `services/cqDocs.js` + `routes/cqDocs.js` + Admin → Tools → Category Documents. PDF rendering
 requires `libreoffice-writer` installed on each node (docx→pdf via headless soffice).
 

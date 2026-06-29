@@ -10,17 +10,17 @@ import JudgingModel from '../models/JudgingModel.js';
 import { getPool, sql } from '../config/database.js';
 import multer   from 'multer';
 import path     from 'path';
+import { programDir, docHeaderPath } from '../services/cqDocs.js';
 import fs       from 'fs/promises';
 import fsSync   from 'fs';
 
 const FILESTORE_ROOT  = process.env.FILESTORE_ROOT || 'C:/Data/LocalJadeFilestore';
 const FAVICONS_DIR    = path.join(FILESTORE_ROOT, 'favicons');
-const DOCHEADERS_DIR  = path.join(FILESTORE_ROOT, 'docheaders');
 
 const docHeaderUpload = multer({
     storage: multer.diskStorage({
         destination: async (req, file, cb) => {
-            const dir = path.join(DOCHEADERS_DIR, String(req.user.programid));
+            const dir = programDir(req.user.programid);   // {root}/programs/{pid}
             await fs.mkdir(dir, { recursive: true });
             cb(null, dir);
         },
@@ -207,7 +207,8 @@ router.post('/delete-docheader', async (req, res, next) => {
     try {
         const program = await Program.findByPk(req.user.programid);
         if (program.docheaderimage) {
-            await fs.unlink(path.join(DOCHEADERS_DIR, String(program.programid), program.docheaderimage)).catch(() => {});
+            const p = docHeaderPath(program.programid, program.docheaderimage);
+            if (p) await fs.unlink(p).catch(() => {});
             await program.update({ docheaderimage: null });
             bustProgramCache(program.slug, program.fqdn);
         }
@@ -220,8 +221,8 @@ router.post('/delete-docheader', async (req, res, next) => {
 router.get('/docheader', async (req, res) => {
     const program = await Program.findByPk(req.user.programid);
     if (!program?.docheaderimage) return res.status(404).end();
-    const filePath = path.join(DOCHEADERS_DIR, String(program.programid), program.docheaderimage);
-    if (!fsSync.existsSync(filePath)) return res.status(404).end();
+    const filePath = docHeaderPath(program.programid, program.docheaderimage);
+    if (!filePath || !fsSync.existsSync(filePath)) return res.status(404).end();
     res.sendFile(filePath, err => { if (err && !res.headersSent) res.status(404).end(); });
 });
 
