@@ -101,6 +101,7 @@ wireDrop('themebg-box', 'themebg-input', 'themebg-status', '/admin/upload-themeb
     // Derive the full token map from the five core colours.
     function derive(c) {
         var bg = c.bg, su = c.surface, tx = c.text, ac = c.accent, bd = c.border;
+        var dk = lum(bg) < 0.5;   // dark theme → deep banner bg + light text; light → tint + dark text
         return {
             'color-bg': bg, 'color-text': tx, 'color-muted': mix(tx, bg, 0.4),
             'color-accent': ac, 'color-accent-strong': mix(ac, '#000000', 0.18), 'color-accent-nav': mix(ac, '#ffffff', 0.18),
@@ -113,6 +114,9 @@ wireDrop('themebg-box', 'themebg-input', 'themebg-status', '/admin/upload-themeb
             'text-faint': mix(tx, bg, 0.52), 'text-fainter': mix(tx, bg, 0.4), 'text-arrow': mix(tx, bg, 0.45),
             'input-bg': su, 'input-border': bd, 'btn-bg': ac, 'btn-text': on(ac), 'btn-active-text': on(ac),
             'btn-secondary-text': tx, 'btn-secondary-border': mix(bd, tx, 0.2), 'color-danger': '#cc4444',
+            'ok-bg': dk ? '#1a4a1a' : '#e6f4ea', 'ok-text': dk ? '#ffffff' : '#1e4620', 'ok-border': '#4caf50',
+            'err-bg': dk ? '#7a2a00' : '#fdecea', 'err-text': dk ? '#ffffff' : '#7a1c10', 'err-border': dk ? '#cc4444' : '#d32f2f',
+            'info-bg': dk ? '#13344a' : '#e7f1fb', 'info-text': dk ? '#ffffff' : '#0d3c61', 'info-border': dk ? '#64b5f6' : '#1976d2',
         };
     }
 

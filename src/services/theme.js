@@ -28,6 +28,9 @@ export const DEFAULT_TOKENS = {
     'input-bg': '#000000', 'input-border': '#ffffff',
     'btn-bg': '#ffffff', 'btn-text': '#000000', 'btn-active-text': '#ffffff',
     'btn-secondary-text': '#bbbbbb', 'btn-secondary-border': '#888888', 'color-danger': '#cc4444',
+    'ok-bg': '#1a4a1a', 'ok-text': '#ffffff', 'ok-border': '#4caf50',
+    'err-bg': '#7a2a00', 'err-text': '#ffffff', 'err-border': '#cc4444',
+    'info-bg': '#13344a', 'info-text': '#ffffff', 'info-border': '#64b5f6',
 };
 
 // A sensible neutral LIGHT preset (admins tweak from here / via AI-from-website later).
@@ -90,7 +93,9 @@ export const TOKEN_GROUPS = [
     { name: 'Borders',          keys: ['border', 'border-mid', 'border-2', 'border-subtle', 'border-faint', 'border-dashed', 'border-row', 'border-strong'] },
     { name: 'Text scale',       keys: ['text-strong', 'text-label', 'text-dim', 'text-faint', 'text-fainter', 'text-arrow'] },
     { name: 'Inputs & buttons', keys: ['input-bg', 'input-border', 'btn-bg', 'btn-text', 'btn-active-text', 'btn-secondary-text', 'btn-secondary-border'] },
-    { name: 'Status',           keys: ['color-danger'] },
+    { name: 'Status — success', keys: ['ok-bg', 'ok-text', 'ok-border'] },
+    { name: 'Status — error',   keys: ['err-bg', 'err-text', 'err-border', 'color-danger'] },
+    { name: 'Status — info',    keys: ['info-bg', 'info-text', 'info-border'] },
 ];
 
 // Validate + normalise a theme object posted from the editor (returns a clean object or throws).

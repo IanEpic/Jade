@@ -42,7 +42,7 @@ style.
             a.btn-secondary(href='/' + slug + '/home?action=program') Back
     else
         if content.wrote
-            div(style='background:#1a4a1a; border-left:4px solid #4c4; color:#cfc; padding:10px 14px; font-size:13px; margin-bottom:16px;')
+            div(style='background:var(--ok-bg); border-left:4px solid #4c4; color:#cfc; padding:10px 14px; font-size:13px; margin-bottom:16px;')
                 | Final scores written to database (#{content.rowCount} entries across #{content.categoryCount} categories). Top #{topN} per category flagged as finalists.
 
         .cfs-options

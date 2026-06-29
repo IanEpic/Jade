@@ -236,7 +236,9 @@ style.
                             div(style='color:var(--text-strong);font-size:13px;font-weight:600;margin-bottom:4px') Surface card
                             div(style='color:var(--text-dim);font-size:12px') Secondary text on a surface.
                         input(type='text' value='Input field' style='background:var(--input-bg);color:var(--color-text);border:1px solid var(--input-border);padding:6px 10px;width:100%;box-sizing:border-box;margin-bottom:10px')
-                        div(style='background:#1a4a1a;color:#fff;padding:6px 12px;border-left:4px solid #4caf50;font-size:12px') Status banner
+                        div(style='background:var(--ok-bg);color:var(--ok-text);padding:5px 10px;border-left:4px solid var(--ok-border);font-size:12px;margin-bottom:6px') Success message
+                        div(style='background:var(--err-bg);color:var(--err-text);padding:5px 10px;border-left:4px solid var(--err-border);font-size:12px;margin-bottom:6px') Error message
+                        div(style='background:var(--info-bg);color:var(--info-text);padding:5px 10px;border-left:4px solid var(--info-border);font-size:12px') Info message
 
         script(type='application/json' id='tp-data')!= JSON.stringify({ core: core, overrides: theme.overrides || {}, background: bg, font: font, logoAlign: theme.logoAlign || 'center', logoSize: theme.logoSize || 'fill', defaults: defaults, darkCore: darkCore, lightCore: lightCore })
 
