@@ -133,9 +133,10 @@ app.use('/tinymce', express.static(TINYMCE_ROOT));
 // ── View engine ───────────────────────────────────────────────────────────────
 app.set('view engine', 'pug');
 app.set('views', path.join(__dirname, 'views'));
-// Cache compiled Pug functions — enabled automatically in production but not
-// in development. Enable it always: templates only change on server restart anyway.
-app.enable('view cache');
+// Cache compiled Pug templates in PRODUCTION only. In dev, leave it OFF so template edits show on
+// the next request — nodemon doesn't reliably restart on .pug saves over OneDrive, and with view
+// caching on that served stale renders ("no change until a hard refresh / a .js edit restarts").
+if (isProd) app.enable('view cache');
 
 // ── Build hash for cache-busting JS/CSS ──────────────────────────────────────
 // Read git short SHA once at startup; falls back to process start timestamp.
