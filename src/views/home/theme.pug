@@ -53,7 +53,9 @@ style.
     .tp-row { display: flex; align-items: center; gap: 12px; padding: 6px 0; }
     .tp-row label { flex: 1; font-size: 13px; color: var(--text-label); }
     .tp-row .tp-key { font-family: monospace; font-size: 11px; color: var(--text-faint); }
-    .tp-swatch { width: 46px; height: 28px; padding: 0; border: 1px solid var(--border); border-radius: 4px; cursor: pointer; flex-shrink: 0; }
+    .tp-swatch { -webkit-appearance: none; appearance: none; width: 46px; height: 28px; padding: 0; border: 1px solid var(--border); border-radius: 4px; cursor: pointer; flex-shrink: 0; }
+    .tp-swatch::-webkit-color-swatch-wrapper { padding: 0; }
+    .tp-swatch::-webkit-color-swatch { border: none; border-radius: 3px; }
     .tp-text { background: var(--input-bg); color: var(--color-text); border: 1px solid var(--border); border-radius: 3px; padding: 5px 8px; font-size: 12px; width: 100%; box-sizing: border-box; }
     details.tp-adv { margin-top: 12px; }
     details.tp-adv > summary { cursor: pointer; font-size: 12px; color: var(--text-dim); user-select: none; }
