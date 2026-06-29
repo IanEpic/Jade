@@ -2,22 +2,22 @@
 
 style.
     .user-form { max-width: 720px; margin: 0 auto; }
-    .user-form fieldset { border: 1px solid #666; border-radius: 4px; margin-bottom: 16px; padding: 12px 18px; }
+    .user-form fieldset { border: 1px solid var(--border-mid); border-radius: 4px; margin-bottom: 16px; padding: 12px 18px; }
     .user-form legend { font-weight: bold; padding: 0 6px; }
     .user-form table { border-collapse: collapse; width: 100%; }
     .user-form td { padding: 4px 8px; vertical-align: middle; }
     .user-form td:first-child { white-space: nowrap; text-align: right; padding-right: 12px; width: 1%; }
     .user-form input[type=text], .user-form input[type=email], .user-form input[type=password] { width: 100%; box-sizing: border-box; }
     .user-form .checkbox-row td:first-child { text-align: left; width: 1%; padding-right: 6px; }
-    .user-form .alert-error { background: #7a2a00; color: #fff; padding: 8px 12px; margin-bottom: 12px; border-left: 4px solid #c44; }
-    .user-form .note { color: #aaa; font-size: 12px; margin-top: 4px; }
+    .user-form .alert-error { background: #7a2a00; color: var(--color-text); padding: 8px 12px; margin-bottom: 12px; border-left: 4px solid #c44; }
+    .user-form .note { color: var(--text-arrow); font-size: 12px; margin-top: 4px; }
     .user-form .cat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px 12px; margin-top: 6px; }
     .user-form .cat-grid label { display: flex; align-items: center; gap: 6px; font-size: 13px; }
     .user-form .form-actions { text-align: center; margin-top: 10px; }
     .user-form .form-actions a, .user-form .form-actions button { margin: 0 6px; }
-    .user-form .action-links { font-size: 13px; color: #aaa; margin-bottom: 12px; text-align: center; }
+    .user-form .action-links { font-size: 13px; color: var(--text-arrow); margin-bottom: 12px; text-align: center; }
     .user-form .action-links a { margin: 0 8px; }
-    .user-form .req { color: #c48f06; }
+    .user-form .req { color: var(--color-accent-strong); }
 
 form.user-form(method='POST' action='/formUser')
     input(type='hidden' name='edituserid' value=targetUser.userid)
@@ -28,7 +28,7 @@ form.user-form(method='POST' action='/formUser')
         p.alert-error= error
 
     if !isAdmin
-        p(style='font-size:12px; color:#aaa; text-align:right; margin-bottom:4px;')
+        p(style='font-size:12px; color:var(--text-arrow); text-align:right; margin-bottom:4px;')
             span.req *
             |  Required field
 

@@ -2,24 +2,24 @@
 
 style.
     .el-wrap { max-width: 900px; margin: 0 auto; }
-    .el-wrap h3 { color: #c48f06; font-size: 18px; text-align: center; margin-bottom: 16px; }
+    .el-wrap h3 { color: var(--color-accent-strong); font-size: 18px; text-align: center; margin-bottom: 16px; }
     .el-table { border-collapse: collapse; width: 100%; }
-    .el-table th { font-size: 11px; text-transform: uppercase; color: #c48f06; border-bottom: 1px solid #555; padding: 4px 8px; text-align: left; white-space: nowrap; }
-    .el-table td { padding: 5px 8px; border-bottom: 1px solid #1e1e1e; vertical-align: middle; }
-    .el-table .el-rule { font-size: 11px; color: #fff; }
+    .el-table th { font-size: 11px; text-transform: uppercase; color: var(--color-accent-strong); border-bottom: 1px solid var(--border); padding: 4px 8px; text-align: left; white-space: nowrap; }
+    .el-table td { padding: 5px 8px; border-bottom: 1px solid var(--surface-1); vertical-align: middle; }
+    .el-table .el-rule { font-size: 11px; color: var(--color-text); }
     .el-table .el-actions a { margin-right: 10px; font-size: 12px; }
-    .el-table input[type=text] { background: #111; color: #eee; border: 1px solid #555; padding: 3px 5px; border-radius: 3px; width: 45px; text-align: center; }
+    .el-table input[type=text] { background: var(--surface-deep); color: #eee; border: 1px solid var(--border); padding: 3px 5px; border-radius: 3px; width: 45px; text-align: center; }
     .el-toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
     .el-toolbar a { font-size: 13px; white-space: nowrap; margin-left: 12px; }
-    #el-search { flex: 1; max-width: 320px; padding: 6px 10px; background: #111; color: #fff; border: 1px solid #555; font-size: 14px; }
-    #el-search:focus { border-color: #c48f06; outline: none; }
+    #el-search { flex: 1; max-width: 320px; padding: 6px 10px; background: var(--surface-deep); color: var(--color-text); border: 1px solid var(--border); font-size: 14px; }
+    #el-search:focus { border-color: var(--color-accent-strong); outline: none; }
     .el-table tr.hidden { display: none; }
 
 .el-wrap
     h3 Manage Eligibility Rules
 
 if content.success
-    p(style='background:#1a4a1a; color:#fff; padding:8px 12px; border-left:4px solid #4caf50; margin-bottom:14px') Saved.
+    p(style='background:#1a4a1a; color:var(--color-text); padding:8px 12px; border-left:4px solid #4caf50; margin-bottom:14px') Saved.
 
 form(method='POST' action='/formEligibility')
     input(type='hidden' name='task' value='reorder')
@@ -28,7 +28,7 @@ form(method='POST' action='/formEligibility')
         input#el-search(type='text' placeholder='Search eligibility rules…' data-filter='.el-table tbody tr')
         a#btn-new-el(href='#') + New Eligibility Rule
 
-    div#new-el-form(style='display:none; margin-bottom:16px; padding:12px; background:#111; border:1px solid #555; border-radius:4px; max-width:600px')
+    div#new-el-form(style='display:none; margin-bottom:16px; padding:12px; background:var(--surface-deep); border:1px solid var(--border); border-radius:4px; max-width:600px')
         table(style='width:100%')
             tr
                 td(style='white-space:nowrap; padding-right:8px; vertical-align:top; padding-top:5px; width:1%') Rule text
@@ -55,7 +55,7 @@ form(method='POST' action='/formEligibility')
         tbody
             each el, i in content.eligibilities
                 tr
-                    td(style='color:#888; width:30px')= el.eligibilityid
+                    td(style='color:var(--text-dim); width:30px')= el.eligibilityid
                     td.el-rule= el.eligibilityrule
                     td: input(type='text' name='#' + el.eligibilityid value=i+1)
                     td.el-actions

@@ -4,7 +4,7 @@
 
 style.
     .q-edit-form { max-width: 800px; margin: 0 auto; }
-    .q-edit-form fieldset { border: 1px solid #666; border-radius: 4px; margin-bottom: 16px; padding: 12px 18px; }
+    .q-edit-form fieldset { border: 1px solid var(--border-mid); border-radius: 4px; margin-bottom: 16px; padding: 12px 18px; }
     .q-edit-form legend { font-weight: bold; padding: 0 6px; }
     .q-edit-form table { border-collapse: collapse; width: 100%; }
     .q-edit-form td { padding: 4px 8px; vertical-align: top; }
@@ -97,9 +97,9 @@ form.q-edit-form(method='POST' action='/formQuestion')
             table(style='width:100%; margin-bottom:12px')
                 thead
                     tr
-                        th(style='text-align:left; font-size:11px; color:#c48f06; border-bottom:1px solid #555; padding:4px 8px') Current Options
-                        th(style='width:60px; font-size:11px; color:#c48f06; border-bottom:1px solid #555; padding:4px 8px') Order
-                        th(style='width:60px; border-bottom:1px solid #555')
+                        th(style='text-align:left; font-size:11px; color:var(--color-accent-strong); border-bottom:1px solid var(--border); padding:4px 8px') Current Options
+                        th(style='width:60px; font-size:11px; color:var(--color-accent-strong); border-bottom:1px solid var(--border); padding:4px 8px') Order
+                        th(style='width:60px; border-bottom:1px solid var(--border)')
                 tbody
                     each opt in content.inputoptions
                         tr
@@ -109,7 +109,7 @@ form.q-edit-form(method='POST' action='/formQuestion')
         table(style='width:100%')
             thead
                 tr
-                    th(style='text-align:left; font-size:11px; color:#c48f06; border-bottom:1px solid #555; padding:4px 8px') New Options
+                    th(style='text-align:left; font-size:11px; color:var(--color-accent-strong); border-bottom:1px solid var(--border); padding:4px 8px') New Options
             tbody
                 each n in [1,2,3,4,5]
                     tr

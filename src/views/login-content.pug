@@ -54,7 +54,7 @@ if form
                     if errors && errors.length
                         each e in errors
                             p(style='color:#c0392b; margin:4px 0;')= e
-        div(style='margin-top:10px; font-size:0.85em; color:#aaa; text-align:center;')
+        div(style='margin-top:10px; font-size:0.85em; color:var(--text-arrow); text-align:center;')
             div
                 a#reset-link(href=resetUrl) Forgot your password?
                 span(style='margin:0 8px;') ·
@@ -64,7 +64,7 @@ if form
     style.
         #form-signup input[type=text] { width: 200px !important; }
         .btn, button { border:0; border-radius:4px; background:#fff; font-size:15px; color:#000; padding:6px 18px; line-height:1; display:inline-block; text-align:center; margin-right:5px; cursor:pointer; }
-        .btn:hover, button:hover { background:#cf9702; color:#fff; }
+        .btn:hover, button:hover { background:var(--color-accent); color:var(--color-text); }
     div#step-signup(style='display:none;')
         p#signup-intro
         form#form-signup(autocomplete='on' style='width:340px; margin:0 auto; text-align:left;')
@@ -78,7 +78,7 @@ if form
             div(style='display:flex; align-items:center; margin-bottom:6px;')
                 label(style='width:130px; flex-shrink:0;') Mobile
                 input(type='text' name='mobile' maxlength='50' autocomplete='tel' style='width:200px !important;')
-            p(style='font-size:0.85em; color:#aaa; margin:4px 0 10px;') We'll email you a link to set your password.
+            p(style='font-size:0.85em; color:var(--text-arrow); margin:4px 0 10px;') We'll email you a link to set your password.
             hr
             div(style='text-align:center;')
                 div(style='margin-bottom:6px;')

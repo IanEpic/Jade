@@ -4,17 +4,17 @@
 
 style.
     .catcost-wrap { max-width: 900px; margin: 0 auto; font-size: 14px; }
-    .catcost-wrap h2 { text-align: center; color: #c48f06; margin-bottom: 8px; }
-    .catcost-explanation { color: #bbb; font-size: 13px; margin-bottom: 18px; text-align: center; }
+    .catcost-wrap h2 { text-align: center; color: var(--color-accent-strong); margin-bottom: 8px; }
+    .catcost-explanation { color: var(--text-label); font-size: 13px; margin-bottom: 18px; text-align: center; }
     .catcost-table { width: 100%; border-collapse: collapse; }
-    .catcost-table th { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1px solid #555; padding: 6px 10px; text-align: left; color: #c48f06; }
+    .catcost-table th { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1px solid var(--border); padding: 6px 10px; text-align: left; color: var(--color-accent-strong); }
     .catcost-table th.r { text-align: right; }
-    .catcost-table td { padding: 8px 10px; border-bottom: 1px solid #2a2a2a; vertical-align: top; }
+    .catcost-table td { padding: 8px 10px; border-bottom: 1px solid var(--border-faint); vertical-align: top; }
     .catcost-table tr:hover td { background: rgba(255,255,255,0.04); }
-    .catcost-table .cat-name { font-weight: 600; color: #fff; }
-    .catcost-table .cat-desc { font-size: 12px; color: #888; margin-top: 3px; }
-    .catcost-table td.r { text-align: right; white-space: nowrap; color: #ccc; }
-    .catcost-table .cost-total { color: #fff; font-weight: 600; }
+    .catcost-table .cat-name { font-weight: 600; color: var(--color-text); }
+    .catcost-table .cat-desc { font-size: 12px; color: var(--text-dim); margin-top: 3px; }
+    .catcost-table td.r { text-align: right; white-space: nowrap; color: var(--color-muted); }
+    .catcost-table .cost-total { color: var(--color-text); font-weight: 600; }
 
 .catcost-wrap
     h2= 'Categories' + (hasCosts ? ' & Entry Costs' : '')

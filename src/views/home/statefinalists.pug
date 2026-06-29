@@ -8,16 +8,16 @@
 
 style.
     .sf-wrap { max-width: 900px; margin: 0 auto; }
-    .sf-wrap h2 { text-align: center; color: #c48f06; margin-bottom: 6px; }
-    .sf-intro { text-align: center; color: #aaa; font-size: 13px; margin: 0 auto 16px; max-width: 760px; }
-    .sf-options { display: flex; align-items: center; gap: 24px; margin-bottom: 18px; flex-wrap: wrap; padding: 10px 14px; background: #1a1a1a; border: 1px solid #444; border-radius: 4px; }
-    .sf-options label { display: flex; align-items: center; gap: 6px; font-size: 13px; color: #bbb; }
-    .sf-options input[type=number] { width: 64px; background: #111; color: #fff; border: 1px solid #555; border-radius: 4px; padding: 4px 8px; font-size: 13px; }
-    .sf-meta { font-size: 12px; color: #888; margin-left: auto; }
-    .sf-card { border: 1px solid #3a3a3a; border-radius: 6px; margin-bottom: 18px; overflow: hidden; }
-    .sf-card-header { background: #1e1e1e; padding: 9px 16px; font-size: 13px; font-weight: 600; color: #c48f06; border-bottom: 1px solid #333; }
+    .sf-wrap h2 { text-align: center; color: var(--color-accent-strong); margin-bottom: 6px; }
+    .sf-intro { text-align: center; color: var(--text-arrow); font-size: 13px; margin: 0 auto 16px; max-width: 760px; }
+    .sf-options { display: flex; align-items: center; gap: 24px; margin-bottom: 18px; flex-wrap: wrap; padding: 10px 14px; background: var(--surface); border: 1px solid var(--border-dashed); border-radius: 4px; }
+    .sf-options label { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--text-label); }
+    .sf-options input[type=number] { width: 64px; background: var(--surface-deep); color: var(--color-text); border: 1px solid var(--border); border-radius: 4px; padding: 4px 8px; font-size: 13px; }
+    .sf-meta { font-size: 12px; color: var(--text-dim); margin-left: auto; }
+    .sf-card { border: 1px solid var(--border-2); border-radius: 6px; margin-bottom: 18px; overflow: hidden; }
+    .sf-card-header { background: var(--surface-1); padding: 9px 16px; font-size: 13px; font-weight: 600; color: var(--color-accent-strong); border-bottom: 1px solid var(--border-subtle); }
     .sf-cat { width: 100%; border-collapse: collapse; }
-    .sf-cat td { padding: 7px 0; font-size: 13px; line-height: 1.45; vertical-align: top; border-top: 1px solid #222; }
+    .sf-cat td { padding: 7px 0; font-size: 13px; line-height: 1.45; vertical-align: top; border-top: 1px solid var(--surface-2); }
     .sf-cat tr:first-child td { border-top: none; }
     .sf-cat tr.state-start:not(:first-child) td { border-top: 1px solid #383838; }
     .sf-cat td.sf-state-col { width: 1%; white-space: nowrap; padding-left: 16px; padding-right: 18px; }
@@ -28,7 +28,7 @@ style.
     .sf-cat tr.is-national td.sf-sc { color: #6e6e6e; }
     .sf-state-code { display: inline-block; min-width: 34px; text-align: center; font-size: 11px; font-weight: 700; letter-spacing: .03em; color: #7fb8e0; background: #14242e; border: 1px solid #1e3a48; border-radius: 3px; padding: 2px 3px; }
     .nat-badge { display: inline-block; margin-left: 8px; font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: #7fb8e0; background: #15303f; border: 1px solid #1e4257; border-radius: 3px; padding: 1px 5px; vertical-align: 1px; white-space: nowrap; }
-    .sf-warn { background: #3a2a1a; border-left: 4px solid #c48f06; color: #f0d9a8; padding: 10px 14px; font-size: 13px; margin-bottom: 16px; }
+    .sf-warn { background: #3a2a1a; border-left: 4px solid var(--color-accent-strong); color: #f0d9a8; padding: 10px 14px; font-size: 13px; margin-bottom: 16px; }
     .sf-warn ul { margin: 6px 0 0; padding-left: 18px; }
     .sf-ok { background:#1a4a1a; border-left:4px solid #4c4; color:#cfc; padding:10px 14px; font-size:13px; margin-bottom:16px; }
     .sf-saved { background:#16252e; border-left:4px solid #3a6e8a; color:#bcd; padding:10px 14px; font-size:13px; margin-bottom:16px; }
@@ -45,7 +45,7 @@ style.
         p.sf-saved Saved state finalists, loaded from the database (#{content.finalistCount} entr#{content.finalistCount === 1 ? 'y' : 'ies'}). Re-calculate if scores or finalists have changed.
 
     if !categories || !categories.length
-        p(style='color:#aaa;') No state finalists written yet. Make sure Calc Final Scores has been run and the Best Event entries have their state checkbox completed, then click Calculate.
+        p(style='color:var(--text-arrow);') No state finalists written yet. Make sure Calc Final Scores has been run and the Best Event entries have their state checkbox completed, then click Calculate.
     else
         each cat in categories
             .sf-card

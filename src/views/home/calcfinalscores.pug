@@ -9,24 +9,24 @@
 
 style.
     .cfs-wrap { max-width: 900px; margin: 0 auto; }
-    .cfs-wrap h2 { text-align: center; color: #c48f06; margin-bottom: 20px; }
-    .cfs-options { display: flex; align-items: center; gap: 24px; margin-bottom: 20px; flex-wrap: wrap; padding: 10px 14px; background: #1a1a1a; border: 1px solid #444; border-radius: 4px; }
-    .cfs-options label { display: flex; align-items: center; gap: 6px; font-size: 13px; color: #bbb; }
-    .cfs-options input[type=number] { width: 64px; background: #111; color: #fff; border: 1px solid #555; border-radius: 4px; padding: 4px 8px; font-size: 13px; }
-    .cfs-options input[type=number]:focus { border-color: #c48f06; outline: none; }
-    .cfs-card { border: 1px solid #444; border-radius: 4px; margin-bottom: 14px; overflow: hidden; }
-    .cfs-card-header { background: #1e1e1e; padding: 8px 14px; display: flex; align-items: center; justify-content: space-between; }
-    .cfs-card-header .cat-name { font-size: 13px; font-weight: 600; color: #c48f06; }
-    .cfs-card-header .cat-meta { font-size: 11px; color: #888; }
+    .cfs-wrap h2 { text-align: center; color: var(--color-accent-strong); margin-bottom: 20px; }
+    .cfs-options { display: flex; align-items: center; gap: 24px; margin-bottom: 20px; flex-wrap: wrap; padding: 10px 14px; background: var(--surface); border: 1px solid var(--border-dashed); border-radius: 4px; }
+    .cfs-options label { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--text-label); }
+    .cfs-options input[type=number] { width: 64px; background: var(--surface-deep); color: var(--color-text); border: 1px solid var(--border); border-radius: 4px; padding: 4px 8px; font-size: 13px; }
+    .cfs-options input[type=number]:focus { border-color: var(--color-accent-strong); outline: none; }
+    .cfs-card { border: 1px solid var(--border-dashed); border-radius: 4px; margin-bottom: 14px; overflow: hidden; }
+    .cfs-card-header { background: var(--surface-1); padding: 8px 14px; display: flex; align-items: center; justify-content: space-between; }
+    .cfs-card-header .cat-name { font-size: 13px; font-weight: 600; color: var(--color-accent-strong); }
+    .cfs-card-header .cat-meta { font-size: 11px; color: var(--text-dim); }
     .cfs-card table { width: 100%; border-collapse: collapse; table-layout: fixed; }
-    .cfs-card th { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: #c48f06; padding: 5px 10px; border-bottom: 1px solid #333; text-align: left; }
-    .cfs-card td { padding: 6px 10px; font-size: 13px; border-bottom: 1px solid #222; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .cfs-card th { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--color-accent-strong); padding: 5px 10px; border-bottom: 1px solid var(--border-subtle); text-align: left; }
+    .cfs-card td { padding: 6px 10px; font-size: 13px; border-bottom: 1px solid var(--surface-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .cfs-card tr:last-child td { border-bottom: none; }
     .cfs-card tr.below-min td { opacity: 0.45; }
     .cfs-card .r { text-align: right; }
     .cfs-card .c { text-align: center; }
     .finalist-badge { display: inline-block; font-size: 11px; padding: 1px 7px; border-radius: 2px; font-weight: 600; background: #1a3a4a; color: #64b5f6; }
-    .below-min-label { font-size: 11px; color: #666; }
+    .below-min-label { font-size: 11px; color: var(--border-mid); }
     .raw-fail { color: #f88; }
     .form-actions { margin-top: 20px; display: flex; gap: 8px; align-items: center; justify-content: center; }
 
@@ -34,7 +34,7 @@ style.
     h2 Calculate Final Scores
 
     if content.locked
-        div(style='background:#2a2200; border-left:4px solid #c48f06; color:#f0d9a8; padding:12px 16px; font-size:13px; line-height:1.6;')
+        div(style='background:#2a2200; border-left:4px solid var(--color-accent-strong); color:#f0d9a8; padding:12px 16px; font-size:13px; line-height:1.6;')
             strong Score calculation is locked for this program.
             br
             | This program&rsquo;s results are final, so Calculate Final Scores is disabled to protect the published scores, finalist flags and per-criteria breakdown from accidental changes. If a recalculation is genuinely required, an administrator can clear the program&rsquo;s &ldquo;lock scores&rdquo; flag first.
@@ -58,7 +58,7 @@ style.
                 input(type='number' id='minRawInput' min='0' max='10' step='0.01' value=minRawScore)
 
         if !categories || !categories.length
-            p(style='color:#aaa;') No scored entries found for this program#{ ignoreReady ? '' : ' with Score Ready categories' }.
+            p(style='color:var(--text-arrow);') No scored entries found for this program#{ ignoreReady ? '' : ' with Score Ready categories' }.
 
         else
             each cat in categories

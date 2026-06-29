@@ -2,48 +2,48 @@
 
 style.
     .el-wrap { max-width: 900px; margin: 0 auto; }
-    .el-wrap h3 { color: #c48f06; font-size: 18px; text-align: center; margin-bottom: 16px; }
+    .el-wrap h3 { color: var(--color-accent-strong); font-size: 18px; text-align: center; margin-bottom: 16px; }
     .el-table { width: 100%; border-collapse: collapse; }
-    .el-table th { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1px solid #555; padding: 6px 10px; text-align: left; color: #c48f06; }
-    .el-table td { padding: 7px 10px; border-bottom: 1px solid #2a2a2a; vertical-align: middle; font-size: 14px; }
+    .el-table th { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1px solid var(--border); padding: 6px 10px; text-align: left; color: var(--color-accent-strong); }
+    .el-table td { padding: 7px 10px; border-bottom: 1px solid var(--border-faint); vertical-align: middle; font-size: 14px; }
     .el-table tr:hover td { background: rgba(255,255,255,0.04); }
     .el-table tr.hidden { display: none; }
     .badge { display: inline-block; font-size: 11px; padding: 1px 6px; border-radius: 2px; font-weight: 600; }
     .badge-entered  { background: #1a4a1a; color: #4caf50; }
     .badge-invoiced { background: #1a2a4a; color: #64b5f6; }
-    .badge-unpaid   { background: #3a2a00; color: #c48f06; }
+    .badge-unpaid   { background: #3a2a00; color: var(--color-accent-strong); }
     .el-toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
     .el-toolbar a { font-size: 13px; white-space: nowrap; margin-left: 12px; }
-    #entry-search { flex: 1; max-width: 320px; padding: 6px 10px; background: #111; color: #fff; border: 1px solid #555; font-size: 14px; }
-    #entry-search:focus { border-color: #c48f06; outline: none; }
+    #entry-search { flex: 1; max-width: 320px; padding: 6px 10px; background: var(--surface-deep); color: var(--color-text); border: 1px solid var(--border); font-size: 14px; }
+    #entry-search:focus { border-color: var(--color-accent-strong); outline: none; }
     /* flags edit form */
-    .flags-form-wrap { display: none; background: #111; border: 1px solid #555; border-radius: 4px; padding: 18px 20px; margin-bottom: 18px; }
-    .flags-form-wrap legend { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: #c48f06; }
-    .flags-form-wrap fieldset { border: 1px solid #555; border-radius: 4px; padding: 12px 16px; margin-bottom: 14px; }
-    .flags-title { font-size: 14px; color: #bbb; margin: 0 0 14px; }
+    .flags-form-wrap { display: none; background: var(--surface-deep); border: 1px solid var(--border); border-radius: 4px; padding: 18px 20px; margin-bottom: 18px; }
+    .flags-form-wrap legend { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--color-accent-strong); }
+    .flags-form-wrap fieldset { border: 1px solid var(--border); border-radius: 4px; padding: 12px 16px; margin-bottom: 14px; }
+    .flags-title { font-size: 14px; color: var(--text-label); margin: 0 0 14px; }
     .flags-checks { display: flex; gap: 24px; flex-wrap: wrap; margin-bottom: 4px; }
-    .flags-checks label { font-size: 13px; color: #ccc; display: flex; align-items: center; gap: 6px; cursor: pointer; }
-    .flags-checks input[type=checkbox] { accent-color: #c48f06; width: 15px; height: 15px; }
+    .flags-checks label { font-size: 13px; color: var(--color-muted); display: flex; align-items: center; gap: 6px; cursor: pointer; }
+    .flags-checks input[type=checkbox] { accent-color: var(--color-accent-strong); width: 15px; height: 15px; }
     .flags-select { display: flex; flex-direction: column; gap: 6px; }
-    .flags-select label { font-size: 13px; color: #ccc; }
-    .flags-select .flags-original { font-size: 12px; color: #888; margin-top: 2px; }
-    .flags-finalist-note { font-size: 12px; color: #888; margin: 8px 0 0; }
-    .flags-finalist-note.warn { color: #c48f06; }
-    .flags-select select { background: #111; color: #fff; border: 1px solid #555; border-radius: 4px; padding: 5px 8px; font-size: 13px; max-width: 340px; }
-    .flags-select select:focus { border-color: #c48f06; outline: none; }
+    .flags-select label { font-size: 13px; color: var(--color-muted); }
+    .flags-select .flags-original { font-size: 12px; color: var(--text-dim); margin-top: 2px; }
+    .flags-finalist-note { font-size: 12px; color: var(--text-dim); margin: 8px 0 0; }
+    .flags-finalist-note.warn { color: var(--color-accent-strong); }
+    .flags-select select { background: var(--surface-deep); color: var(--color-text); border: 1px solid var(--border); border-radius: 4px; padding: 5px 8px; font-size: 13px; max-width: 340px; }
+    .flags-select select:focus { border-color: var(--color-accent-strong); outline: none; }
     .transfer-ac { position: relative; max-width: 420px; }
-    #transfer-search { background: #111; color: #fff; border: 1px solid #555; border-radius: 4px; padding: 5px 8px; font-size: 13px; width: 100%; box-sizing: border-box; }
-    #transfer-search:focus { border-color: #c48f06; outline: none; }
-    #transfer-suggestions { display: none; position: absolute; top: 100%; left: 0; right: 0; background: #1a1a1a; border: 1px solid #555; border-top: none; border-radius: 0 0 4px 4px; z-index: 200; max-height: 220px; overflow-y: auto; }
-    #transfer-suggestions div { padding: 7px 10px; font-size: 13px; color: #ccc; cursor: pointer; }
-    #transfer-suggestions div:hover, #transfer-suggestions div.active { background: rgba(196,143,6,0.2); color: #fff; }
-    .flags-actions { border-top: 1px solid #333; padding-top: 12px; display: flex; gap: 10px; }
-    .cat-overridden { color: #888; font-size: 11px; margin-left: 6px; }
+    #transfer-search { background: var(--surface-deep); color: var(--color-text); border: 1px solid var(--border); border-radius: 4px; padding: 5px 8px; font-size: 13px; width: 100%; box-sizing: border-box; }
+    #transfer-search:focus { border-color: var(--color-accent-strong); outline: none; }
+    #transfer-suggestions { display: none; position: absolute; top: 100%; left: 0; right: 0; background: var(--surface); border: 1px solid var(--border); border-top: none; border-radius: 0 0 4px 4px; z-index: 200; max-height: 220px; overflow-y: auto; }
+    #transfer-suggestions div { padding: 7px 10px; font-size: 13px; color: var(--color-muted); cursor: pointer; }
+    #transfer-suggestions div:hover, #transfer-suggestions div.active { background: rgba(196,143,6,0.2); color: var(--color-text); }
+    .flags-actions { border-top: 1px solid var(--border-subtle); padding-top: 12px; display: flex; gap: 10px; }
+    .cat-overridden { color: var(--text-dim); font-size: 11px; margin-left: 6px; }
     .el-check-col { width: 32px; text-align: center; }
-    .el-check-col input[type=checkbox] { accent-color: #c48f06; width: 14px; height: 14px; cursor: pointer; }
+    .el-check-col input[type=checkbox] { accent-color: var(--color-accent-strong); width: 14px; height: 14px; cursor: pointer; }
     .batch-bar { display: none; align-items: center; gap: 10px; background: #1a1a00; border: 1px solid #554400; border-radius: 4px; padding: 6px 12px; margin-bottom: 10px; font-size: 13px; }
     .batch-bar.active { display: flex; }
-    .batch-bar span { color: #c48f06; }
+    .batch-bar span { color: var(--color-accent-strong); }
     .badge-open-override { background: #1a3a1a; color: #81c784; margin-left: 5px; }
 
 .el-wrap
@@ -99,7 +99,7 @@ if user && user.admin
                         div#transfer-suggestions
                     input(type='hidden' name='targetentryid' id='transfer-targetentryid' value='')
                     p.flags-original#transfer-note
-                .flags-actions(style='margin-top:12px; padding-top:12px; border-top:1px solid #333;')
+                .flags-actions(style='margin-top:12px; padding-top:12px; border-top:1px solid var(--border-subtle);')
                     button.btn-danger(type='submit' data-confirm='Transfer the invoice and payment to the selected entry? This cannot be undone.') Transfer Payment
 
 if user && user.admin
@@ -144,7 +144,7 @@ form(data-nosubmit)
                 )
                     if user && user.admin
                         td.el-check-col: input.entry-checkbox(type='checkbox' value=entry.entryid)
-                    td(style='color:#888; width:50px')= entry.entryid
+                    td(style='color:var(--text-dim); width:50px')= entry.entryid
                     td= entry.finalisttext || entry.entrantname
                     td
                         = entry.categoryname

@@ -2,9 +2,9 @@
 
 style.
     .pmt-wrap { max-width: 700px; margin: 0 auto; font-size: 14px; }
-    .pmt-wrap h2 { text-align: center; color: #c48f06; margin-bottom: 16px; }
-    .pmt-wrap fieldset { border: 1px solid #555; border-radius: 4px; margin-bottom: 14px; padding: 14px 18px; }
-    .pmt-wrap legend { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: #c48f06; padding: 0 8px; }
+    .pmt-wrap h2 { text-align: center; color: var(--color-accent-strong); margin-bottom: 16px; }
+    .pmt-wrap fieldset { border: 1px solid var(--border); border-radius: 4px; margin-bottom: 14px; padding: 14px 18px; }
+    .pmt-wrap legend { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--color-accent-strong); padding: 0 8px; }
     .pmt-wrap table { border-collapse: collapse; width: 100%; }
     .pmt-wrap .form-table td { padding: 5px 8px; vertical-align: middle; }
     .pmt-wrap .form-table td:first-child { text-align: right; white-space: nowrap; width: 1%; padding-right: 12px; }
@@ -12,17 +12,17 @@ style.
     .pmt-wrap .form-table input[type=text] { width: 100%; }
     .pmt-wrap .entry-table { width: 100%; border-collapse: collapse; }
     .pmt-wrap .entry-table th, .pmt-wrap .entry-table td { padding: 6px 8px; text-align: left; }
-    .pmt-wrap .entry-table th { font-size: 12px; font-weight: 600; text-transform: uppercase; color: #c48f06; border-bottom: 1px solid #555; white-space: nowrap; }
-    .pmt-wrap .entry-table td { border-bottom: 1px solid #2a2a2a; vertical-align: middle; }
+    .pmt-wrap .entry-table th { font-size: 12px; font-weight: 600; text-transform: uppercase; color: var(--color-accent-strong); border-bottom: 1px solid var(--border); white-space: nowrap; }
+    .pmt-wrap .entry-table td { border-bottom: 1px solid var(--border-faint); vertical-align: middle; }
     .pmt-wrap .entry-table th.r, .pmt-wrap .entry-table td.r { text-align: right; }
-    .pmt-wrap .entry-table td { padding: 6px 8px; border-bottom: 1px solid #2a2a2a; }
-    .pmt-wrap .entry-table .total-row td { border-top: 1px solid #555; font-weight: bold; padding-top: 8px; }
-    .pmt-wrap .charge-amount { font-size: 20px; font-weight: bold; color: #c48f06; text-align: center; margin: 12px 0; }
-    .pmt-wrap .eb-note { font-size: 12px; color: #c48f06; padding: 6px 10px; border-left: 3px solid #c48f06; margin-top: 8px; }
-    .pmt-wrap .alert-error { background: #7a2a00; color: #fff; padding: 8px 12px; margin-bottom: 12px; border-left: 4px solid #c44; }
-    .pmt-wrap .alert-success { background: #1a4a1a; color: #fff; padding: 12px 16px; margin-bottom: 14px; border-left: 4px solid #4caf50; text-align: center; }
-    .pmt-wrap .form-actions { text-align: center; margin-top: 20px; padding-top: 16px; border-top: 1px solid #333; display: flex; justify-content: center; gap: 10px; }
-    .pmt-wrap .cvn-note { font-size: 12px; color: #aaa; margin-top: 4px; }
+    .pmt-wrap .entry-table td { padding: 6px 8px; border-bottom: 1px solid var(--border-faint); }
+    .pmt-wrap .entry-table .total-row td { border-top: 1px solid var(--border); font-weight: bold; padding-top: 8px; }
+    .pmt-wrap .charge-amount { font-size: 20px; font-weight: bold; color: var(--color-accent-strong); text-align: center; margin: 12px 0; }
+    .pmt-wrap .eb-note { font-size: 12px; color: var(--color-accent-strong); padding: 6px 10px; border-left: 3px solid var(--color-accent-strong); margin-top: 8px; }
+    .pmt-wrap .alert-error { background: #7a2a00; color: var(--color-text); padding: 8px 12px; margin-bottom: 12px; border-left: 4px solid #c44; }
+    .pmt-wrap .alert-success { background: #1a4a1a; color: var(--color-text); padding: 12px 16px; margin-bottom: 14px; border-left: 4px solid #4caf50; text-align: center; }
+    .pmt-wrap .form-actions { text-align: center; margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--border-subtle); display: flex; justify-content: center; gap: 10px; }
+    .pmt-wrap .cvn-note { font-size: 12px; color: var(--text-arrow); margin-top: 4px; }
 
 .pmt-wrap
 
@@ -128,7 +128,7 @@ style.
             p Transaction reference: #{ewayData.ewayTrxnNumber}
 
         if receipt
-            .rich-text(style='margin-top:16px; padding-top:12px; border-top:1px solid #333; font-size:13px;')!= receipt
+            .rich-text(style='margin-top:16px; padding-top:12px; border-top:1px solid var(--border-subtle); font-size:13px;')!= receipt
 
         .form-actions
             a.btn-secondary(href='/home') Home

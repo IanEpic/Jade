@@ -5,32 +5,32 @@
 
 style.
     .rp-wrap { max-width: 960px; margin: 0 auto; }
-    .rp-wrap h2 { text-align: center; color: #c48f06; font-size: 20px; font-weight: 600; margin: 0 0 6px; }
-    .rp-intro { text-align: center; color: #aaa; font-size: 13px; margin: 0 0 16px; }
-    .rp-ok { background:#1a4a1a; color:#fff; padding:8px 12px; border-left:4px solid #4caf50; margin-bottom:14px; }
-    .rp-none { color: #888; font-style: italic; font-size: 13px; }
+    .rp-wrap h2 { text-align: center; color: var(--color-accent-strong); font-size: 20px; font-weight: 600; margin: 0 0 6px; }
+    .rp-intro { text-align: center; color: var(--text-arrow); font-size: 13px; margin: 0 0 16px; }
+    .rp-ok { background:#1a4a1a; color:var(--color-text); padding:8px 12px; border-left:4px solid #4caf50; margin-bottom:14px; }
+    .rp-none { color: var(--text-dim); font-style: italic; font-size: 13px; }
     .rp-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-bottom: 16px; }
-    .rp-table th { font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: #c48f06; border-bottom: 1px solid #555; padding: 6px 8px; text-align: left; }
+    .rp-table th { font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--color-accent-strong); border-bottom: 1px solid var(--border); padding: 6px 8px; text-align: left; }
     .rp-table th.num, .rp-table td.num { text-align: right; }
     .rp-table th.ctr, .rp-table td.ctr { text-align: center; }
-    .rp-table td { padding: 6px 8px; border-bottom: 1px solid #222; color: #ccc; vertical-align: middle; }
-    .rp-eb { color: #c48f06; font-size: 12px; }
-    .rp-amt { width: 90px; background: #111; color: #fff; border: 1px solid #555; border-radius: 3px; padding: 5px 7px; font-size: 13px; text-align: right; }
-    .rp-amt:focus { border-color: #c48f06; outline: none; }
-    .rp-card { border: 1px solid #555; border-radius: 4px; padding: 14px 18px; margin-bottom: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.07); }
-    .rp-card-title { color: #c48f06; font-size: 14px; font-weight: 600; margin: 0 0 12px; padding-bottom: 8px; border-bottom: 1px solid #333; }
+    .rp-table td { padding: 6px 8px; border-bottom: 1px solid var(--surface-2); color: var(--color-muted); vertical-align: middle; }
+    .rp-eb { color: var(--color-accent-strong); font-size: 12px; }
+    .rp-amt { width: 90px; background: var(--surface-deep); color: var(--color-text); border: 1px solid var(--border); border-radius: 3px; padding: 5px 7px; font-size: 13px; text-align: right; }
+    .rp-amt:focus { border-color: var(--color-accent-strong); outline: none; }
+    .rp-card { border: 1px solid var(--border); border-radius: 4px; padding: 14px 18px; margin-bottom: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.07); }
+    .rp-card-title { color: var(--color-accent-strong); font-size: 14px; font-weight: 600; margin: 0 0 12px; padding-bottom: 8px; border-bottom: 1px solid var(--border-subtle); }
     .rp-row { display: flex; gap: 18px; flex-wrap: wrap; align-items: flex-end; margin-bottom: 10px; }
     .rp-field { display: flex; flex-direction: column; gap: 4px; }
-    .rp-field label { font-size: 12px; color: #999; }
-    .rp-field input, .rp-field select { background: #111; color: #fff; border: 1px solid #555; border-radius: 3px; padding: 6px 8px; font-size: 13px; }
-    .rp-field input:focus, .rp-field select:focus { border-color: #c48f06; outline: none; }
+    .rp-field label { font-size: 12px; color: var(--text-fainter); }
+    .rp-field input, .rp-field select { background: var(--surface-deep); color: var(--color-text); border: 1px solid var(--border); border-radius: 3px; padding: 6px 8px; font-size: 13px; }
+    .rp-field input:focus, .rp-field select:focus { border-color: var(--color-accent-strong); outline: none; }
     .rp-field input[type=date]::-webkit-calendar-picker-indicator { filter: invert(1); opacity: 0.85; cursor: pointer; }
     .rp-field input:disabled { opacity: 0.45; cursor: not-allowed; }
-    .rp-methods label { font-size: 13px; color: #ccc; margin-right: 16px; cursor: pointer; }
-    .rp-methods input { accent-color: #c48f06; margin-right: 5px; }
+    .rp-methods label { font-size: 13px; color: var(--color-muted); margin-right: 16px; cursor: pointer; }
+    .rp-methods input { accent-color: var(--color-accent-strong); margin-right: 5px; }
     #card-fields { display: none; }
-    .rp-total { text-align: right; font-size: 14px; color: #fff; margin: 10px 0; }
-    .rp-total b { color: #c48f06; }
+    .rp-total { text-align: right; font-size: 14px; color: var(--color-text); margin: 10px 0; }
+    .rp-total b { color: var(--color-accent-strong); }
     .rp-actions { text-align: center; margin-top: 12px; }
     .rp-del { background: transparent; color: #f88; border: 1px solid #a44; border-radius: 3px; padding: 3px 10px; font-size: 12px; cursor: pointer; }
     .rp-del:hover { background: #3a1a1a; color: #fdd; }
@@ -128,7 +128,7 @@ style.
     if content.adminPayments && content.adminPayments.length
         .rp-card(style='margin-top:8px')
             .rp-card-title Recorded Payments
-            p(style='font-size:12px; color:#999; margin:-6px 0 10px') Delete a payment recorded against the wrong invoice — the invoice reverts to unpaid and its entries are un-accepted. Entrant card payments aren&rsquo;t listed (refund those instead).
+            p(style='font-size:12px; color:var(--text-fainter); margin:-6px 0 10px') Delete a payment recorded against the wrong invoice — the invoice reverts to unpaid and its entries are un-accepted. Entrant card payments aren&rsquo;t listed (refund those instead).
             table.rp-table
                 thead
                     tr

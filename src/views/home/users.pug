@@ -2,31 +2,31 @@
 
 style.
     .users-wrap { max-width: 900px; margin: 0 auto; }
-    .users-wrap h3 { color: #c48f06; font-size: 18px; text-align: center; margin-bottom: 16px; }
+    .users-wrap h3 { color: var(--color-accent-strong); font-size: 18px; text-align: center; margin-bottom: 16px; }
     .users-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
     .users-table td { overflow-wrap: anywhere; }
-    .users-table th { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1px solid #555; padding: 6px 10px; text-align: left; color: #c48f06; }
-    .users-table td { padding: 7px 10px; border-bottom: 1px solid #2a2a2a; vertical-align: middle; font-size: 14px; }
+    .users-table th { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1px solid var(--border); padding: 6px 10px; text-align: left; color: var(--color-accent-strong); }
+    .users-table td { padding: 7px 10px; border-bottom: 1px solid var(--border-faint); vertical-align: middle; font-size: 14px; }
     .users-table tr:hover td { background: rgba(255,255,255,0.04); }
     .users-table .badge { font-size: 11px; padding: 1px 5px; border-radius: 2px; margin-left: 3px; }
-    .users-table .badge-admin { background: #c48f06; color: #000; }
-    .users-table .badge-judge { background: #4a6fa5; color: #fff; }
-    .users-table .badge-disabled { background: #555; color: #ccc; }
+    .users-table .badge-admin { background: var(--color-accent-strong); color: #000; }
+    .users-table .badge-judge { background: #4a6fa5; color: var(--color-text); }
+    .users-table .badge-disabled { background: var(--border); color: var(--color-muted); }
     .users-table .badge-unactivated { background: #8b3a00; color: #ffd; }
-    .users-table .actions a { margin-right: 6px; font-size: 16px; color: #aaa; text-decoration: none; }
-    .users-table .actions a:hover { color: #c48f06; }
-    .users-table .actions a[title]:hover::after { content: attr(title); position: absolute; background: #333; color: #fff; font-size: 11px; padding: 2px 6px; border-radius: 2px; margin-left: 4px; white-space: nowrap; }
+    .users-table .actions a { margin-right: 6px; font-size: 16px; color: var(--text-arrow); text-decoration: none; }
+    .users-table .actions a:hover { color: var(--color-accent-strong); }
+    .users-table .actions a[title]:hover::after { content: attr(title); position: absolute; background: var(--border-subtle); color: var(--color-text); font-size: 11px; padding: 2px 6px; border-radius: 2px; margin-left: 4px; white-space: nowrap; }
     .users-table .actions { position: relative; white-space: nowrap; }
     .users-toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
     .users-toolbar a { font-size: 13px; white-space: nowrap; margin-left: 12px; }
-    #user-search { flex: 1; max-width: 320px; padding: 6px 10px; background: #111; color: #fff; border: 1px solid #555; font-size: 14px; }
-    #user-search:focus { border-color: #c48f06; outline: none; }
+    #user-search { flex: 1; max-width: 320px; padding: 6px 10px; background: var(--surface-deep); color: var(--color-text); border: 1px solid var(--border); font-size: 14px; }
+    #user-search:focus { border-color: var(--color-accent-strong); outline: none; }
     .users-table tr.hidden { display: none; }
     .u-check-col { width: 32px; text-align: center; }
-    .u-check-col input[type=checkbox] { accent-color: #c48f06; width: 14px; height: 14px; cursor: pointer; }
+    .u-check-col input[type=checkbox] { accent-color: var(--color-accent-strong); width: 14px; height: 14px; cursor: pointer; }
     .u-batch-bar { display: none; align-items: center; gap: 10px; background: #1a1a00; border: 1px solid #554400; border-radius: 4px; padding: 6px 12px; margin-bottom: 10px; font-size: 13px; }
     .u-batch-bar.active { display: flex; }
-    .u-batch-bar span { color: #c48f06; }
+    .u-batch-bar span { color: var(--color-accent-strong); }
     .badge-pay-override { background: #1a2a3a; color: #90caf9; margin-left: 5px; font-size: 11px; padding: 1px 5px; border-radius: 2px; }
     .users-table td.name-cell { position: relative; padding-left: 24px; }
     .online-dot { position: absolute; left: 9px; top: 50%; transform: translateY(-50%); width: 8px; height: 8px; border-radius: 50%; background: #4caf50; box-shadow: 0 0 4px #4caf50; }
@@ -37,7 +37,7 @@ style.
     h3 Manage Users
 
 if content.success
-    p(style='background:#1a4a1a; color:#fff; padding:8px 12px; border-left:4px solid #4caf50; margin-bottom:14px') Saved.
+    p(style='background:#1a4a1a; color:var(--color-text); padding:8px 12px; border-left:4px solid #4caf50; margin-bottom:14px') Saved.
 
 .u-batch-bar#u-batch-bar
     span#u-batch-count 0 selected
@@ -84,7 +84,7 @@ form(data-nosubmit)
                         else
                             a(href='/formUser?action=enable&edituserid=' + u.userid title='Enable') 🔓
                         if !u.activated
-                            button.activate-btn(type='button' data-userid=u.userid title='Activate account' style='background:none;border:none;cursor:pointer;font-size:16px;padding:0 4px;color:#aaa;') ✅
+                            button.activate-btn(type='button' data-userid=u.userid title='Activate account' style='background:none;border:none;cursor:pointer;font-size:16px;padding:0 4px;color:var(--text-arrow);') ✅
                         if u.judge
                             a(href='/formUser?action=demote&edituserid=' + u.userid title='Demote judge' data-confirm='Remove all judging data for this user?') ⬇️
                         a(href='/formUser?action=delete&edituserid=' + u.userid title='Delete' data-confirm='Delete this user?' style='color:#c44') ✕

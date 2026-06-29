@@ -4,31 +4,31 @@
 
 style.
     .ft-wrap { max-width: 880px; margin: 0 auto; }
-    .ft-wrap h2 { text-align: center; color: #c48f06; font-size: 20px; font-weight: 600; margin: 0 0 6px; }
-    .ft-intro { text-align: center; color: #aaa; font-size: 13px; margin: 0 0 12px; }
+    .ft-wrap h2 { text-align: center; color: var(--color-accent-strong); font-size: 20px; font-weight: 600; margin: 0 0 6px; }
+    .ft-intro { text-align: center; color: var(--text-arrow); font-size: 13px; margin: 0 0 12px; }
     .ft-toolbar { display: flex; gap: 10px; align-items: center; justify-content: center; flex-wrap: wrap; margin-bottom: 14px; }
-    .ft-selall { font-size: 13px; color: #bbb; display: flex; align-items: center; gap: 5px; margin-right: 6px; }
+    .ft-selall { font-size: 13px; color: var(--text-label); display: flex; align-items: center; gap: 5px; margin-right: 6px; }
     .ft-toolbar .btn-secondary[disabled] { opacity: 0.45; cursor: not-allowed; }
     #ft-progress-box { max-width: 880px; margin: 0 auto 16px; }
-    .ft-bar-track { height: 6px; background: #222; border-radius: 3px; overflow: hidden; }
-    .ft-bar-fill { height: 100%; width: 0; background: #c48f06; transition: width 0.2s ease; }
-    #ft-progress-text { font-size: 13px; color: #c48f06; margin-top: 6px; text-align: center; }
-    .ft-card { border: 1px solid #555; border-radius: 4px; padding: 12px 18px; margin-bottom: 14px; box-shadow: 0 1px 3px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.07); }
-    .ft-card-title { color: #c48f06; font-size: 14px; font-weight: 600; margin: 0 0 8px; padding-bottom: 6px; border-bottom: 1px solid #333; display: flex; align-items: center; gap: 6px; }
-    .ft-cat-sel { accent-color: #c48f06; }
-    .ft-row { display: flex; align-items: flex-start; gap: 10px; padding: 6px 0; border-bottom: 1px solid #222; }
+    .ft-bar-track { height: 6px; background: var(--surface-2); border-radius: 3px; overflow: hidden; }
+    .ft-bar-fill { height: 100%; width: 0; background: var(--color-accent-strong); transition: width 0.2s ease; }
+    #ft-progress-text { font-size: 13px; color: var(--color-accent-strong); margin-top: 6px; text-align: center; }
+    .ft-card { border: 1px solid var(--border); border-radius: 4px; padding: 12px 18px; margin-bottom: 14px; box-shadow: 0 1px 3px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.07); }
+    .ft-card-title { color: var(--color-accent-strong); font-size: 14px; font-weight: 600; margin: 0 0 8px; padding-bottom: 6px; border-bottom: 1px solid var(--border-subtle); display: flex; align-items: center; gap: 6px; }
+    .ft-cat-sel { accent-color: var(--color-accent-strong); }
+    .ft-row { display: flex; align-items: flex-start; gap: 10px; padding: 6px 0; border-bottom: 1px solid var(--surface-2); }
     .ft-row:last-child { border-bottom: none; }
     .ft-row.sel { background: rgba(196,143,6,0.06); }
-    .ft-sel { margin-top: 7px; flex-shrink: 0; accent-color: #c48f06; }
-    .ft-entrant { width: 160px; flex-shrink: 0; color: #999; font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding-top: 6px; }
+    .ft-sel { margin-top: 7px; flex-shrink: 0; accent-color: var(--color-accent-strong); }
+    .ft-entrant { width: 160px; flex-shrink: 0; color: var(--text-fainter); font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding-top: 6px; }
     .ft-view { flex-shrink: 0; color: #c9b27a; text-decoration: underline; text-underline-offset: 2px; font-size: 12px; padding-top: 6px; white-space: nowrap; }
-    .ft-view:hover { color: #cf9702; }
-    .ft-input { flex: 1; background: #111; color: #fff; border: 1px solid #555; border-radius: 3px; padding: 6px 8px; font-size: 13px; font-family: inherit; line-height: 1.4; resize: none; overflow: hidden; box-sizing: border-box; }
-    .ft-input:focus { border-color: #c48f06; outline: none; }
+    .ft-view:hover { color: var(--color-accent); }
+    .ft-input { flex: 1; background: var(--surface-deep); color: var(--color-text); border: 1px solid var(--border); border-radius: 3px; padding: 6px 8px; font-size: 13px; font-family: inherit; line-height: 1.4; resize: none; overflow: hidden; box-sizing: border-box; }
+    .ft-input:focus { border-color: var(--color-accent-strong); outline: none; }
     .ft-input.blank { border-color: #7a5a00; }
     .ft-save { flex-shrink: 0; }
     .ft-status { width: 18px; flex-shrink: 0; font-size: 13px; text-align: center; padding-top: 6px; }
-    .ft-none { color: #888; font-style: italic; font-size: 13px; }
+    .ft-none { color: var(--text-dim); font-style: italic; font-size: 13px; }
 
 .ft-wrap
     h2 Finalist Text

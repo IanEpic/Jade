@@ -3,17 +3,17 @@
 
 style.
     .cat-wrap { max-width: 900px; margin: 0 auto; }
-    .cat-wrap h3 { color: #c48f06; font-size: 18px; text-align: center; margin-bottom: 16px; }
+    .cat-wrap h3 { color: var(--color-accent-strong); font-size: 18px; text-align: center; margin-bottom: 16px; }
     .cat-table { border-collapse: collapse; width: 100%; }
-    .cat-table th { font-size: 11px; text-transform: uppercase; color: #c48f06; border-bottom: 1px solid #555; padding: 4px 8px; text-align: left; white-space: nowrap; }
-    .cat-table td { padding: 5px 8px; border-bottom: 1px solid #1e1e1e; vertical-align: middle; }
-    .cat-table .cat-desc { font-size: 11px; color: #888; margin-top: 2px; }
+    .cat-table th { font-size: 11px; text-transform: uppercase; color: var(--color-accent-strong); border-bottom: 1px solid var(--border); padding: 4px 8px; text-align: left; white-space: nowrap; }
+    .cat-table td { padding: 5px 8px; border-bottom: 1px solid var(--surface-1); vertical-align: middle; }
+    .cat-table .cat-desc { font-size: 11px; color: var(--text-dim); margin-top: 2px; }
     .cat-table .cat-actions a { margin-right: 10px; font-size: 12px; }
-    .cat-table input[type=text] { background: #111; color: #eee; border: 1px solid #555; padding: 3px 5px; border-radius: 3px; width: 45px; text-align: center; }
+    .cat-table input[type=text] { background: var(--surface-deep); color: #eee; border: 1px solid var(--border); padding: 3px 5px; border-radius: 3px; width: 45px; text-align: center; }
     .cat-toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
     .cat-toolbar a { font-size: 13px; white-space: nowrap; margin-left: 12px; }
-    #cat-search { flex: 1; max-width: 320px; padding: 6px 10px; background: #111; color: #fff; border: 1px solid #555; font-size: 14px; }
-    #cat-search:focus { border-color: #c48f06; outline: none; }
+    #cat-search { flex: 1; max-width: 320px; padding: 6px 10px; background: var(--surface-deep); color: var(--color-text); border: 1px solid var(--border); font-size: 14px; }
+    #cat-search:focus { border-color: var(--color-accent-strong); outline: none; }
     .cat-table tr.hidden { display: none; }
 
 .cat-wrap
@@ -39,21 +39,21 @@ form(method='POST' action='/formCategory')
         tbody
             each cat, i in content.cats
                 tr
-                    td(style='color:#888; width:30px')= cat.categoryid
+                    td(style='color:var(--text-dim); width:30px')= cat.categoryid
                     td(colspan='3')
                         div(style='font-weight:bold')
                             = cat.name
                             if cat.adminonly
-                                span(style='margin-left:8px; font-size:10px; font-weight:normal; background:#555; color:#ccc; border-radius:3px; padding:1px 6px; vertical-align:middle') admin only
+                                span(style='margin-left:8px; font-size:10px; font-weight:normal; background:var(--border); color:var(--color-muted); border-radius:3px; padding:1px 6px; vertical-align:middle') admin only
                         if cat.description
                             div.cat-desc= cat.description
                     td.cat-actions
                         a(href='/home?action=category&categoryid=' + cat.categoryid) Edit
                         a(href='/formCategory?categoryid=' + cat.categoryid + '&action=delete' data-confirm='Delete ' + cat.name + '?' style='color:#c44') Delete
-                tr(style='border-bottom:1px solid #333')
+                tr(style='border-bottom:1px solid var(--border-subtle)')
                     td(colspan='2')
-                    td(style='white-space:nowrap; font-size:12px; color:#aaa; text-align:right')= content.currency((parseFloat(cat.costex)||0) + (parseFloat(cat.gst)||0))
-                    td(style='text-align:right; font-size:12px; color:#aaa')= cat.totalweight || 0
+                    td(style='white-space:nowrap; font-size:12px; color:var(--text-arrow); text-align:right')= content.currency((parseFloat(cat.costex)||0) + (parseFloat(cat.gst)||0))
+                    td(style='text-align:right; font-size:12px; color:var(--text-arrow)')= cat.totalweight || 0
                     td: input(type='text' name='#' + cat.categoryid value=i+1)
                     td
 

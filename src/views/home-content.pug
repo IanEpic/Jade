@@ -23,7 +23,7 @@ table(width='780' id='home' style='margin-left: auto; margin-right: auto; displa
                 ul#vertnav2
                     li(style='padding:7px 0px 7px 15px; font-weight:bold; background:red; position:relative;')
                         | Emulation Enabled
-                        a(href='/' + slug + '/emulate' title='Cease Emulation' style='position:absolute; bottom:4px; right:6px; color:#fff; font-size:16px; font-weight:bold; line-height:1; text-decoration:none; opacity:0.8;') ×
+                        a(href='/' + slug + '/emulate' title='Cease Emulation' style='position:absolute; bottom:4px; right:6px; color:var(--color-text); font-size:16px; font-weight:bold; line-height:1; text-decoration:none; opacity:0.8;') ×
             //- Render all sidebar panels; JS shows the active one
             - const panelKeys = Object.keys(sidebarMenus)
             each panelKey in panelKeys

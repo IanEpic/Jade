@@ -47,7 +47,7 @@ form(method='POST' action='/recordScores')
             span.ve-req *
             |  The "excel" and "improve" comments are required to complete judging this entry.
 
-    - let editFeedbackStyle = 'background:#c0392b;color:#fff;padding:12px;margin-bottom:8px;border-radius:4px;' + (scorePanel.commentFeedback ? '' : 'display:none;')
+    - let editFeedbackStyle = 'background:#c0392b;color:var(--color-text);padding:12px;margin-bottom:8px;border-radius:4px;' + (scorePanel.commentFeedback ? '' : 'display:none;')
     div#comment-feedback(style=editFeedbackStyle)
         b Your comments could not be saved — please review the feedback below and make changes before resubmitting:
         br

@@ -51,7 +51,7 @@ else if q.inputtype === 'textarea'
                 each para in paras
                     p!= para
                 if resp.truncated
-                    p.ve-q-truncated(style='color:#c48f06; font-style:italic; font-size:12px;')= '[truncated to word limit: ' + q.maxsize + ' words]'
+                    p.ve-q-truncated(style='color:var(--color-accent-strong); font-style:italic; font-size:12px;')= '[truncated to word limit: ' + q.maxsize + ' words]'
             else
                 span.ve-q-noresp= noResp
 
@@ -87,9 +87,9 @@ else if q.inputtype === 'upload'
                 - let docExt = ext.toUpperCase()
                 - let docColour = ({PDF:'#e74c3c',DOC:'#2980b9',DOCX:'#2980b9',XLS:'#27ae60',XLSX:'#27ae60',PPT:'#e67e22',PPTX:'#e67e22'})[docExt] || '#7f8c8d'
                 .ve-media(style='text-align:left;')
-                    p(style='margin:0 0 8px; font-size:13px; color:#aaa;') Click the link below to open the supporting document.
+                    p(style='margin:0 0 8px; font-size:13px; color:var(--text-arrow);') Click the link below to open the supporting document.
                     a.ve-doc-link(href='/' + slug + '/formResponses/download?responseid=' + resp.responseid target='_blank')
-                        span(style='background:' + docColour + '; color:#fff; font-size:11px; font-weight:bold; padding:3px 7px; border-radius:3px;')= docExt
+                        span(style='background:' + docColour + '; color:var(--color-text); font-size:11px; font-weight:bold; padding:3px 7px; border-radius:3px;')= docExt
                         span(style='font-size:22px;') 📄
                         span= resp.originalname || resp.value
 

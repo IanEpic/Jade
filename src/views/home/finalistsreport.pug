@@ -9,16 +9,16 @@
 
 style.
     .fr-wrap { max-width: 860px; margin: 0 auto; }
-    .fr-wrap h2 { text-align: center; color: #c48f06; margin-bottom: 6px; }
-    .fr-intro { text-align: center; color: #aaa; font-size: 13px; margin: 0 auto 16px; }
+    .fr-wrap h2 { text-align: center; color: var(--color-accent-strong); margin-bottom: 6px; }
+    .fr-intro { text-align: center; color: var(--text-arrow); font-size: 13px; margin: 0 auto 16px; }
     .fr-actions { text-align: center; margin-bottom: 20px; }
-    .fr-sec { color: #c48f06; font-size: 15px; font-weight: 700; margin: 22px 0 4px; }
-    .fr-grp { font-size: 13px; font-weight: 600; color: #ddd; margin: 16px 0 4px; padding-bottom: 3px; border-bottom: 1px solid #333; }
+    .fr-sec { color: var(--color-accent-strong); font-size: 15px; font-weight: 700; margin: 22px 0 4px; }
+    .fr-grp { font-size: 13px; font-weight: 600; color: var(--text-strong); margin: 16px 0 4px; padding-bottom: 3px; border-bottom: 1px solid var(--border-subtle); }
     ul.fr-list { margin: 0 0 6px; padding-left: 20px; }
     ul.fr-list li { font-size: 13px; color: #ededed; line-height: 1.5; }
-    ul.fr-list li.fr-dup { background: #3a2a1a; outline: 1px solid #c48f06; border-radius: 3px; padding: 1px 5px; }
-    .fr-dup-tag { display: inline-block; margin-left: 8px; font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: #f0d9a8; background: #5a3e1a; border: 1px solid #c48f06; border-radius: 3px; padding: 1px 5px; vertical-align: 1px; }
-    .fr-count { color: #888; font-weight: 400; font-size: 12px; }
+    ul.fr-list li.fr-dup { background: #3a2a1a; outline: 1px solid var(--color-accent-strong); border-radius: 3px; padding: 1px 5px; }
+    .fr-dup-tag { display: inline-block; margin-left: 8px; font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: #f0d9a8; background: #5a3e1a; border: 1px solid var(--color-accent-strong); border-radius: 3px; padding: 1px 5px; vertical-align: 1px; }
+    .fr-count { color: var(--text-dim); font-weight: 400; font-size: 12px; }
     .fr-hint { text-align: center; color: #b08a4a; font-size: 12px; margin: 0 0 14px; }
 
 .fr-wrap
@@ -30,7 +30,7 @@ style.
 
     .fr-sec National Finalists
     if !groups.length
-        p(style='color:#aaa') No national finalists found.
+        p(style='color:var(--text-arrow)') No national finalists found.
     each g in groups
         .fr-grp
             = g.typename
@@ -46,7 +46,7 @@ style.
         | State Finalists
         span.fr-count  &nbsp;(#{stateFinalists.length})
     if !stateFinalists.length
-        p(style='color:#aaa') No state finalists found.
+        p(style='color:var(--text-arrow)') No state finalists found.
     else
         ul.fr-list
             each f in stateFinalists

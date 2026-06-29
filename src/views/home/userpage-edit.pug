@@ -2,16 +2,16 @@
 
 style.
     .up-edit-form { max-width: 860px; margin: 0 auto; }
-    .up-edit-form fieldset { border: 1px solid #666; border-radius: 4px; margin-bottom: 16px; padding: 12px 18px; }
-    .up-edit-form legend { font-weight: bold; padding: 0 6px; color: #c48f06; }
+    .up-edit-form fieldset { border: 1px solid var(--border-mid); border-radius: 4px; margin-bottom: 16px; padding: 12px 18px; }
+    .up-edit-form legend { font-weight: bold; padding: 0 6px; color: var(--color-accent-strong); }
     .up-edit-form table { border-collapse: collapse; width: 100%; }
     .up-edit-form td { padding: 5px 8px; vertical-align: middle; }
     .up-edit-form td:first-child { text-align: right; width: 130px; padding-right: 10px; white-space: nowrap; }
-    .up-edit-form input[type=text] { background: #1a1a1a; color: #eee; border: 1px solid #555; padding: 5px 8px; border-radius: 3px; font-size: 13px; width: 320px; }
-    .up-edit-form textarea { background: #1a1a1a; color: #eee; border: 1px solid #555; padding: 6px 8px; border-radius: 3px; font-size: 13px; width: 100%; box-sizing: border-box; font-family: monospace; }
+    .up-edit-form input[type=text] { background: var(--surface); color: #eee; border: 1px solid var(--border); padding: 5px 8px; border-radius: 3px; font-size: 13px; width: 320px; }
+    .up-edit-form textarea { background: var(--surface); color: #eee; border: 1px solid var(--border); padding: 6px 8px; border-radius: 3px; font-size: 13px; width: 100%; box-sizing: border-box; font-family: monospace; }
     .up-edit-form .form-actions { text-align: center; margin-top: 12px; }
     .up-edit-form .form-actions a, .up-edit-form .form-actions button { margin: 0 6px; }
-    .alert-err { background: #7a2a00; color: #fff; padding: 8px 12px; border-left: 4px solid #c44; margin-bottom: 14px; }
+    .alert-err { background: #7a2a00; color: var(--color-text); padding: 8px 12px; border-left: 4px solid #c44; margin-bottom: 14px; }
 
 if content.saved
     p(style='color:#4caf50; text-align:center') Saved.
@@ -50,7 +50,7 @@ form.up-edit-form(method='POST' action='/formPage')
                 td Show with sidebar
                 td
                     input(type='checkbox' name='withsidebar' value='1' checked=content.page.withsidebar)
-                    span(style='color:#888; font-size:12px; margin-left:8px;') Render inside the program framework (sidebar + navigation). Leave off for a standalone page.
+                    span(style='color:var(--text-dim); font-size:12px; margin-left:8px;') Render inside the program framework (sidebar + navigation). Leave off for a standalone page.
 
     fieldset
         legend Page Content (HTML)

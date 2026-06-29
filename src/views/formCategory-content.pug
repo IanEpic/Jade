@@ -2,21 +2,21 @@
 
 style.
     .cat-form { max-width: 800px; margin: 0 auto; }
-    .cat-form fieldset { border: 1px solid #666; border-radius: 4px; margin-bottom: 16px; padding: 12px 18px; }
+    .cat-form fieldset { border: 1px solid var(--border-mid); border-radius: 4px; margin-bottom: 16px; padding: 12px 18px; }
     .cat-form legend { font-weight: bold; padding: 0 6px; }
     .cat-form table { border-collapse: collapse; width: 100%; }
     .cat-form td { padding: 4px 8px; vertical-align: top; }
     .cat-form td:first-child { white-space: nowrap; text-align: right; padding-right: 12px; width: 1%; }
     .cat-form input[type=text], .cat-form textarea { width: 100%; box-sizing: border-box; }
     .cat-form .checkbox-row td:first-child { text-align: left; width: 1%; padding-right: 6px; }
-    .cat-form .section-title { color: #c48f06; font-weight: bold; margin: 10px 0 4px; }
+    .cat-form .section-title { color: var(--color-accent-strong); font-weight: bold; margin: 10px 0 4px; }
     .cat-form .criteria-row td { padding: 4px; vertical-align: top; }
     .cat-form .link-table td { padding: 3px 8px; }
-    .cat-form .note { color: #aaa; font-size: 12px; }
-    .cat-form .form-actions { text-align: center; border-top: 1px solid #333; margin-top: 18px; padding-top: 14px; }
+    .cat-form .note { color: var(--text-arrow); font-size: 12px; }
+    .cat-form .form-actions { text-align: center; border-top: 1px solid var(--border-subtle); margin-top: 18px; padding-top: 14px; }
     .cat-form .form-actions a, .cat-form .form-actions button { margin: 0 6px; }
     .cat-form .accordion-legend { cursor: pointer; user-select: none; display: flex; align-items: center; gap: 6px; }
-    .cat-form .accordion-legend::after { content: ' ▴'; font-size: 11px; color: #aaa; }
+    .cat-form .accordion-legend::after { content: ' ▴'; font-size: 11px; color: var(--text-arrow); }
     .cat-form .accordion-legend.collapsed::after { content: ' ▾'; }
     .cat-form .accordion-body { width: 100%; box-sizing: border-box; }
     .cat-form fieldset { min-width: 0; }
@@ -82,7 +82,7 @@ form.cat-form(method='POST' action='/formCategory')
                 td: label Admin only (hidden from public entry list)
 
     if isNew
-        p(style='color:#888; font-size:13px; margin-top:8px') Save the category first to configure Scoring Criteria, Eligibility Rules, and Questions.
+        p(style='color:var(--text-dim); font-size:13px; margin-top:8px') Save the category first to configure Scoring Criteria, Eligibility Rules, and Questions.
 
     if !isNew
 
@@ -109,7 +109,7 @@ form.cat-form(method='POST' action='/formCategory')
                                     input(type='text' name='~~exist~orda~' + c.criteriaid value=c.orda size='4' maxlength='5')
                                 td(style='vertical-align:bottom')
                                     a(href='/home?action=category&categoryid=' + category.categoryid + '&deletecriteria=' + c.criteriaid style='color:#c44') Delete
-                            tr: td(colspan='4'): hr(style='border-color:#333')
+                            tr: td(colspan='4'): hr(style='border-color:var(--border-subtle)')
                 table.criteria-row#new-criteria-table
                 div(style='margin-top:8px; font-size:13px')
                     | Criteria weight total:
@@ -157,7 +157,7 @@ form.cat-form(method='POST' action='/formCategory')
                             '<a href="#" data-action="remove-criteria-row" style="color:#c44">Remove</a>' +
                             '</td>';
                         var tr2 = document.createElement('tr');
-                        tr2.innerHTML = '<td colspan="3"><hr style="border-color:#333"></td>';
+                        tr2.innerHTML = '<td colspan="3"><hr style="border-color:var(--border-subtle)"></td>';
                         table.appendChild(tr1);
                         table.appendChild(tr2);
                         updateCriteriaTotal();
@@ -181,21 +181,21 @@ form.cat-form(method='POST' action='/formCategory')
                         li.e-item(data-eid=e.eligibilityid style='display:flex; align-items:center; gap:8px; padding:5px 8px; margin-bottom:4px; background:#1a2a3a; border:1px solid #64b5f6; border-radius:3px; font-size:12px; cursor:grab')
                             input(type='hidden' name='e~' + e.eligibilityid value='ON')
                             input(type='hidden' name='eord~' + e.eligibilityid value=e.linkOrda || 0 class='e-orda')
-                            span.drag-grip(style='color:#666; margin-right:4px; cursor:grab') ⠿
+                            span.drag-grip(style='color:var(--border-mid); margin-right:4px; cursor:grab') ⠿
                             span= e.eligibilityid + ' — ' + e.eligibilityrule
                             a(href='#' data-action='remove-eligibility' data-eid=e.eligibilityid style='color:#c44; font-weight:bold; text-decoration:none; margin-left:auto') ×
 
                 div(style='position:relative')
-                    input#e-search(type='text' placeholder='Search eligibility rules to add…' autocomplete='off' style='width:100%; box-sizing:border-box; padding:5px 8px; background:#111; color:#eee; border:1px solid #555; border-radius:3px')
-                    div#e-dropdown(style='display:none; position:absolute; top:100%; left:0; right:0; background:#1a1a1a; border:1px solid #555; border-top:none; border-radius:0 0 3px 3px; max-height:200px; overflow-y:auto; z-index:100')
-                div#e-new-form(style='display:none; margin-top:8px; padding:10px; background:#111; border:1px solid #555; border-radius:3px')
+                    input#e-search(type='text' placeholder='Search eligibility rules to add…' autocomplete='off' style='width:100%; box-sizing:border-box; padding:5px 8px; background:var(--surface-deep); color:#eee; border:1px solid var(--border); border-radius:3px')
+                    div#e-dropdown(style='display:none; position:absolute; top:100%; left:0; right:0; background:var(--surface); border:1px solid var(--border); border-top:none; border-radius:0 0 3px 3px; max-height:200px; overflow-y:auto; z-index:100')
+                div#e-new-form(style='display:none; margin-top:8px; padding:10px; background:var(--surface-deep); border:1px solid var(--border); border-radius:3px')
                     table(style='width:100%')
                         tr
                             td(style='white-space:nowrap; padding-right:8px') Rule text
-                            td: input#e-new-text(type='text' style='width:100%; box-sizing:border-box; background:#1a1a1a; color:#eee; border:1px solid #555; padding:4px 6px')
+                            td: input#e-new-text(type='text' style='width:100%; box-sizing:border-box; background:var(--surface); color:#eee; border:1px solid var(--border); padding:4px 6px')
                     div(style='margin-top:8px; display:flex; gap:8px')
                         button#e-new-save(type='button' style='padding:4px 14px') Add Rule
-                        a#e-new-cancel(href='#' style='line-height:28px; font-size:12px; color:#aaa') Cancel
+                        a#e-new-cancel(href='#' style='line-height:28px; font-size:12px; color:var(--text-arrow)') Cancel
                 if !eligibilities || !eligibilities.length
                     p.note No eligibility rules defined for this program yet — use the form above to create one.
 
@@ -244,7 +244,7 @@ form.cat-form(method='POST' action='/formCategory')
                             matches.slice(0, 20).forEach(function (e) {
                                 var div = document.createElement('div');
                                 div.textContent = e.eid + ' — ' + e.label;
-                                div.style.cssText = 'padding:6px 10px; cursor:pointer; font-size:12px; border-bottom:1px solid #2a2a2a';
+                                div.style.cssText = 'padding:6px 10px; cursor:pointer; font-size:12px; border-bottom:1px solid var(--border-faint)';
                                 div.addEventListener('mousedown', function (ev) { ev.preventDefault(); addEligibility(e.eid, e.label); search.value = ''; dropdown.style.display = 'none'; });
                                 div.addEventListener('mouseover', function () { this.style.background = '#1a2a3a'; });
                                 div.addEventListener('mouseout',  function () { this.style.background = ''; });
@@ -252,7 +252,7 @@ form.cat-form(method='POST' action='/formCategory')
                             });
                             var createDiv = document.createElement('div');
                             createDiv.textContent = '+ Create new eligibility rule…';
-                            createDiv.style.cssText = 'padding:6px 10px; cursor:pointer; font-size:12px; color:#c48f06; border-top:1px solid #444';
+                            createDiv.style.cssText = 'padding:6px 10px; cursor:pointer; font-size:12px; color:var(--color-accent-strong); border-top:1px solid var(--border-dashed)';
                             createDiv.addEventListener('mousedown', function (ev) { ev.preventDefault(); showNewForm(search.value); });
                             createDiv.addEventListener('mouseover', function () { this.style.background = '#2a2a1a'; });
                             createDiv.addEventListener('mouseout',  function () { this.style.background = ''; });
@@ -295,7 +295,7 @@ form.cat-form(method='POST' action='/formCategory')
                             li.style.cssText = 'display:flex; align-items:center; gap:8px; padding:5px 8px; margin-bottom:4px; background:#1a2a3a; border:1px solid #64b5f6; border-radius:3px; font-size:12px; cursor:grab';
                             li.innerHTML = '<input type="hidden" name="e~' + eid + '" value="ON">' +
                                 '<input type="hidden" name="eord~' + eid + '" value="' + orda + '" class="e-orda">' +
-                                '<span class="drag-grip" style="color:#666; margin-right:4px; cursor:grab">⠿</span>' +
+                                '<span class="drag-grip" style="color:var(--border-mid); margin-right:4px; cursor:grab">⠿</span>' +
                                 '<span>' + eid + ' — ' + label + '</span>' +
                                 '<a href="#" data-action="remove-eligibility" data-eid="' + eid + '" style="color:#c44;font-weight:bold;text-decoration:none;margin-left:auto">×</a>';
                             elist.appendChild(li);
@@ -319,25 +319,25 @@ form.cat-form(method='POST' action='/formCategory')
                         li.q-item(data-qid=q.questionid style='display:flex; align-items:center; gap:8px; padding:5px 8px; margin-bottom:4px; background:#1a3a1a; border:1px solid #4caf50; border-radius:3px; font-size:12px;')
                             input(type='hidden' name='q~' + q.questionid value='ON')
                             input(type='hidden' name='qord~' + q.questionid value=q.linkOrda || 0 class='q-orda')
-                            span.drag-grip(style='color:#666; margin-right:4px; cursor:grab') ⠿
+                            span.drag-grip(style='color:var(--border-mid); margin-right:4px; cursor:grab') ⠿
                             span= q.questionid + ' — ' + q.questiontext
                             a(href='#' data-action='remove-question' data-qid=q.questionid style='color:#c44; font-weight:bold; text-decoration:none; margin-left:auto') ×
 
                 div(style='position:relative')
-                    input#q-search(type='text' placeholder='Search questions to add…' autocomplete='off' style='width:100%; box-sizing:border-box; padding:5px 8px; background:#111; color:#eee; border:1px solid #555; border-radius:3px')
-                    div#q-dropdown(style='display:none; position:absolute; top:100%; left:0; right:0; background:#1a1a1a; border:1px solid #555; border-top:none; border-radius:0 0 3px 3px; max-height:200px; overflow-y:auto; z-index:100')
-                div#q-new-form(style='display:none; margin-top:8px; padding:10px; background:#111; border:1px solid #555; border-radius:3px')
+                    input#q-search(type='text' placeholder='Search questions to add…' autocomplete='off' style='width:100%; box-sizing:border-box; padding:5px 8px; background:var(--surface-deep); color:#eee; border:1px solid var(--border); border-radius:3px')
+                    div#q-dropdown(style='display:none; position:absolute; top:100%; left:0; right:0; background:var(--surface); border:1px solid var(--border); border-top:none; border-radius:0 0 3px 3px; max-height:200px; overflow-y:auto; z-index:100')
+                div#q-new-form(style='display:none; margin-top:8px; padding:10px; background:var(--surface-deep); border:1px solid var(--border); border-radius:3px')
                     table(style='width:100%')
                         tr
                             td(style='white-space:nowrap; padding-right:8px; vertical-align:top; padding-top:5px') Question text
-                            td: input#q-new-text(type='text' style='width:100%; box-sizing:border-box; background:#1a1a1a; color:#eee; border:1px solid #555; padding:4px 6px')
+                            td: input#q-new-text(type='text' style='width:100%; box-sizing:border-box; background:var(--surface); color:#eee; border:1px solid var(--border); padding:4px 6px')
                         tr
                             td(style='padding-right:8px; padding-top:6px; vertical-align:top') Description
-                            td(style='padding-top:6px'): textarea#q-new-desc(rows='2' style='width:100%; box-sizing:border-box; background:#1a1a1a; color:#eee; border:1px solid #555; padding:4px 6px')
+                            td(style='padding-top:6px'): textarea#q-new-desc(rows='2' style='width:100%; box-sizing:border-box; background:var(--surface); color:#eee; border:1px solid var(--border); padding:4px 6px')
                         tr
                             td(style='padding-right:8px; padding-top:6px') Type
                             td(style='padding-top:6px')
-                                select#q-new-type(style='background:#1a1a1a; color:#eee; border:1px solid #555; padding:4px 6px')
+                                select#q-new-type(style='background:var(--surface); color:#eee; border:1px solid var(--border); padding:4px 6px')
                                     option(value='text') Text field
                                     option(value='textarea') Text area
                                     option(value='select') Dropdown
@@ -350,11 +350,11 @@ form.cat-form(method='POST' action='/formCategory')
                         tr#q-new-options-row(style='display:none')
                             td(style='padding-right:8px; padding-top:6px; vertical-align:top') Options
                             td(style='padding-top:6px')
-                                textarea#q-new-options(rows='4' style='width:100%; box-sizing:border-box; background:#1a1a1a; color:#eee; border:1px solid #555; padding:4px 6px' placeholder='One option per line')
-                                div(style='font-size:11px; color:#888; margin-top:2px') Enter each option on a new line
+                                textarea#q-new-options(rows='4' style='width:100%; box-sizing:border-box; background:var(--surface); color:#eee; border:1px solid var(--border); padding:4px 6px' placeholder='One option per line')
+                                div(style='font-size:11px; color:var(--text-dim); margin-top:2px') Enter each option on a new line
                     div(style='margin-top:8px; display:flex; gap:8px')
                         button#q-new-save(type='button' style='padding:4px 14px') Add Question
-                        a#q-new-cancel(href='#' style='line-height:28px; font-size:12px; color:#aaa') Cancel
+                        a#q-new-cancel(href='#' style='line-height:28px; font-size:12px; color:var(--text-arrow)') Cancel
                 if !questions || !questions.length
                     p.note No questions defined for this program yet — use the form above to create one.
 
@@ -404,7 +404,7 @@ form.cat-form(method='POST' action='/formCategory')
                             matches.slice(0, 20).forEach(function (q) {
                                 var div = document.createElement('div');
                                 div.textContent = q.qid + ' — ' + q.label;
-                                div.style.cssText = 'padding:6px 10px; cursor:pointer; font-size:12px; border-bottom:1px solid #2a2a2a';
+                                div.style.cssText = 'padding:6px 10px; cursor:pointer; font-size:12px; border-bottom:1px solid var(--border-faint)';
                                 div.addEventListener('mousedown', function (e) { e.preventDefault(); addQuestion(q.qid, q.label); search.value = ''; dropdown.style.display = 'none'; });
                                 div.addEventListener('mouseover', function () { this.style.background = '#2a3a2a'; });
                                 div.addEventListener('mouseout',  function () { this.style.background = ''; });
@@ -412,7 +412,7 @@ form.cat-form(method='POST' action='/formCategory')
                             });
                             var createDiv = document.createElement('div');
                             createDiv.textContent = '+ Create new question…';
-                            createDiv.style.cssText = 'padding:6px 10px; cursor:pointer; font-size:12px; color:#c48f06; border-top:1px solid #444';
+                            createDiv.style.cssText = 'padding:6px 10px; cursor:pointer; font-size:12px; color:var(--color-accent-strong); border-top:1px solid var(--border-dashed)';
                             createDiv.addEventListener('mousedown', function (e) { e.preventDefault(); showNewForm(search.value); });
                             createDiv.addEventListener('mouseover', function () { this.style.background = '#2a2a1a'; });
                             createDiv.addEventListener('mouseout',  function () { this.style.background = ''; });
@@ -477,7 +477,7 @@ form.cat-form(method='POST' action='/formCategory')
                             li.style.cssText = 'display:flex; align-items:center; gap:8px; padding:5px 8px; margin-bottom:4px; background:#1a3a1a; border:1px solid #4caf50; border-radius:3px; font-size:12px;';
                             li.innerHTML = '<input type="hidden" name="q~' + qid + '" value="ON">' +
                                 '<input type="hidden" name="qord~' + qid + '" value="' + orda + '" class="q-orda">' +
-                                '<span class="drag-grip" style="color:#666; margin-right:4px; cursor:grab">⠿</span>' +
+                                '<span class="drag-grip" style="color:var(--border-mid); margin-right:4px; cursor:grab">⠿</span>' +
                                 '<span>' + qid + ' — ' + label + '</span>' +
                                 '<a href="#" data-action="remove-question" data-qid="' + qid + '" style="color:#c44;font-weight:bold;text-decoration:none;margin-left:auto">×</a>';
                             list.appendChild(li);

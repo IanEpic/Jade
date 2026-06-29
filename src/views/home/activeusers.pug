@@ -2,13 +2,13 @@
 
 style.
     .rpt-wrap { max-width: 960px; margin: 0 auto; }
-    .rpt-wrap h3 { color: #c48f06; font-size: 18px; text-align: center; margin-bottom: 6px; }
-    .rpt-wrap .rpt-desc { color: #aaa; font-size: 13px; text-align: center; margin-bottom: 16px; }
+    .rpt-wrap h3 { color: var(--color-accent-strong); font-size: 18px; text-align: center; margin-bottom: 6px; }
+    .rpt-wrap .rpt-desc { color: var(--text-arrow); font-size: 13px; text-align: center; margin-bottom: 16px; }
     .rpt-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-    .rpt-table th { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1px solid #555; padding: 6px 8px; text-align: left; color: #c48f06; white-space: nowrap; }
+    .rpt-table th { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1px solid var(--border); padding: 6px 8px; text-align: left; color: var(--color-accent-strong); white-space: nowrap; }
     .rpt-table th.num { text-align: right; }
-    .rpt-table td { padding: 6px 8px; border-bottom: 1px solid #2a2a2a; vertical-align: middle; }
-    .rpt-table td.num { text-align: right; color: #ccc; }
+    .rpt-table td { padding: 6px 8px; border-bottom: 1px solid var(--border-faint); vertical-align: middle; }
+    .rpt-table td.num { text-align: right; color: var(--color-muted); }
     .rpt-table tr:hover td { background: rgba(255,255,255,0.04); }
     .rpt-actions { text-align: center; margin-top: 20px; }
 
@@ -44,12 +44,12 @@ style.
                         td.num= r.finalised
             tfoot
                 tr
-                    td(colspan='5' style='font-weight:600; color:#c48f06; border-top:2px solid #555;') Total
-                    td.num(style='font-weight:600; color:#c48f06; border-top:2px solid #555;')= totStarted
-                    td.num(style='font-weight:600; color:#c48f06; border-top:2px solid #555;')= totPaid
-                    td.num(style='font-weight:600; color:#c48f06; border-top:2px solid #555;')= totFinalised
+                    td(colspan='5' style='font-weight:600; color:var(--color-accent-strong); border-top:2px solid var(--border);') Total
+                    td.num(style='font-weight:600; color:var(--color-accent-strong); border-top:2px solid var(--border);')= totStarted
+                    td.num(style='font-weight:600; color:var(--color-accent-strong); border-top:2px solid var(--border);')= totPaid
+                    td.num(style='font-weight:600; color:var(--color-accent-strong); border-top:2px solid var(--border);')= totFinalised
     else
-        p(style='color:#888; text-align:center; margin-top:24px;') No users found.
+        p(style='color:var(--text-dim); text-align:center; margin-top:24px;') No users found.
 
     .rpt-actions
         a.btn(href='/' + program.slug + '/reportActiveUsers') ⬇ Download Excel

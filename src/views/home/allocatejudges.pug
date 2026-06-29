@@ -3,21 +3,21 @@
 
 style.
     .alloc-wrap { max-width: 940px; margin: 0 auto; }
-    .alloc-wrap h3 { color: #c48f06; font-size: 18px; text-align: center; margin-bottom: 16px; }
-    .alloc-cat { border: 1px solid #2a2a2a; border-radius: 4px; margin-bottom: 16px; padding: 12px 16px; }
-    .alloc-cat h4 { color: #c48f06; font-size: 15px; margin: 0 0 10px; }
+    .alloc-wrap h3 { color: var(--color-accent-strong); font-size: 18px; text-align: center; margin-bottom: 16px; }
+    .alloc-cat { border: 1px solid var(--border-faint); border-radius: 4px; margin-bottom: 16px; padding: 12px 16px; }
+    .alloc-cat h4 { color: var(--color-accent-strong); font-size: 15px; margin: 0 0 10px; }
     .alloc-table { width: 100%; border-collapse: collapse; }
-    .alloc-table th { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: #c48f06; border-bottom: 1px solid #555; padding: 6px 10px; text-align: left; }
-    .alloc-table td { padding: 6px 10px; border-bottom: 1px solid #222; font-size: 13px; color: #ccc; vertical-align: middle; }
+    .alloc-table th { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--color-accent-strong); border-bottom: 1px solid var(--border); padding: 6px 10px; text-align: left; }
+    .alloc-table td { padding: 6px 10px; border-bottom: 1px solid var(--surface-2); font-size: 13px; color: var(--color-muted); vertical-align: middle; }
     .alloc-table tr:hover td { background: rgba(255,255,255,0.03); }
     .alloc-table .judge-col { text-align: center; width: 44px; white-space: nowrap; padding-left: 4px; padding-right: 4px; }
-    .alloc-table .id-col { color: #888; width: 1%; white-space: nowrap; }
-    .alloc-table input[type=checkbox], .alloc-table input[type=radio] { accent-color: #c48f06; width: 15px; height: 15px; cursor: pointer; }
-    .alloc-table tr.lead-row td, .alloc-table tr.lead-row th { background: #1a1a1a; border-bottom: 1px solid #333; }
-    .alloc-table .lead-label { color: #aaa; font-weight: 600; text-transform: none; font-size: 12px; }
-    .alloc-empty { color: #888; font-style: italic; font-size: 13px; padding: 4px 0; }
-    .lead-clear { background: none; border: 1px solid #555; color: #aaa; border-radius: 3px; font-size: 11px; padding: 1px 6px; margin-left: 8px; cursor: pointer; vertical-align: middle; }
-    .lead-clear:hover { border-color: #cf9702; color: #cf9702; }
+    .alloc-table .id-col { color: var(--text-dim); width: 1%; white-space: nowrap; }
+    .alloc-table input[type=checkbox], .alloc-table input[type=radio] { accent-color: var(--color-accent-strong); width: 15px; height: 15px; cursor: pointer; }
+    .alloc-table tr.lead-row td, .alloc-table tr.lead-row th { background: var(--surface); border-bottom: 1px solid var(--border-subtle); }
+    .alloc-table .lead-label { color: var(--text-arrow); font-weight: 600; text-transform: none; font-size: 12px; }
+    .alloc-empty { color: var(--text-dim); font-style: italic; font-size: 13px; padding: 4px 0; }
+    .lead-clear { background: none; border: 1px solid var(--border); color: var(--text-arrow); border-radius: 3px; font-size: 11px; padding: 1px 6px; margin-left: 8px; cursor: pointer; vertical-align: middle; }
+    .lead-clear:hover { border-color: var(--color-accent); color: var(--color-accent); }
     .alloc-actions { text-align: center; margin-top: 14px; }
     .alloc-actions a, .alloc-actions button { margin: 0 6px; }
     .alloc-table td.conflict { background: #3a1f1f; outline: 1px solid #b5562f; }

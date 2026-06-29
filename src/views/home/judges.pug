@@ -2,21 +2,21 @@
 
 style.
     .judges-wrap { max-width: 900px; margin: 0 auto; }
-    .judges-wrap h3 { color: #c48f06; font-size: 18px; text-align: center; margin-bottom: 16px; }
+    .judges-wrap h3 { color: var(--color-accent-strong); font-size: 18px; text-align: center; margin-bottom: 16px; }
     .judges-table { width: 100%; border-collapse: collapse; }
-    .judges-table th { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1px solid #555; padding: 6px 10px; text-align: left; color: #c48f06; }
-    .judges-table td { padding: 7px 10px; border-bottom: 1px solid #2a2a2a; vertical-align: middle; font-size: 14px; }
+    .judges-table th { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1px solid var(--border); padding: 6px 10px; text-align: left; color: var(--color-accent-strong); }
+    .judges-table td { padding: 7px 10px; border-bottom: 1px solid var(--border-faint); vertical-align: middle; font-size: 14px; }
     .judges-table tr:hover td { background: rgba(255,255,255,0.04); }
     .judges-table .badge { font-size: 11px; padding: 1px 5px; border-radius: 2px; margin-left: 3px; }
-    .judges-table .badge-disabled { background: #555; color: #ccc; }
-    .judges-table .actions a, .judges-table .actions button { margin-right: 6px; font-size: 16px; color: #aaa; text-decoration: none; background: none; border: none; cursor: pointer; padding: 0 2px; }
-    .judges-table .actions a:hover, .judges-table .actions button:hover { color: #c48f06; }
+    .judges-table .badge-disabled { background: var(--border); color: var(--color-muted); }
+    .judges-table .actions a, .judges-table .actions button { margin-right: 6px; font-size: 16px; color: var(--text-arrow); text-decoration: none; background: none; border: none; cursor: pointer; padding: 0 2px; }
+    .judges-table .actions a:hover, .judges-table .actions button:hover { color: var(--color-accent-strong); }
     .judges-table .actions { white-space: nowrap; }
     .judges-table tr.hidden { display: none; }
     .judges-toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
     .judges-toolbar a { font-size: 13px; white-space: nowrap; margin-left: 12px; }
-    #judge-search { flex: 1; max-width: 320px; padding: 6px 10px; background: #111; color: #fff; border: 1px solid #555; font-size: 14px; }
-    #judge-search:focus { border-color: #c48f06; outline: none; }
+    #judge-search { flex: 1; max-width: 320px; padding: 6px 10px; background: var(--surface-deep); color: var(--color-text); border: 1px solid var(--border); font-size: 14px; }
+    #judge-search:focus { border-color: var(--color-accent-strong); outline: none; }
 
 .judges-wrap
     h3 Manage Judges

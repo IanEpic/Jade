@@ -2,13 +2,13 @@
 //- Equiv of $form_blank / $form_edit in formEntry.cgi.
 
 style.
-    .req { color: #c48f06; margin-left: 2px; }
-    .req-note { font-size: 12px; color: #888; margin-bottom: 10px; }
+    .req { color: var(--color-accent-strong); margin-left: 2px; }
+    .req-note { font-size: 12px; color: var(--text-dim); margin-bottom: 10px; }
 
 - let isEdit = mode === 'edit'
 
 if errors && errors.length
-    div(style='background:#5a0000; color:#fff; border-left:4px solid #c44; padding:10px 14px; margin-bottom:14px;')
+    div(style='background:#5a0000; color:var(--color-text); border-left:4px solid #c44; padding:10px 14px; margin-bottom:14px;')
         each err in errors
             p(style='margin:2px 0')= err
 
@@ -17,8 +17,8 @@ if isEdit
     br
     br
 else
-    p(style='text-align:center; color:#c48f06; font-size:18px; margin-bottom:2px') Start a New Entry
-    p(style='text-align:center; color:#aaa; font-size:13px; margin-top:0; margin-bottom:16px') Step 3 — Set up your entry below and then proceed to the questions
+    p(style='text-align:center; color:var(--color-accent-strong); font-size:18px; margin-bottom:2px') Start a New Entry
+    p(style='text-align:center; color:var(--text-arrow); font-size:13px; margin-top:0; margin-bottom:16px') Step 3 — Set up your entry below and then proceed to the questions
 
 p.req-note
     span.req *

@@ -2,32 +2,32 @@
 
 style.
     .disc-wrap { max-width: 900px; margin: 0 auto; }
-    .disc-wrap h3 { color: #c48f06; font-size: 18px; text-align: center; margin-bottom: 16px; }
+    .disc-wrap h3 { color: var(--color-accent-strong); font-size: 18px; text-align: center; margin-bottom: 16px; }
     .disc-table { border-collapse: collapse; width: 100%; }
-    .disc-table th { font-size: 11px; text-transform: uppercase; color: #c48f06; border-bottom: 1px solid #555; padding: 4px 8px; text-align: left; white-space: nowrap; }
-    .disc-table td { padding: 5px 8px; border-bottom: 1px solid #1e1e1e; vertical-align: middle; font-size: 11px; color: #fff; }
+    .disc-table th { font-size: 11px; text-transform: uppercase; color: var(--color-accent-strong); border-bottom: 1px solid var(--border); padding: 4px 8px; text-align: left; white-space: nowrap; }
+    .disc-table td { padding: 5px 8px; border-bottom: 1px solid var(--surface-1); vertical-align: middle; font-size: 11px; color: var(--color-text); }
     .disc-table .disc-actions a { margin-right: 10px; font-size: 12px; }
     .disc-table tr.hidden { display: none; }
     .disc-toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
-    #disc-search { flex: 1; max-width: 320px; padding: 6px 10px; background: #111; color: #fff; border: 1px solid #555; font-size: 14px; }
-    #disc-search:focus { border-color: #c48f06; outline: none; }
+    #disc-search { flex: 1; max-width: 320px; padding: 6px 10px; background: var(--surface-deep); color: var(--color-text); border: 1px solid var(--border); font-size: 14px; }
+    #disc-search:focus { border-color: var(--color-accent-strong); outline: none; }
     .badge { display: inline-block; padding: 2px 7px; border-radius: 3px; font-size: 10px; font-weight: 600; }
     .badge-eb   { background: #1a4a1a; color: #4caf50; }
     .badge-code { background: #1a2a4a; color: #64b5f6; }
-    .badge-off  { background: #3a2a00; color: #888; }
-    .disc-form-wrap { display: none; background: #111; border: 1px solid #555; border-radius: 4px; padding: 16px 18px; margin-bottom: 16px; }
-    .disc-form-wrap h4 { color: #c48f06; margin: 0 0 12px; font-size: 15px; }
-    .disc-form fieldset { border: 1px solid #555; border-radius: 4px; padding: 14px 18px; margin-bottom: 16px; }
-    .disc-form legend { font-weight: bold; padding: 0 6px; color: #c48f06; }
+    .badge-off  { background: #3a2a00; color: var(--text-dim); }
+    .disc-form-wrap { display: none; background: var(--surface-deep); border: 1px solid var(--border); border-radius: 4px; padding: 16px 18px; margin-bottom: 16px; }
+    .disc-form-wrap h4 { color: var(--color-accent-strong); margin: 0 0 12px; font-size: 15px; }
+    .disc-form fieldset { border: 1px solid var(--border); border-radius: 4px; padding: 14px 18px; margin-bottom: 16px; }
+    .disc-form legend { font-weight: bold; padding: 0 6px; color: var(--color-accent-strong); }
     .disc-form table { border-collapse: collapse; width: 100%; }
     .disc-form td { padding: 5px 8px; vertical-align: middle; }
     .disc-form td:first-child { text-align: right; width: 130px; padding-right: 10px; white-space: nowrap; }
-    .disc-form input[type=text], .disc-form input[type=number], .disc-form input[type=date], .disc-form select { background: #1a1a1a; color: #eee; border: 1px solid #555; padding: 5px 8px; border-radius: 3px; font-size: 13px; }
+    .disc-form input[type=text], .disc-form input[type=number], .disc-form input[type=date], .disc-form select { background: var(--surface); color: #eee; border: 1px solid var(--border); padding: 5px 8px; border-radius: 3px; font-size: 13px; }
     .disc-form input[type=date]::-webkit-calendar-picker-indicator { filter: invert(1); }
     .disc-form input[type=text] { width: 220px; }
     .disc-form .form-actions { margin-top: 12px; display: flex; gap: 10px; align-items: center; }
-    .alert-ok  { background: #1a4a1a; color: #fff; padding: 8px 12px; border-left: 4px solid #4caf50; margin-bottom: 14px; }
-    .alert-err { background: #7a2a00; color: #fff; padding: 8px 12px; border-left: 4px solid #c44; margin-bottom: 14px; }
+    .alert-ok  { background: #1a4a1a; color: var(--color-text); padding: 8px 12px; border-left: 4px solid #4caf50; margin-bottom: 14px; }
+    .alert-err { background: #7a2a00; color: var(--color-text); padding: 8px 12px; border-left: 4px solid #c44; margin-bottom: 14px; }
     #code-row { display: none; }
 
 .disc-wrap
@@ -120,7 +120,7 @@ style.
                             a(href='/home?action=discounts&discountid=' + d.discountid title='Edit') ✏️
                             a(href='/home?action=discounts&delete=' + d.discountid data-confirm='Delete this discount?' title='Delete' style='color:#c44') ✕
     else
-        p(style='color:#888; font-size:13px') No discounts configured.
+        p(style='color:var(--text-dim); font-size:13px') No discounts configured.
 
 script(src='/js/jade.js?v=' + buildHash)
 script(src='/js/home-discount.js?v=' + buildHash)

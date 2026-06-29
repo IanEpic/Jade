@@ -2,26 +2,26 @@
 
 style.
     .q-wrap { max-width: 900px; margin: 0 auto; }
-    .q-wrap h3 { color: #c48f06; font-size: 18px; text-align: center; margin-bottom: 16px; }
+    .q-wrap h3 { color: var(--color-accent-strong); font-size: 18px; text-align: center; margin-bottom: 16px; }
     .q-table { border-collapse: collapse; width: 100%; }
-    .q-table th { font-size: 11px; text-transform: uppercase; color: #c48f06; border-bottom: 1px solid #555; padding: 4px 8px; text-align: left; white-space: nowrap; }
-    .q-table td { padding: 5px 8px; border-bottom: 1px solid #1e1e1e; vertical-align: middle; }
-    .q-table .q-text { font-size: 11px; color: #fff; }
-    .q-table .q-desc { font-size: 11px; color: #888; margin-top: 2px; }
+    .q-table th { font-size: 11px; text-transform: uppercase; color: var(--color-accent-strong); border-bottom: 1px solid var(--border); padding: 4px 8px; text-align: left; white-space: nowrap; }
+    .q-table td { padding: 5px 8px; border-bottom: 1px solid var(--surface-1); vertical-align: middle; }
+    .q-table .q-text { font-size: 11px; color: var(--color-text); }
+    .q-table .q-desc { font-size: 11px; color: var(--text-dim); margin-top: 2px; }
     .q-table .q-actions a { margin-right: 10px; font-size: 12px; }
-    .q-table .q-type { font-size: 10px; background: #333; color: #bbb; border-radius: 3px; padding: 1px 6px; white-space: nowrap; }
-    .q-table input[type=text] { background: #111; color: #eee; border: 1px solid #555; padding: 3px 5px; border-radius: 3px; width: 45px; text-align: center; }
+    .q-table .q-type { font-size: 10px; background: var(--border-subtle); color: var(--text-label); border-radius: 3px; padding: 1px 6px; white-space: nowrap; }
+    .q-table input[type=text] { background: var(--surface-deep); color: #eee; border: 1px solid var(--border); padding: 3px 5px; border-radius: 3px; width: 45px; text-align: center; }
     .q-toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
     .q-toolbar a { font-size: 13px; white-space: nowrap; margin-left: 12px; }
-    #q-list-search { flex: 1; max-width: 320px; padding: 6px 10px; background: #111; color: #fff; border: 1px solid #555; font-size: 14px; }
-    #q-list-search:focus { border-color: #c48f06; outline: none; }
+    #q-list-search { flex: 1; max-width: 320px; padding: 6px 10px; background: var(--surface-deep); color: var(--color-text); border: 1px solid var(--border); font-size: 14px; }
+    #q-list-search:focus { border-color: var(--color-accent-strong); outline: none; }
     .q-table tr.hidden { display: none; }
 
 .q-wrap
     h3 Manage Questions
 
 if content.success
-    p(style='background:#1a4a1a; color:#fff; padding:8px 12px; border-left:4px solid #4caf50; margin-bottom:14px') Saved.
+    p(style='background:#1a4a1a; color:var(--color-text); padding:8px 12px; border-left:4px solid #4caf50; margin-bottom:14px') Saved.
 
 form(method='POST' action='/formQuestion')
     input(type='hidden' name='type' value=content.type)
@@ -31,7 +31,7 @@ form(method='POST' action='/formQuestion')
         input#q-list-search(type='text' placeholder='Search questions…' data-filter='.q-table tbody tr')
         a#btn-new-q(href='#') + New Question
 
-    div#new-q-form(style='display:none; margin-bottom:16px; padding:12px; background:#111; border:1px solid #555; border-radius:4px; max-width:600px')
+    div#new-q-form(style='display:none; margin-bottom:16px; padding:12px; background:var(--surface-deep); border:1px solid var(--border); border-radius:4px; max-width:600px')
         table(style='width:100%')
             tr
                 td(style='white-space:nowrap; padding-right:8px; width:1%; vertical-align:top; padding-top:6px') Question text
@@ -56,7 +56,7 @@ form(method='POST' action='/formQuestion')
                 td(style='padding-right:8px; padding-top:6px; vertical-align:top') Options
                 td(style='padding-top:6px')
                     textarea#new-q-options(rows='4' style='width:100%; box-sizing:border-box' placeholder='One option per line')
-                    div(style='font-size:11px; color:#888; margin-top:2px') Enter each option on a new line
+                    div(style='font-size:11px; color:var(--text-dim); margin-top:2px') Enter each option on a new line
         div(style='margin-top:10px; display:flex; gap:8px; align-items:center')
             button#new-q-save.btn(type='button') Add Question
             a#new-q-cancel.btn-secondary(href='#') Cancel
@@ -74,7 +74,7 @@ form(method='POST' action='/formQuestion')
         tbody
             each q, i in content.questions
                 tr
-                    td(style='color:#888; width:30px')= q.questionid
+                    td(style='color:var(--text-dim); width:30px')= q.questionid
                     td
                         div.q-text= q.questiontext
                         if q.description

@@ -2,18 +2,18 @@
 
 style.
     .tc-wrap { max-width: 860px; min-width: 600px; margin: 0 auto; font-size: 14px; }
-    .tc-wrap h2 { text-align: center; color: #c48f06; margin-bottom: 20px; }
-    .tc-step { text-align: center; color: #aaa; font-size: 13px; margin-top: 0; margin-bottom: 16px; }
-    .tc-body { background: #111; border: 1px solid #555; border-radius: 4px; padding: 18px 24px; margin-bottom: 18px; color: #ccc; line-height: 1.7; text-align: left; }
+    .tc-wrap h2 { text-align: center; color: var(--color-accent-strong); margin-bottom: 20px; }
+    .tc-step { text-align: center; color: var(--text-arrow); font-size: 13px; margin-top: 0; margin-bottom: 16px; }
+    .tc-body { background: var(--surface-deep); border: 1px solid var(--border); border-radius: 4px; padding: 18px 24px; margin-bottom: 18px; color: var(--color-muted); line-height: 1.7; text-align: left; }
     .tc-body p { margin: 0 0 12px; }
     .tc-body ol, .tc-body ul { padding-left: 22px; margin: 0 0 12px; }
     .tc-body li { margin-bottom: 8px; }
-    .tc-body a { color: #c48f06; }
-    .tc-body a:hover { color: #cf9702; }
-    .tc-agree { background: #111; border: 1px solid #555; border-radius: 4px; padding: 14px 18px; margin-bottom: 14px; }
+    .tc-body a { color: var(--color-accent-strong); }
+    .tc-body a:hover { color: var(--color-accent); }
+    .tc-agree { background: var(--surface-deep); border: 1px solid var(--border); border-radius: 4px; padding: 14px 18px; margin-bottom: 14px; }
     .tc-agree label { display: flex; align-items: flex-start; gap: 10px; line-height: 1.5; cursor: pointer; }
-    .tc-agree input[type=checkbox] { margin-top: 3px; flex-shrink: 0; accent-color: #c48f06; width: 15px; height: 15px; }
-    .form-actions { display: flex; justify-content: center; gap: 10px; padding-top: 12px; border-top: 1px solid #333; }
+    .tc-agree input[type=checkbox] { margin-top: 3px; flex-shrink: 0; accent-color: var(--color-accent-strong); width: 15px; height: 15px; }
+    .form-actions { display: flex; justify-content: center; gap: 10px; padding-top: 12px; border-top: 1px solid var(--border-subtle); }
 
 if mode === 'closed'
     .tc-wrap
@@ -23,7 +23,7 @@ if mode === 'closed'
 
 else
     if error
-        div(style='background:#5a0000; color:#fff; border-left:4px solid #c44; padding:10px 14px; margin-bottom:14px; border-radius:3px;')
+        div(style='background:#5a0000; color:var(--color-text); border-left:4px solid #c44; padding:10px 14px; margin-bottom:14px; border-radius:3px;')
             p(style='margin:2px 0') You must agree to the terms and conditions to proceed.
             p(style='margin:2px 0') Please click the checkbox at the bottom of this form.
 

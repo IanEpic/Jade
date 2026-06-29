@@ -21,7 +21,7 @@ each j in scorePanel.judges
         each type in ['excel', 'improve', 'other']
             - var cm = (j.comments || []).find(x => x.type === type && x.comment)
             if cm
-                .ve-ctype(style='font-size:11px;text-transform:uppercase;letter-spacing:0.05em;color:#888;margin-top:8px')= type === 'excel' ? 'Excelled' : (type === 'improve' ? 'Could improve' : 'Other')
-                div(style='white-space:pre-wrap;color:#ddd')= cm.comment
+                .ve-ctype(style='font-size:11px;text-transform:uppercase;letter-spacing:0.05em;color:var(--text-dim);margin-top:8px')= type === 'excel' ? 'Excelled' : (type === 'improve' ? 'Could improve' : 'Other')
+                div(style='white-space:pre-wrap;color:var(--text-strong)')= cm.comment
         if !(j.scores && j.scores.length) && !(j.comments && j.comments.some(c => c.comment))
-            div(style='color:#888;font-style:italic') Not yet judged.
+            div(style='color:var(--text-dim);font-style:italic') Not yet judged.

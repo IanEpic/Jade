@@ -11,11 +11,11 @@
 - var allCriteria     = scorePanel.criteria || []
 
 style.
-    .hj-ctype { font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: #888; margin-top: 8px; }
-    .hj-comment { white-space: pre-wrap; color: #ddd; margin-top: 2px; }
-    .hj-note { font-size: 12px; color: #c48f06; margin: 2px 0 8px; }
-    .hj-form textarea { width: 100%; box-sizing: border-box; background: #111; color: #fff; border: 1px solid #555; border-radius: 4px; padding: 8px 10px; font-family: inherit; font-size: 14px; margin: 6px 0 10px; }
-    .hj-form textarea:focus { border-color: #c48f06; outline: none; }
+    .hj-ctype { font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-dim); margin-top: 8px; }
+    .hj-comment { white-space: pre-wrap; color: var(--text-strong); margin-top: 2px; }
+    .hj-note { font-size: 12px; color: var(--color-accent-strong); margin: 2px 0 8px; }
+    .hj-form textarea { width: 100%; box-sizing: border-box; background: var(--surface-deep); color: var(--color-text); border: 1px solid var(--border); border-radius: 4px; padding: 8px 10px; font-family: inherit; font-size: 14px; margin: 6px 0 10px; }
+    .hj-form textarea:focus { border-color: var(--color-accent-strong); outline: none; }
 
 //- ── Lead / chair: per-judge breakdown ───────────────────────────────────────
 if scorePanel.judges && scorePanel.judges.length
@@ -40,7 +40,7 @@ if scorePanel.judges && scorePanel.judges.length
                     .hj-ctype= type === 'excel' ? 'Excelled' : (type === 'improve' ? 'Could improve' : 'Other')
                     .hj-comment= cm.comment
             if !(j.scores && j.scores.length) && !(j.comments && j.comments.some(c => c.comment))
-                div(style='color:#888;font-style:italic') Not yet judged.
+                div(style='color:var(--text-dim);font-style:italic') Not yet judged.
 
 //- ── Regular category judge: comments only, anonymised ───────────────────────
 else

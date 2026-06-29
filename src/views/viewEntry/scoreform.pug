@@ -64,7 +64,7 @@ form(method='POST' action='/recordScores')
                 label Do you have any other constructive comments that may assist this entrant?
                 textarea(name='comment~other' rows='5')= scorePanel.other
 
-    - let feedbackStyle = 'background:#c0392b;color:#fff;padding:12px;margin-bottom:8px;border-radius:4px;' + (scorePanel.commentFeedback ? '' : 'display:none;')
+    - let feedbackStyle = 'background:#c0392b;color:var(--color-text);padding:12px;margin-bottom:8px;border-radius:4px;' + (scorePanel.commentFeedback ? '' : 'display:none;')
     div#comment-feedback(style=feedbackStyle)
         b Your comments could not be saved — please review the feedback below and make changes before resubmitting:
         br
