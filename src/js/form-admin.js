@@ -1,12 +1,14 @@
 // form-admin.js — program admin form: accordion toggle + lazy TinyMCE init
 
+// Match the editor skin to the program theme (light themes use the light oxide skin).
+var THEME_DARK = !(document.body && document.body.dataset && document.body.dataset.theme === 'light');
 var TINYMCE_CONFIG = {
     plugins:  'anchor autolink lists link image table code fullscreen',
     toolbar:  'undo redo | blocks | bold italic underline | forecolor backcolor | alignleft aligncenter alignright | bullist numlist | link image table | code fullscreen',
     menubar:  false,
     height:   250,
-    skin:     'oxide-dark',
-    content_css: 'dark',
+    skin:        THEME_DARK ? 'oxide-dark' : 'oxide',
+    content_css: THEME_DARK ? 'dark' : 'default',
     promotion: false,
 };
 

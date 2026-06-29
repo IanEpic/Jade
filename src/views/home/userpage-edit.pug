@@ -69,14 +69,15 @@ script(nonce=nonce).
         function init() {
             if (typeof tinymce === 'undefined') { return setTimeout(init, 50); }
             if (tinymce.get('page-html')) return;
+            var dark = !(document.body && document.body.dataset && document.body.dataset.theme === 'light');
             tinymce.init({
                 selector: '#page-html',
                 plugins: 'anchor autolink lists link image table code fullscreen',
                 toolbar: 'undo redo | blocks | bold italic underline | forecolor backcolor | alignleft aligncenter alignright | bullist numlist | link image table | code fullscreen',
                 menubar: false,
                 height: 400,
-                skin: 'oxide-dark',
-                content_css: 'dark',
+                skin: dark ? 'oxide-dark' : 'oxide',
+                content_css: dark ? 'dark' : 'default',
                 promotion: false,
             });
         }

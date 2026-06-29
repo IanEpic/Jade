@@ -70,6 +70,7 @@ Program.init(
     entryclosedate:             { type: DataTypes.STRING(30) },
     lockscores:                 { type: DataTypes.BOOLEAN, defaultValue: false },
     docheaderimage:             { type: DataTypes.STRING(255) },
+    theme:                      { type: DataTypes.TEXT },
   },
   {
     sequelize,

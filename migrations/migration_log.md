@@ -391,3 +391,16 @@ the build survives navigating away / request timeout. Mirrors the PrExport job p
 does not touch downloadpagehtml (only a Generate run rewrites that).
 
 - Applied to DEV (local): 2026-06-29 ✓  | PROD: 2026-06-29 ✓
+
+## 076 — Program.theme (per-program design tokens / look & feel)
+
+`076_program_theme.sql`
+
+Adds `Program.theme` NVARCHAR(MAX) NULL — JSON design tokens (colours/background/fonts/mode) for
+token-driven programs (1057+). When set, the app renders via the shared themed shell with these
+tokens injected as :root overrides (services/theme.js), and `<body data-theme>` carries light/dark
+so client widgets (TinyMCE skin) match. NULL = legacy program (≤1056) → unchanged filename HTML
+shell. Additive + dormant; nothing reads it until a program has a theme. Part of the Theme
+Foundation ([[theme-foundation-spec]]); built on master as dormant-for-≤1056 commits.
+
+- Applied to DEV (local): 2026-06-29 ✓  | PROD: pending (theme foundation not finished)

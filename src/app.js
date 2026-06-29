@@ -17,6 +17,7 @@ import { autoCloseAllPrograms } from './services/autoClose.js';
 import { startCommentReviewJob } from './services/commentReviewJob.js';
 import { startPrExportJob } from './services/prExportJob.js';
 import { startCqDocsJob } from './services/cqDocsJob.js';
+import { parseTheme, buildThemedShell } from './services/theme.js';
 import { startLeaderLoop } from './services/jobLease.js';
 import { resolveProgram } from './middleware/resolveProgram.js';
 import rootLoginRouter   from './routes/rootLogin.js';
@@ -230,14 +231,23 @@ app.use((req, res, next) => {
       const program = req.program || locals.program;
       if (!program) throw new Error('No program on request');
 
-      const shellFile = options.useLoginShell ? program.loginhtml : program.standardhtml;
-      const shellPath = path.join(TEMPLATE_ROOT, shellFile);
-
+      // Themed programs (1057+): shared themed shell with :root token overrides injected.
+      // Legacy programs (≤1056, no theme): the filename HTML shell from TEMPLATE_ROOT — unchanged.
       let shell;
-      try {
-        shell = await getShell(shellPath);
-      } catch {
-        throw new Error(`Template shell not found: ${shellPath}`);
+      const theme = parseTheme(program);
+      if (theme) {
+        shell = buildThemedShell(program, theme, {
+          useLoginShell: options.useLoginShell,
+          buildHash: res.locals.buildHash,
+        });
+      } else {
+        const shellFile = options.useLoginShell ? program.loginhtml : program.standardhtml;
+        const shellPath = path.join(TEMPLATE_ROOT, shellFile);
+        try {
+          shell = await getShell(shellPath);
+        } catch {
+          throw new Error(`Template shell not found: ${shellPath}`);
+        }
       }
 
       // For legacy HTML shells, render the -content partial (no extends layout)

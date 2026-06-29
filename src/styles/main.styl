@@ -34,6 +34,19 @@
   --footer-bg             #000
   // Overlays
   --row-hover             rgba(255,255,255,0.04)
+  // Neutral surfaces & text (used by the inline style blocks across admin/feature pages)
+  --surface               #1a1a1a
+  --surface-sunken        #151515
+  --surface-raised        #2a2a2a
+  --border-mid            #666
+  --border-dashed         #444
+  --border-row            #383838
+  --text-strong           #ddd
+  --text-label            #bbb
+  --text-dim              #888
+  --text-faint            #777
+  --text-fainter          #999
+  --text-arrow            #aaa
 
 // ── Variables ─────────────────────────────────────────────────────────────────
 font-stack       = 'Avalon', sans-serif
@@ -516,3 +529,24 @@ select
     background rgba(255, 255, 255, 0.1)
     color color-text
     border-left 4px solid color-link
+
+// ── Themed-program shell (1057+; inert for legacy ≤1056 — no .themed elements) ────
+// Themed bodies don't inherit the eventawards background image; their theme sets its own (or none).
+body.themed
+  background-image none
+
+.themed-header
+  background var(--header-bg)
+  padding 14px 20px
+  text-align center
+  border-bottom 1px solid var(--border-faint)
+
+.themed-logo
+  max-height 56px
+  width auto
+  display inline-block
+
+.themed-title
+  color var(--color-text)
+  font-size 22px
+  font-weight 600
