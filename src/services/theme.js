@@ -282,31 +282,43 @@ ${footer}
 
 // ── Transactional email shell ──────────────────────────────────────────────────
 // Content partials use CSS custom properties (var(--token)), which email clients don't support, so
-// resolve them to literal values before sending. Themed programs (1057+) get a token-driven inline
-// branded shell; legacy programs (≤1056) keep their emailhtml file (vars resolved to dark defaults
-// so 1056 invoice emails render correctly).
+// resolve them to literal values before sending. Emails are ALWAYS LIGHT (a dark email is unwieldy
+// in an inbox): a branded masthead (the program's header colour + portal logo, so even a white logo
+// shows) over a white body with dark text. Themed programs (1057+) use buildThemedEmail; legacy
+// programs (≤1056) keep their emailhtml file (vars resolved to dark defaults to match 1056's design).
 
 export function resolveCssVars(html, tokens) {
     const t = tokens || DEFAULT_TOKENS;
     return String(html).replace(/var\(\s*--([a-z0-9-]+)\s*\)/gi, (m, k) => t[k] || DEFAULT_TOKENS[k] || m);
 }
 
+// Light body palette for email, carrying the program's brand/accent colours so links & buttons stay
+// on-brand while surfaces/text/borders are light (readable in any inbox).
+function emailLightTokens(theme) {
+    const t = (theme && theme.tokens) || {};
+    const base = Object.assign({}, DEFAULT_TOKENS, LIGHT_PRESET);
+    ['color-accent', 'color-accent-strong', 'color-accent-nav', 'color-link', 'on-accent', 'btn-bg', 'btn-text']
+        .forEach(k => { if (t[k]) base[k] = t[k]; });
+    return base;
+}
+
 export function buildThemedEmail(program, theme, contentHtml) {
-    const tk = Object.assign({}, DEFAULT_TOKENS, (theme && theme.tokens) || {});
+    const themeTk = Object.assign({}, DEFAULT_TOKENS, (theme && theme.tokens) || {}); // masthead (program header colour)
+    const lt = emailLightTokens(theme);                                              // light body + brand accent
     const title = (program.name || 'JADE Awards').replace(/[<>]/g, '');
     const base = (server.baseUrl || '').replace(/\/+$/, '');
     const logo = theme && theme.logo ? `${base}/${program.slug}/admin/themelogo` : null;
     const headerInner = logo
         ? `<img src="${logo}" alt="${title}" style="max-height:50px;max-width:260px;">`
-        : `<span style="color:${tk['header-text']};font-size:20px;font-weight:600;">${title}</span>`;
+        : `<span style="color:${themeTk['header-text']};font-size:20px;font-weight:600;">${title}</span>`;
     const footer = safeFooter(theme && theme.footer) || `&copy; ${new Date().getFullYear()} ${title}`;
-    const body = resolveCssVars(contentHtml, tk);
+    const body = resolveCssVars(contentHtml, lt);
     return `<!doctype html>
-<html><body style="margin:0;padding:24px 12px;background:${tk['color-bg']};font-family:Arial,Helvetica,sans-serif;">
-<table align="center" width="600" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;width:100%;margin:0 auto;background:${tk['surface']};border:1px solid ${tk['border']};border-radius:8px;overflow:hidden;">
-<tr><td style="background:${tk['header-bg']};padding:18px 24px;text-align:center;">${headerInner}</td></tr>
-<tr><td style="padding:24px;color:${tk['color-text']};font-size:14px;line-height:1.55;">${body}</td></tr>
-<tr><td style="background:${tk['footer-bg']};padding:16px 24px;text-align:center;color:${tk['color-muted']};font-size:12px;border-top:1px solid ${tk['border']};">${footer}</td></tr>
+<html><body style="margin:0;padding:24px 12px;background:${lt['color-bg']};font-family:Arial,Helvetica,sans-serif;">
+<table align="center" width="600" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;width:100%;margin:0 auto;background:${lt['surface']};border:1px solid ${lt['border']};border-radius:8px;overflow:hidden;">
+<tr><td style="background:${themeTk['header-bg']};padding:18px 24px;text-align:center;">${headerInner}</td></tr>
+<tr><td style="padding:24px;color:${lt['color-text']};font-size:14px;line-height:1.55;">${body}</td></tr>
+<tr><td style="background:${lt['surface-2']};padding:16px 24px;text-align:center;color:${lt['color-muted']};font-size:12px;border-top:1px solid ${lt['border']};">${footer}</td></tr>
 </table></body></html>`;
 }
 
