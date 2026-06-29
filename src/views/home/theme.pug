@@ -66,9 +66,7 @@ style.
     .tp-sub-row { display: flex; align-items: center; gap: 10px; padding: 6px 0; }
     .tp-sub-row label { width: 150px; flex-shrink: 0; font-size: 12px; color: var(--text-dim); }
     .tp-preview-wrap { width: 280px; flex-shrink: 0; position: sticky; top: 12px; }
-    .tp-preview-card { border: 1px solid var(--border-mid); border-radius: 8px; overflow: hidden; }
-    .tp-preview-head { background: var(--surface-sunken); color: var(--text-label); font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; padding: 8px 14px; border-bottom: 1px solid var(--border); }
-    #tp-preview { padding: 16px; background-size: cover; background-position: center; }
+    #tp-preview { padding: 14px; border-radius: 6px; background: var(--color-bg); background-size: cover; background-position: center; }
     select.tp-text { -webkit-appearance: menulist; }
     @media (max-width: 720px) { .tp-cols { flex-direction: column; } .tp-preview-wrap { width: 100%; position: static; } }
 
@@ -165,10 +163,9 @@ style.
                         select.tp-text(data-font='heading')
                             each f in fonts
                                 option(value=f.stack data-google=f.google selected=(font.heading===f.stack))= f.name
-                    p.field-hint(style='margin:6px 0 0') The page background colour is set by #[b Page background] in Core Colours above.
             .tp-preview-wrap
-                .tp-preview-card
-                    .tp-preview-head Live Preview
+                fieldset(style='margin:0')
+                    legend Live Preview
                     #tp-preview(style=previewStyle)
                         h2(style='color:var(--color-accent-strong);margin:0 0 8px;font-size:18px') Heading
                         p(style='color:var(--color-muted);margin:0 0 10px;font-size:13px') Body text in the muted colour, with a #[a(href='#' style='color:var(--color-link)') link] inside it.
